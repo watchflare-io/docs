@@ -1,0 +1,91 @@
+---
+import { nav } from "@utils/nav";
+
+const pathname = Astro.url.pathname;
+---
+
+<aside class="sidebar" data-pagefind-ignore>
+    <nav class="sidebar__nav" aria-label="Documentation sidebar">
+        {
+            nav.map((group) => (
+                <div class="sidebar__group">
+                    <h5 class="sidebar__group-title">{group.title}</h5>
+                    {group.items.map((item) => (
+                        <a
+                            href={item.href}
+                            class:list={[
+                                "sidebar__link",
+                                { "sidebar__link--child": item.child },
+                                {
+                                    "sidebar__link--active":
+                                        pathname === item.href,
+                                },
+                            ]}
+                        >
+                            {item.label}
+                        </a>
+                    ))}
+                </div>
+            ))
+        }
+    </nav>
+</aside>
+
+<style>
+    .sidebar {
+        padding: 32px 12px 64px 24px;
+        border-inline-end: 1px solid var(--border);
+    }
+
+    .sidebar__nav {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .sidebar__group-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--foreground-subtle);
+        margin-bottom: 6px;
+        padding-inline-start: 8px;
+    }
+
+    .sidebar__link {
+        display: block;
+        font-size: 14px;
+        color: var(--foreground-muted);
+        padding: 4px 8px;
+        border-radius: var(--radius-md);
+        transition:
+            color 0.1s,
+            background 0.1s;
+        line-height: 1.5;
+    }
+
+    .sidebar__link:hover {
+        color: var(--foreground);
+        background: color-mix(
+            in oklch,
+            var(--foreground) 6%,
+            var(--background)
+        );
+    }
+
+    .sidebar__link--active {
+        color: var(--foreground);
+        background: color-mix(
+            in oklch,
+            var(--foreground) 6%,
+            var(--background)
+        );
+        font-weight: 500;
+    }
+
+    .sidebar__link--child {
+        padding-inline-start: 20px;
+        font-size: 13px;
+    }
+</style>

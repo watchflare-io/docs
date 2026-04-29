@@ -7,11 +7,16 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "dev:search": "pnpm build && cp -r dist/pagefind public/ && astro dev",
+    "build": "astro build && npx -y pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/mdx": "^5.0.4",
     "astro": "^6.1.9"
+  },
+  "devDependencies": {
+    "pagefind": "^1.5.2"
   }
 }

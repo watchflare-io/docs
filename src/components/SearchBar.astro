@@ -1,0 +1,15 @@
+---
+import Icon from "@components/Icon.astro";
+---
+
+<button
+    class="search-bar"
+    id="search-trigger"
+    aria-label="Search documentation"
+>
+    <Icon name="search" size={14} />
+    <span class="search-bar__ph">Search</span>
+    <kbd class="search-bar__kbd wf-kbd">⌘K</kbd>
+</button>
+
+<!-- Open/close logic in Search.astro — styles in global.css -->

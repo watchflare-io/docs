@@ -1,0 +1,167 @@
+---
+interface Props {
+    href: string;
+    title: string;
+    description: string;
+    cta?: string;
+    meta?: string;
+    primary?: boolean;
+}
+
+const { href, title, description, cta = "Read guide", meta, primary = false } =
+    Astro.props;
+---
+
+<a href={href} class:list={["dhome__card", { "dhome__card--primary": primary }]}>
+    <div class="dhome__card-top">
+        <span class="dhome__card-icon"><slot name="icon" /></span>
+        {meta && <span class="dhome__card-meta">{meta}</span>}
+    </div>
+    <h3>{title}</h3>
+    <p>{description}</p>
+    <span class="dhome__card-cta">{cta} <span class="arr">→</span></span>
+</a>
+
+<style>
+    .dhome__card {
+        display: flex;
+        flex-direction: column;
+        padding: 24px;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-surface);
+        text-decoration: none;
+        color: var(--foreground);
+        min-height: 200px;
+        transition:
+            border-color 0.15s ease,
+            background 0.15s ease,
+            transform 0.15s ease;
+    }
+
+    .dhome__card:hover {
+        border-color: var(--foreground-subtle);
+        background: var(--surface);
+    }
+
+    .dhome__card:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
+
+    .dhome__card:hover .dhome__card-cta .arr {
+        transform: translateX(3px);
+    }
+
+    .dhome__card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        min-height: 22px;
+    }
+
+    .dhome__card-icon {
+        color: var(--primary);
+    }
+
+    .dhome__card-meta {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--foreground-muted);
+        padding: 3px 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-control);
+    }
+
+    .dhome__card h3 {
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin: 0 0 8px;
+        color: var(--foreground);
+    }
+
+    .dhome__card p {
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--foreground-muted);
+        margin: 0 0 20px;
+        flex: 1;
+    }
+
+    .dhome__card-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--primary);
+    }
+
+    .dhome__card-cta .arr {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        transition: transform 0.15s ease;
+    }
+
+    /* Primary card — inverted */
+    .dhome__card--primary {
+        background: var(--foreground);
+        color: var(--background);
+        border-color: var(--foreground);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dhome__card--primary::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+            circle at 100% 0%,
+            color-mix(in oklch, var(--primary) 22%, transparent) 0%,
+            transparent 55%
+        );
+        pointer-events: none;
+    }
+
+    .dhome__card--primary > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .dhome__card--primary:hover {
+        background: var(--foreground);
+        border-color: var(--foreground);
+        transform: translateY(-2px);
+    }
+
+    .dhome__card--primary .dhome__card-icon {
+        color: var(--background);
+    }
+
+    .dhome__card--primary .dhome__card-meta {
+        background: color-mix(in oklch, var(--background) 12%, transparent);
+        border-color: color-mix(in oklch, var(--background) 20%, transparent);
+        color: color-mix(in oklch, var(--background) 75%, transparent);
+    }
+
+    .dhome__card--primary h3 {
+        color: var(--background);
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+
+    .dhome__card--primary p {
+        color: color-mix(in oklch, var(--background) 72%, transparent);
+        font-size: 14px;
+    }
+
+    .dhome__card--primary .dhome__card-cta {
+        color: var(--background);
+    }
+</style>

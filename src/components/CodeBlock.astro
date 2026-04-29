@@ -1,0 +1,326 @@
+---
+import Icon from "@components/Icon.astro";
+
+interface Props {
+    tabs?: string[];
+    filename?: string;
+    lang?: string;
+}
+
+const { tabs, filename, lang } = Astro.props;
+const hasTabs = tabs && tabs.length > 0;
+const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
+---
+
+<div class="cb">
+    <div class="cb__header" role={hasTabs ? "tablist" : undefined}>
+        {
+            hasTabs &&
+                tabs.map((tab, i) => (
+                    <button
+                        class:list={["cb__tab", { "cb__tab--active": i === 0 }]}
+                        data-tab={tab}
+                        type="button"
+                        role="tab"
+                        id={`${cbId}-tab-${tab}`}
+                        aria-selected={i === 0 ? "true" : "false"}
+                        aria-controls={`${cbId}-pane-${tab}`}
+                    >
+                        {tab}
+                    </button>
+                ))
+        }
+        {!hasTabs && filename && <span class="cb__filename">{filename}</span>}
+        {!hasTabs && lang && <span class="cb__lang">{lang}</span>}
+        <button class="cb__copy" type="button" aria-label="Copy code">
+            <span class="cb__copy-icon"><Icon name="copy" size={13} /></span>
+            <span class="cb__copy-icon-done"
+                ><Icon name="check" size={13} /></span
+            >
+            <span class="cb__copy-label" aria-live="polite">Copy</span>
+        </button>
+    </div>
+    <div class="cb__content">
+        {
+            hasTabs ? (
+                <>
+                    {tabs.includes("Linux") && (
+                        <div
+                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "Linux" }]}
+                            data-pane="Linux"
+                            id={`${cbId}-pane-Linux`}
+                            role="tabpanel"
+                            aria-labelledby={`${cbId}-tab-Linux`}
+                            aria-hidden={tabs[0] !== "Linux" ? "true" : "false"}
+                        >
+                            <slot name="Linux" />
+                        </div>
+                    )}
+                    {tabs.includes("macOS") && (
+                        <div
+                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "macOS" }]}
+                            data-pane="macOS"
+                            id={`${cbId}-pane-macOS`}
+                            role="tabpanel"
+                            aria-labelledby={`${cbId}-tab-macOS`}
+                            aria-hidden={tabs[0] !== "macOS" ? "true" : "false"}
+                        >
+                            <slot name="macOS" />
+                        </div>
+                    )}
+                    {tabs.includes("Windows") && (
+                        <div
+                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "Windows" }]}
+                            data-pane="Windows"
+                            id={`${cbId}-pane-Windows`}
+                            role="tabpanel"
+                            aria-labelledby={`${cbId}-tab-Windows`}
+                            aria-hidden={tabs[0] !== "Windows" ? "true" : "false"}
+                        >
+                            <slot name="Windows" />
+                        </div>
+                    )}
+                    {tabs.includes("Docker") && (
+                        <div
+                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "Docker" }]}
+                            data-pane="Docker"
+                            id={`${cbId}-pane-Docker`}
+                            role="tabpanel"
+                            aria-labelledby={`${cbId}-tab-Docker`}
+                            aria-hidden={tabs[0] !== "Docker" ? "true" : "false"}
+                        >
+                            <slot name="Docker" />
+                        </div>
+                    )}
+                    {tabs.includes("npm") && (
+                        <div
+                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "npm" }]}
+                            data-pane="npm"
+                            id={`${cbId}-pane-npm`}
+                            role="tabpanel"
+                            aria-labelledby={`${cbId}-tab-npm`}
+                            aria-hidden={tabs[0] !== "npm" ? "true" : "false"}
+                        >
+                            <slot name="npm" />
+                        </div>
+                    )}
+                    {tabs.includes("pnpm") && (
+                        <div
+                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "pnpm" }]}
+                            data-pane="pnpm"
+                            id={`${cbId}-pane-pnpm`}
+                            role="tabpanel"
+                            aria-labelledby={`${cbId}-tab-pnpm`}
+                            aria-hidden={tabs[0] !== "pnpm" ? "true" : "false"}
+                        >
+                            <slot name="pnpm" />
+                        </div>
+                    )}
+                    {tabs.includes("yarn") && (
+                        <div
+                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "yarn" }]}
+                            data-pane="yarn"
+                            id={`${cbId}-pane-yarn`}
+                            role="tabpanel"
+                            aria-labelledby={`${cbId}-tab-yarn`}
+                            aria-hidden={tabs[0] !== "yarn" ? "true" : "false"}
+                        >
+                            <slot name="yarn" />
+                        </div>
+                    )}
+                </>
+            ) : (
+                <slot />
+            )
+        }
+    </div>
+</div>
+
+<script>
+    function initCodeBlock(cb: HTMLElement) {
+        if (cb.dataset.init) return;
+        cb.dataset.init = "1";
+
+        const tabBtns = cb.querySelectorAll<HTMLElement>(".cb__tab");
+        const panes = cb.querySelectorAll<HTMLElement>(".cb__pane");
+        const copyBtn = cb.querySelector<HTMLElement>(".cb__copy");
+        const copyLabel = cb.querySelector<HTMLElement>(".cb__copy-label");
+
+        tabBtns.forEach((tab) => {
+            tab.addEventListener("click", () => {
+                tabBtns.forEach((t) => {
+                    const active = t === tab;
+                    t.classList.toggle("cb__tab--active", active);
+                    t.setAttribute("aria-selected", active ? "true" : "false");
+                });
+                panes.forEach((p) => {
+                    const active = p.dataset.pane === tab.dataset.tab;
+                    p.classList.toggle("cb__pane--active", active);
+                    p.setAttribute("aria-hidden", active ? "false" : "true");
+                });
+            });
+        });
+
+        copyBtn?.addEventListener("click", async () => {
+            const pre =
+                panes.length > 0
+                    ? cb.querySelector<HTMLElement>(".cb__pane--active pre")
+                    : cb.querySelector<HTMLElement>(".cb__content pre");
+            if (!pre) return;
+            try {
+                await navigator.clipboard.writeText(pre.textContent ?? "");
+                copyBtn.classList.add("cb__copy--copied");
+                if (copyLabel) copyLabel.textContent = "Copied!";
+                setTimeout(() => {
+                    copyBtn.classList.remove("cb__copy--copied");
+                    if (copyLabel) copyLabel.textContent = "Copy";
+                }, 2000);
+            } catch {}
+        });
+    }
+
+    document.querySelectorAll<HTMLElement>(".cb").forEach(initCodeBlock);
+    document.addEventListener("astro:page-load", () => {
+        document.querySelectorAll<HTMLElement>(".cb").forEach(initCodeBlock);
+    });
+</script>
+
+<style is:global>
+    .cb {
+        --cb-bg: var(--code-dark-bg);
+        --cb-header: var(--code-dark-header);
+        --cb-border: var(--code-dark-border);
+        --cb-fg: var(--code-dark-fg);
+        --cb-fg-muted: var(--code-dark-fg-muted);
+        --cb-active: var(--code-dark-active);
+        --cb-green: var(--code-dark-green);
+
+        background: var(--cb-bg);
+        border: 1px solid var(--cb-border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin: 0 0 24px;
+    }
+
+    /* ── Header ── */
+    .cb__header {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 40px;
+        padding-inline: 16px 8px;
+        background: var(--cb-header);
+        border-bottom: 1px solid var(--cb-border);
+    }
+
+    /* ── Tabs ── */
+    .cb__tab {
+        padding: 5px 10px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--cb-fg-muted);
+        border-radius: var(--radius-control);
+        transition:
+            color 0.1s,
+            background 0.1s;
+        white-space: nowrap;
+    }
+
+    .cb__tab:hover {
+        color: var(--cb-fg);
+    }
+
+    .cb__tab--active {
+        background: var(--cb-active);
+        color: var(--cb-fg);
+    }
+
+    /* ── Filename ── */
+    .cb__filename {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--cb-fg-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* ── Lang badge ── */
+    .cb__lang {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--cb-fg-muted);
+    }
+
+    /* ── Copy button ── */
+    .cb__copy {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 26px;
+        padding: 0 8px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        color: var(--cb-fg-muted);
+        border-radius: var(--radius-control);
+        transition: color 0.1s;
+        white-space: nowrap;
+        margin-inline-start: auto;
+        margin-inline-end: 6px;
+    }
+
+    .cb__copy:hover {
+        color: var(--cb-fg);
+    }
+
+    .cb__copy-icon-done {
+        display: none;
+    }
+
+    .cb__copy--copied {
+        color: var(--cb-green);
+    }
+
+    .cb__copy--copied .cb__copy-icon {
+        display: none;
+    }
+
+    .cb__copy--copied .cb__copy-icon-done {
+        display: flex;
+    }
+
+    /* ── Panes ── */
+    .cb__pane {
+        display: none;
+    }
+
+    .cb__pane--active {
+        display: block;
+    }
+
+    /* ── Code content ── */
+    /* Higher specificity than .doc__prose pre — no !important needed */
+    .cb .cb__content pre {
+        background: var(--cb-bg);
+        color: var(--cb-fg);
+        border: none;
+        border-radius: 0;
+        margin: 0;
+        padding: 20px 24px;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--cb-border) transparent;
+    }
+
+    .cb .cb__content pre code {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--cb-fg);
+    }
+</style>

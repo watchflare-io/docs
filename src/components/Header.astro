@@ -1,0 +1,212 @@
+---
+import Icon from "@components/Icon.astro";
+import SearchBar from "@components/SearchBar.astro";
+import ThemeToggle from "@components/ThemeToggle.astro";
+import LanguageSelect from "@components/LanguageSelect.astro";
+import MobileMenu from "@components/MobileMenu.astro";
+
+const pathname = Astro.url.pathname;
+const isHome = pathname === "/";
+
+function isActive(prefix: string) {
+    return pathname.startsWith(prefix);
+}
+---
+
+<header class="dx-nav" data-pagefind-ignore>
+    <div class="dx-nav__inner">
+        <!-- Brand -->
+        <a href="/" class="dx-nav__brand">
+            <span class="dx-nav__mark">W</span>
+            <span class="dx-nav__name">Watchflare</span>
+            <span class="dx-nav__docs-tag">docs</span>
+        </a>
+
+        <!-- Nav links (hidden ≤768px) -->
+        <nav class="dx-nav__links" aria-label="Main navigation">
+            <a href="/" class:list={["dx-nav__link", { active: isHome }]}
+                >Home</a
+            >
+            <a
+                href="/get-started/quickstart"
+                class:list={[
+                    "dx-nav__link",
+                    {
+                        active:
+                            isActive("/get-started") ||
+                            isActive("/hub") ||
+                            isActive("/agents") ||
+                            isActive("/platform") ||
+                            isActive("/security"),
+                    },
+                ]}>Guides</a
+            >
+            <a
+                href="https://github.com/watchflare-io/watchflare/releases"
+                class="dx-nav__link"
+                target="_blank"
+                rel="noopener noreferrer">Changelog</a
+            >
+        </nav>
+
+        <!-- Right slot -->
+        <div class="dx-nav__right">
+            <SearchBar />
+
+            <!-- Desktop controls (hidden ≤768px) -->
+            <div class="dx-nav__desktop">
+                <ThemeToggle />
+                <LanguageSelect />
+                <a
+                    href="https://github.com/watchflare-io/watchflare"
+                    class="dx-nav__icon-btn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub repository"
+                >
+                    <Icon name="github" size={16} />
+                </a>
+            </div>
+
+            <!-- Mobile menu (visible ≤768px) -->
+            <MobileMenu />
+        </div>
+    </div>
+</header>
+
+<style>
+    .dx-nav {
+        position: fixed;
+        inset-block-start: 0;
+        inset-inline: 0;
+        height: var(--nav-height);
+        z-index: var(--z-nav);
+        background: color-mix(in oklch, var(--background) 85%, transparent);
+        backdrop-filter: saturate(180%) blur(12px);
+        border-block-end: 1px solid var(--border);
+    }
+
+    .dx-nav__inner {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 100%;
+        max-width: var(--container-max-width);
+        margin-inline: auto;
+        padding-inline: 20px;
+    }
+
+    /* ── Brand ─────────────────────────────────── */
+    .dx-nav__brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        margin-inline-end: 16px;
+    }
+
+    .dx-nav__mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        background: var(--primary);
+        color: var(--white);
+        font-family: var(--font-mono);
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: var(--radius-control);
+        flex-shrink: 0;
+    }
+
+    .dx-nav__name {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--foreground);
+    }
+
+    .dx-nav__docs-tag {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--foreground-muted);
+        padding-inline-start: 8px;
+        border-inline-start: 1px solid var(--border);
+        line-height: 1;
+    }
+
+    /* ── Nav links ──────────────────────────────── */
+    .dx-nav__links {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .dx-nav__link {
+        display: block;
+        font-size: 14px;
+        color: var(--foreground-muted);
+        padding: 5px 10px;
+        border-radius: var(--radius-md);
+        transition:
+            color 0.1s,
+            background 0.1s;
+        white-space: nowrap;
+    }
+
+    .dx-nav__link:hover {
+        color: var(--foreground);
+        background: var(--surface);
+    }
+
+    .dx-nav__link.active {
+        color: var(--foreground);
+        font-weight: 500;
+    }
+
+    /* ── Right slot ─────────────────────────────── */
+    .dx-nav__right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-inline-start: auto;
+    }
+
+    .dx-nav__desktop {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Icon-only button (GitHub) */
+    .dx-nav__icon-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-md);
+        color: var(--foreground-muted);
+        transition:
+            color 0.1s,
+            background 0.1s;
+        flex-shrink: 0;
+    }
+
+    .dx-nav__icon-btn:hover {
+        color: var(--foreground);
+        background: var(--surface);
+    }
+
+    /* ── Responsive ─────────────────────────────── */
+
+    /* --bp-md: 768px */
+    @media (max-width: 768px) {
+        .dx-nav__links {
+            display: none;
+        }
+        .dx-nav__desktop {
+            display: none;
+        }
+    }
+</style>

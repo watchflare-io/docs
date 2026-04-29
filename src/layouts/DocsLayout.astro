@@ -1,0 +1,219 @@
+---
+import Header from "@components/Header.astro";
+import Sidebar from "@components/Sidebar.astro";
+import TOC from "@components/TOC.astro";
+import MobileTOC from "@components/MobileTOC.astro";
+import Search from "@components/Search.astro";
+import "@styles/tokens.css";
+import "@styles/global.css";
+import "@styles/docs.css";
+import { SITE_URL, SITE_NAME } from "@consts";
+
+interface NavLink {
+    label: string;
+    href: string;
+}
+
+interface Props {
+    title: string;
+    description?: string;
+    headings?: { depth: number; slug: string; text: string }[];
+    prev?: NavLink;
+    next?: NavLink;
+}
+
+const { title, description, headings = [], prev, next } = Astro.props;
+
+const canonicalURL = SITE_URL + Astro.url.pathname.replace(/\/$/, '') || SITE_URL;
+const ogTitle = `${title} — ${SITE_NAME}`;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{title} — Watchflare Docs</title>
+        {description && <meta name="description" content={description} />}
+        <link rel="canonical" href={canonicalURL} />
+        <meta property="og:title" content={ogTitle} />
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalURL} />
+        <meta property="og:site_name" content={SITE_NAME} />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <!-- Theme init — must run before first paint to avoid flash -->
+        <script is:inline>
+            (function () {
+                var intent = localStorage.getItem("wf-theme-intent") || "auto";
+                if (intent !== "auto" && intent !== "light" && intent !== "dark") intent = "auto";
+                var resolved =
+                    intent === "auto"
+                        ? window.matchMedia("(prefers-color-scheme: dark)")
+                              .matches
+                            ? "dark"
+                            : "light"
+                        : intent;
+                document.documentElement.dataset.theme = resolved;
+                document.documentElement.dataset.themeIntent = intent;
+            })();
+        </script>
+    </head>
+    <body>
+        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <Header />
+        <Search />
+
+        <!-- Fixed bar below header: burger (≤768px) + MobileTOC (≤1280px) -->
+        <div class="doc__mobile-bar">
+            <button
+                class="doc__mobile-sidebar-btn"
+                aria-label="Open navigation"
+                aria-expanded="false"
+            >
+                <svg
+                    viewBox="0 0 16 16"
+                    width="16"
+                    height="16"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M2 4h12M2 8h12M2 12h12"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"></path>
+                </svg>
+                <span class="doc__mobile-sidebar-btn-label">Menu</span>
+            </button>
+            {headings.length > 0 && <MobileTOC headings={headings} />}
+        </div>
+
+        <!-- Sidebar overlay (mobile) -->
+        <div class="doc__sidebar-overlay" aria-hidden="true"></div>
+
+        <div
+            class:list={[
+                "doc-layout",
+                { "doc-layout--no-toc": headings.length === 0 },
+            ]}
+        >
+            <Sidebar />
+            <main class="doc-main" id="main-content" data-pagefind-body>
+                <h1 class="doc__title" data-pagefind-meta="title">{title}</h1>
+                {description && <p class="doc__lede">{description}</p>}
+
+                <div class="doc__prose">
+                    <slot />
+                </div>
+
+                {
+                    (prev || next) && (
+                        <nav class="doc__page-nav" aria-label="Page navigation">
+                            <div class="doc__page-nav-inner">
+                                {prev ? (
+                                    <a
+                                        href={prev.href}
+                                        class="doc__page-nav-link doc__page-nav-link--prev"
+                                    >
+                                        <span class="doc__page-nav-dir">← Previous</span>
+                                        <span class="doc__page-nav-label">{prev.label}</span>
+                                    </a>
+                                ) : (
+                                    <span />
+                                )}
+                                {next ? (
+                                    <a
+                                        href={next.href}
+                                        class="doc__page-nav-link doc__page-nav-link--next"
+                                    >
+                                        <span class="doc__page-nav-dir">Next →</span>
+                                        <span class="doc__page-nav-label">{next.label}</span>
+                                    </a>
+                                ) : (
+                                    <span />
+                                )}
+                            </div>
+                        </nav>
+                    )
+                }
+            </main>
+            {headings.length > 0 && <TOC headings={headings} />}
+        </div>
+
+        <script>
+            let docsResizeHandler: (() => void) | null = null;
+            let docsEscHandler: ((e: KeyboardEvent) => void) | null = null;
+
+            function initDocsMobileNav() {
+                if (docsResizeHandler) {
+                    window.removeEventListener("resize", docsResizeHandler);
+                    docsResizeHandler = null;
+                }
+                if (docsEscHandler) {
+                    document.removeEventListener("keydown", docsEscHandler);
+                    docsEscHandler = null;
+                }
+
+                const btn = document.querySelector<HTMLButtonElement>(
+                    ".doc__mobile-sidebar-btn",
+                );
+                const sidebar = document.querySelector<HTMLElement>(".sidebar");
+                const overlay = document.querySelector<HTMLElement>(
+                    ".doc__sidebar-overlay",
+                );
+
+                if (!btn || !sidebar || !overlay) return;
+
+                // Mark sidebar as hidden from AT when in mobile drawer mode
+                if (window.innerWidth <= 768) sidebar.setAttribute("aria-hidden", "true");
+
+                const open = () => {
+                    sidebar.classList.add("sidebar--open");
+                    sidebar.removeAttribute("aria-hidden");
+                    overlay.classList.add("doc__sidebar-overlay--open");
+                    btn.setAttribute("aria-expanded", "true");
+                    document.body.style.overflow = "hidden";
+                };
+
+                const close = () => {
+                    sidebar.classList.remove("sidebar--open");
+                    sidebar.setAttribute("aria-hidden", "true");
+                    overlay.classList.remove("doc__sidebar-overlay--open");
+                    btn.setAttribute("aria-expanded", "false");
+                    document.body.style.overflow = "";
+                };
+
+                btn.addEventListener("click", () => {
+                    sidebar.classList.contains("sidebar--open")
+                        ? close()
+                        : open();
+                });
+
+                overlay.addEventListener("click", close);
+
+                // Close on sidebar link click
+                sidebar.querySelectorAll<HTMLElement>(".sidebar__link").forEach(
+                    (link) => link.addEventListener("click", close),
+                );
+
+                // ESC key
+                docsEscHandler = (e: KeyboardEvent) => {
+                    if (e.key === "Escape" && sidebar.classList.contains("sidebar--open")) close();
+                };
+                document.addEventListener("keydown", docsEscHandler);
+
+                docsResizeHandler = () => { if (window.innerWidth > 768) close(); };
+                window.addEventListener("resize", docsResizeHandler);
+            }
+
+            initDocsMobileNav();
+            document.addEventListener("astro:page-load", initDocsMobileNav);
+        </script>
+    </body>
+</html>
+

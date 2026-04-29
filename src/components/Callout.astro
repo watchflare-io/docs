@@ -1,0 +1,105 @@
+---
+import Icon from "@components/Icon.astro";
+import type { IconName } from "../icons";
+
+type CalloutType = "info" | "tip" | "warn" | "danger";
+
+interface Props {
+    type?: CalloutType;
+    title?: string;
+}
+
+const { type = "info", title } = Astro.props;
+
+const defaults: Record<CalloutType, { label: string; icon: IconName }> = {
+    info:   { label: "Note",    icon: "info" },
+    tip:    { label: "Tip",     icon: "tip" },
+    warn:   { label: "Warning", icon: "alertTriangle" },
+    danger: { label: "Danger",  icon: "danger" },
+};
+
+const { label, icon } = defaults[type];
+const heading = title ?? label;
+---
+
+<div class={`callout callout--${type}`}>
+    <p class="callout__heading">
+        <Icon name={icon} size={14} aria-hidden="true" />
+        {heading}
+    </p>
+    <div class="callout__body">
+        <slot />
+    </div>
+</div>
+
+<style>
+    .callout {
+        --c-bg: var(--callout-info-bg);
+        --c-border: var(--callout-info-border);
+        --c-fg: var(--callout-info-fg);
+
+        background: var(--c-bg);
+        border: 1px solid var(--c-border);
+        border-inline-start: 3px solid var(--c-fg);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        margin: 0 0 24px;
+    }
+
+    .callout--tip {
+        --c-bg: var(--callout-tip-bg);
+        --c-border: var(--callout-tip-border);
+        --c-fg: var(--callout-tip-fg);
+    }
+
+    .callout--warn {
+        --c-bg: var(--callout-warn-bg);
+        --c-border: var(--callout-warn-border);
+        --c-fg: var(--callout-warn-fg);
+    }
+
+    .callout--danger {
+        --c-bg: var(--callout-danger-bg);
+        --c-border: var(--callout-danger-border);
+        --c-fg: var(--callout-danger-fg);
+    }
+
+    .callout__heading {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--c-fg);
+        margin: 0 0 6px;
+        line-height: 1;
+    }
+
+    .callout__body {
+        font-size: 14px;
+        line-height: 1.65;
+        color: var(--foreground-muted);
+    }
+
+    .callout__body :global(p) {
+        margin: 0;
+        font-size: 14px;
+        color: var(--foreground-muted);
+        line-height: 1.65;
+    }
+
+    .callout__body :global(p + p) {
+        margin-top: 8px;
+    }
+
+    .callout__body :global(code) {
+        font-size: 12px;
+    }
+
+    .callout__body :global(a) {
+        color: var(--c-fg);
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+    }
+</style>

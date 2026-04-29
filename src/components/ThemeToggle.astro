@@ -1,0 +1,68 @@
+---
+import Icon from '@components/Icon.astro';
+---
+
+<button class="theme-toggle" aria-label="Toggle theme">
+  <!-- Wrapper spans carry the Astro scope hash so CSS selectors work correctly -->
+  <span class="ti ti--auto"><Icon name="monitor" size={14} /></span>
+  <span class="ti ti--light"><Icon name="sun"     size={14} /></span>
+  <span class="ti ti--dark"><Icon name="moon"     size={14} /></span>
+</button>
+
+<script>
+  const order = ['auto', 'light', 'dark'] as const;
+  type Intent = typeof order[number];
+
+  function applyTheme(intent: Intent) {
+    const resolved: 'light' | 'dark' = intent === 'auto'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : intent;
+    document.documentElement.dataset.theme = resolved;
+    document.documentElement.dataset.themeIntent = intent;
+    localStorage.setItem('wf-theme-intent', intent);
+  }
+
+  function initThemeToggles() {
+    document.querySelectorAll<HTMLButtonElement>('.theme-toggle').forEach((btn) => {
+      if (btn.dataset.init) return;
+      btn.dataset.init = '1';
+      btn.addEventListener('click', () => {
+        const current = (document.documentElement.dataset.themeIntent ?? 'auto') as Intent;
+        const next = order[(order.indexOf(current) + 1) % order.length];
+        applyTheme(next);
+        btn.setAttribute('aria-label', `Theme: ${next}`);
+      });
+    });
+  }
+
+  initThemeToggles();
+  document.addEventListener('astro:page-load', initThemeToggles);
+</script>
+
+<style>
+  .ti { display: none; }
+
+  /* Show the icon matching the current intent */
+  :global(html[data-theme-intent="auto"])  .ti--auto  { display: flex; }
+  :global(html[data-theme-intent="light"]) .ti--light { display: flex; }
+  :global(html[data-theme-intent="dark"])  .ti--dark  { display: flex; }
+  /* Fallback before intent is set */
+  :global(html:not([data-theme-intent]))   .ti--auto  { display: flex; }
+
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    color: var(--foreground-muted);
+    transition: color 0.1s, background 0.1s;
+    flex-shrink: 0;
+  }
+
+  .theme-toggle:hover {
+    color: var(--foreground);
+    background: var(--surface);
+  }
+</style>

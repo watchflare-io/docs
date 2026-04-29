@@ -1,0 +1,153 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
+---
+
+<aside class="doc__toc" aria-label="On this page">
+  <h5 class="doc__toc-title">On this page</h5>
+  <nav>
+    {tocHeadings.map(h => (
+      <a
+        href={`#${h.slug}`}
+        class:list={['doc__toc-link', { 'doc__toc-link--sub': h.depth === 3 }]}
+      >
+        {h.text}
+      </a>
+    ))}
+  </nav>
+
+  <div class="doc__toc-helpful" data-pagefind-ignore>
+    <h6 class="doc__toc-helpful-title">Was this helpful?</h6>
+    <div class="doc__toc-helpful-btns">
+      <button type="button" aria-label="Yes, this was helpful">👍</button>
+      <button type="button" aria-label="No, this was not helpful">👎</button>
+    </div>
+  </div>
+</aside>
+
+<script>
+  let tocObserver: IntersectionObserver | null = null;
+
+  function initTOC() {
+    if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
+
+    const links = document.querySelectorAll<HTMLAnchorElement>('.doc__toc-link');
+    if (!links.length) return;
+
+    const headingIds = Array.from(links)
+      .map(l => l.getAttribute('href')?.slice(1))
+      .filter(Boolean) as string[];
+
+    const headingEls = headingIds
+      .map(id => document.getElementById(id))
+      .filter(Boolean) as HTMLElement[];
+
+    if (!headingEls.length) return;
+
+    const setActive = (id: string) => {
+      links.forEach(link => {
+        link.classList.toggle('doc__toc-link--active', link.getAttribute('href') === `#${id}`);
+      });
+    };
+
+    setActive(headingEls[0].id);
+
+    tocObserver = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActive(entry.target.id);
+            break;
+          }
+        }
+      },
+      { rootMargin: `-80px 0px -60% 0px`, threshold: 0 }
+    );
+
+    headingEls.forEach(el => tocObserver!.observe(el));
+  }
+
+  initTOC();
+  document.addEventListener('astro:page-load', initTOC);
+</script>
+
+<style>
+  .doc__toc-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--foreground-subtle);
+    margin-bottom: 12px;
+  }
+
+  .doc__toc-link {
+    display: block;
+    font-size: 13px;
+    color: var(--foreground-muted);
+    padding: 3px 0 3px 10px;
+    line-height: 1.5;
+    transition: color 0.1s;
+    border-left: 2px solid transparent;
+  }
+
+  .doc__toc-link--sub {
+    padding-inline-start: 22px;
+    font-size: 12px;
+  }
+
+  .doc__toc-link:hover {
+    color: var(--foreground);
+  }
+
+  .doc__toc-link--active {
+    color: var(--foreground);
+    border-left-color: var(--primary);
+    font-weight: 500;
+  }
+
+  .doc__toc-helpful {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .doc__toc-helpful-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--foreground-subtle);
+    margin-bottom: 10px;
+  }
+
+  .doc__toc-helpful-btns {
+    display: flex;
+    gap: 8px;
+  }
+
+  .doc__toc-helpful-btns button {
+    font-size: 16px;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    transition: background 0.1s, border-color 0.1s;
+    line-height: 1;
+  }
+
+  .doc__toc-helpful-btns button:hover {
+    background: var(--surface-raised);
+    border-color: var(--foreground-subtle);
+  }
+</style>

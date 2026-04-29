@@ -1,0 +1,188 @@
+/* ============================================================
+   GLOBAL — reset, typography, base elements
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--foreground);
+    background: var(--background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--nav-height) + 24px);
+}
+
+body {
+    min-height: 100vh;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img,
+svg {
+    display: block;
+}
+
+button {
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    background: none;
+}
+
+code,
+kbd,
+pre {
+    font-family: var(--font-mono);
+}
+
+/* ============================================================
+   RESPONSIVE OVERRIDES (unlayered — beats any scoped component style)
+   ============================================================ */
+
+/* Search bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 34px;
+    padding-inline: 10px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    background: color-mix(in oklch, var(--foreground) 4%, var(--background));
+}
+
+[data-theme="dark"] .search-bar {
+    color: var(--foreground-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition:
+        border-color 0.15s,
+        color 0.15s;
+    white-space: nowrap;
+}
+
+.search-bar:hover {
+    border-color: var(--foreground-subtle);
+    color: var(--foreground);
+}
+
+/* --bp-md: 768px */
+.mm__trigger {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .dx-nav__right .mm__trigger {
+        display: flex;
+    }
+}
+
+/* --bp-lg: 1024px */
+@media (max-width: 1024px) {
+    .lang-label {
+        display: none;
+    }
+    .mm__footer .lang-label {
+        display: inline;
+    }
+
+    .search-bar__ph,
+    .search-bar .search-bar__kbd {
+        display: none;
+    }
+
+    .search-bar {
+        width: 32px;
+        height: 32px;
+        padding-inline: 0;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        border-radius: var(--radius-md);
+        color: var(--foreground-muted);
+    }
+
+    .search-bar:hover {
+        border-color: transparent;
+        background: var(--surface);
+        color: var(--foreground);
+    }
+}
+
+/* ============================================================
+   FOCUS VISIBLE — keyboard navigation
+   ============================================================ */
+
+:focus-visible {
+    outline: 2px solid color-mix(in oklch, var(--foreground) 50%, transparent);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ============================================================
+   SKIP LINK
+   ============================================================ */
+
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 16px;
+    z-index: var(--z-modal);
+    padding: 8px 16px;
+    background: var(--primary);
+    color: var(--white);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+}
+
+.skip-link:focus {
+    top: 16px;
+}
+
+/* ============================================================
+   KEYBOARD SHORTCUT BADGE
+   ============================================================ */
+
+.wf-kbd {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 5px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--foreground-muted);
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    line-height: 1.6;
+}

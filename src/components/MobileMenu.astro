@@ -1,0 +1,246 @@
+---
+import Icon from "@components/Icon.astro";
+import ThemeToggle from "@components/ThemeToggle.astro";
+import LanguageSelect from "@components/LanguageSelect.astro";
+---
+
+<div class="mm" id="mobile-menu">
+    <!-- Burger / close button -->
+    <button
+        class="mm__trigger"
+        id="mm-trigger"
+        aria-label="Toggle navigation"
+        aria-expanded="false"
+    >
+        <span class="mm__icon mm__icon--open"
+            ><Icon name="menu" size={18} /></span
+        >
+        <span class="mm__icon mm__icon--close"><Icon name="x" size={18} /></span
+        >
+    </button>
+
+    <!-- Full-screen overlay -->
+    <div class="mm__overlay" id="mm-overlay">
+        <div class="mm__container">
+            <nav class="mm__nav" aria-label="Mobile navigation">
+                <a href="/" class="mm__link">Home</a>
+                <a href="/get-started/quickstart" class="mm__link">Guides</a>
+                <a
+                    href="https://github.com/watchflare-io/watchflare/releases"
+                    class="mm__link"
+                    target="_blank"
+                    rel="noopener noreferrer">Changelog</a
+                >
+            </nav>
+
+            <div class="mm__footer">
+                <ThemeToggle />
+                <LanguageSelect />
+                <a
+                    href="https://github.com/watchflare-io/watchflare"
+                    class="mm__github"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub"
+                >
+                    <Icon name="github" size={18} />
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let mmEscHandler: ((e: KeyboardEvent) => void) | null = null;
+
+    function initMobileMenu() {
+        const menu = document.getElementById("mobile-menu");
+        const trigger = document.getElementById("mm-trigger");
+        const overlay = document.getElementById("mm-overlay");
+        if (!menu || !trigger || !overlay) return;
+        if (menu.dataset.init) return;
+        menu.dataset.init = "1";
+
+        function open() {
+            menu!.setAttribute("data-open", "");
+            trigger!.setAttribute("aria-expanded", "true");
+            document.body.style.overflow = "hidden";
+        }
+
+        function close() {
+            menu!.removeAttribute("data-open");
+            trigger!.setAttribute("aria-expanded", "false");
+            document.body.style.overflow = "";
+        }
+
+        trigger.addEventListener("click", () => {
+            menu.hasAttribute("data-open") ? close() : open();
+        });
+
+        // Click on overlay backdrop (outside the container) closes the menu
+        overlay.addEventListener("click", (e) => {
+            const container = overlay.querySelector(".mm__container");
+            if (container && !container.contains(e.target as Node)) close();
+        });
+
+        menu.querySelectorAll(".mm__link").forEach((l) =>
+            l.addEventListener("click", close),
+        );
+
+        // ESC key closes + focus trap
+        if (mmEscHandler) document.removeEventListener("keydown", mmEscHandler);
+        mmEscHandler = (e: KeyboardEvent) => {
+            if (!menu.hasAttribute("data-open")) return;
+            if (e.key === "Escape") {
+                close();
+                return;
+            }
+            if (e.key === "Tab") {
+                const focusable = Array.from(
+                    overlay!.querySelectorAll<HTMLElement>(
+                        "a[href], button:not(:disabled), [tabindex]:not([tabindex='-1'])",
+                    ),
+                ).filter((el) => el.offsetParent !== null);
+                if (!focusable.length) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        };
+        document.addEventListener("keydown", mmEscHandler);
+    }
+
+    // Close when viewport exceeds mobile breakpoint
+    window.matchMedia("(min-width: 769px)").addEventListener("change", (e) => {
+        if (!e.matches) return;
+        document.getElementById("mobile-menu")?.removeAttribute("data-open");
+        document
+            .getElementById("mm-trigger")
+            ?.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+    });
+
+    initMobileMenu();
+    document.addEventListener("astro:page-load", initMobileMenu);
+</script>
+
+<style>
+    /* display handled in global.css */
+    .mm__trigger {
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-md);
+        color: var(--foreground-muted);
+        flex-shrink: 0;
+        transition:
+            color 0.1s,
+            background 0.1s;
+    }
+
+    .mm__trigger:hover {
+        color: var(--foreground);
+        background: var(--surface);
+    }
+
+    /* Icon toggle */
+    .mm__icon {
+        display: none;
+    }
+    .mm__icon--open {
+        display: flex;
+    }
+
+    .mm[data-open] .mm__icon--open {
+        display: none;
+    }
+    .mm[data-open] .mm__icon--close {
+        display: flex;
+    }
+
+    /* Overlay — above nav (--z-nav: 100) and mobile bar (--z-overlay: 50) */
+    .mm__overlay {
+        display: none;
+        position: fixed;
+        inset-block-start: var(--nav-height);
+        inset-inline: 0;
+        height: calc(100dvh - var(--nav-height));
+        z-index: var(--z-modal);
+        background: var(--background);
+        border-block-start: 1px solid var(--border);
+        flex-direction: column;
+        padding: 24px;
+        overflow-y: auto;
+    }
+
+    .mm__container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        max-width: 300px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .mm[data-open] .mm__overlay {
+        display: flex;
+    }
+
+    /* Nav links */
+    .mm__nav {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .mm__link {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--foreground-muted);
+        padding: 10px 12px;
+        border-radius: var(--radius-md);
+        transition:
+            color 0.1s,
+            background 0.1s;
+    }
+
+    .mm__link:hover {
+        color: var(--foreground);
+        background: var(--surface);
+    }
+
+    /* Footer — theme / lang / github */
+    .mm__footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding-block-start: 16px;
+        border-block-start: 1px solid var(--border);
+    }
+
+    .mm__github {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-md);
+        color: var(--foreground-muted);
+        transition:
+            color 0.1s,
+            background 0.1s;
+    }
+
+    .mm__github:hover {
+        color: var(--foreground);
+        background: var(--surface);
+    }
+</style>

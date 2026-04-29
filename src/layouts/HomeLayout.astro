@@ -1,0 +1,65 @@
+---
+import Header from '@components/Header.astro';
+import Search from '@components/Search.astro';
+import '@styles/tokens.css';
+import '@styles/global.css';
+import '@styles/home.css';
+import { SITE_URL, SITE_NAME } from '@consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Watchflare — Documentation',
+  description = 'Guides, reference and concepts to deploy Watchflare, enroll agents and read your metrics.',
+} = Astro.props;
+
+const canonicalURL = SITE_URL + Astro.url.pathname.replace(/\/$/, '') || SITE_URL;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonicalURL} />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content={SITE_NAME} />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <!-- Theme init — must run before first paint to avoid flash -->
+    <script is:inline>
+      (function () {
+        var intent = localStorage.getItem('wf-theme-intent') || 'auto';
+        if (intent !== 'auto' && intent !== 'light' && intent !== 'dark') intent = 'auto';
+        var resolved = intent === 'auto'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : intent;
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.dataset.themeIntent = intent;
+      })();
+    </script>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <Header />
+    <Search />
+    <main class="home-main" id="main-content">
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style>
+  .home-main {
+    padding-top: var(--nav-height);
+  }
+</style>

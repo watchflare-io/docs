@@ -1,17 +1,360 @@
 ---
+import HomeLayout from "@layouts/HomeLayout.astro";
+import HomeCard from "@components/HomeCard.astro";
+import Icon from "@components/Icon.astro";
 
+// Fetch latest release at build time (5 s timeout)
+let version: string | null = null;
+try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(
+        "https://api.github.com/repos/watchflare-io/watchflare/releases/latest",
+        {
+            headers: { Accept: "application/vnd.github.v3+json" },
+            signal: controller.signal,
+        },
+    );
+    clearTimeout(timer);
+    if (res.ok) {
+        const { tag_name } = await res.json();
+        if (tag_name) version = tag_name;
+    }
+} catch {
+    // no version shown if fetch fails or times out
+}
+
+const cards = [
+    {
+        href: "/get-started/quickstart",
+        title: "Quickstart in 5 minutes",
+        description:
+            "Deploy the Hub with Docker Compose, create the admin account, enroll your first machine. Six steps, zero optional config.",
+        cta: "Start here",
+        meta: "~5 min",
+        icon: "bolt" as const,
+        iconSize: 22,
+        primary: true,
+    },
+    {
+        href: "/agent/linux",
+        title: "Install the Agent",
+        description:
+            "Enroll any Linux machine in two commands, or use Homebrew on macOS. The agent registers itself, generates its key, and starts reporting in under a minute.",
+        cta: "Read guide",
+        icon: "monitor" as const,
+        iconSize: 20,
+    },
+    {
+        href: "/monitoring/alerts",
+        title: "Set Up Alerts",
+        description:
+            "Define CPU, memory, disk, and load thresholds per host. Connect a notification channel and get paged before a problem becomes an outage.",
+        cta: "Read guide",
+        icon: "alertTriangle" as const,
+        iconSize: 20,
+    },
+    {
+        href: "/monitoring/package-inventory",
+        title: "Monitor Packages",
+        description:
+            "Track every installed package across your fleet. Watchflare flags outdated and security-vulnerable software so you know what needs patching.",
+        cta: "Read guide",
+        icon: "package" as const,
+        iconSize: 20,
+    },
+    {
+        href: "/reference/architecture",
+        title: "Architecture & Security",
+        description:
+            "The Hub and its agents communicate over gRPC/TLS 1.3 with per-request HMAC auth. Data never leaves your infrastructure. Understand the trust model before going to production.",
+        cta: "Read concept",
+        icon: "shield" as const,
+        iconSize: 20,
+    },
+    {
+        href: "/hub/configuration",
+        title: "Configuration Reference",
+        description:
+            "All environment variables, config file options, and tuning knobs in one place — WAL size, collection intervals, retention, TLS, and more.",
+        cta: "Read guide",
+        icon: "server" as const,
+        iconSize: 20,
+    },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<HomeLayout>
+    <div class="dhome">
+        <!-- Hero -->
+        <header class="dhome__hero">
+            <div class="dhome__eyebrow">
+                <span class="dhome__eyebrow-dot"></span>
+                <span class="dhome__eyebrow-label">Documentation</span>
+                {
+                    version && (
+                        <>
+                            <span class="dhome__eyebrow-sep">/</span>
+                            <span class="dhome__eyebrow-ver">{version}</span>
+                            <span class="dhome__eyebrow-sep">/</span>
+                        </>
+                    )
+                }
+                <a
+                    href="https://github.com/watchflare-io/watchflare/releases"
+                    class="dhome__eyebrow-link"
+                    target="_blank"
+                    rel="noopener noreferrer">Changelog →</a
+                >
+            </div>
+            <h1 class="dhome__title">Watchflare documentation</h1>
+            <p class="dhome__lede">
+                Guides, reference and concepts to deploy the Hub, enroll agents
+                and read your metrics. Self-hosted, a single Go binary,
+                TimescaleDB, gRPC over TLS&nbsp;1.3.
+            </p>
+        </header>
+
+        <!-- Card grid -->
+        <section class="dhome__cards" aria-label="Documentation guides">
+            {
+                cards.map((card) => (
+                    <HomeCard
+                        href={card.href}
+                        title={card.title}
+                        description={card.description}
+                        cta={card.cta}
+                        meta={card.meta}
+                        primary={card.primary}
+                    >
+                        <Icon
+                            slot="icon"
+                            name={card.icon}
+                            size={card.iconSize}
+                        />
+                    </HomeCard>
+                ))
+            }
+        </section>
+
+        <!-- Bottom: stack diagram + resources -->
+        <section class="dhome__bottom">
+            <!-- Stack diagram -->
+            <div>
+                <div class="dhome__bottom-head">
+                    <h2>Stack overview</h2>
+                    <a
+                        href="/get-started/architecture"
+                        class="dhome__bottom-link">Architecture →</a
+                    >
+                </div>
+
+                <div class="dhome__stack-diagram">
+                    <div class="dstack">
+                        <!-- Edge nodes -->
+                        <div class="dstack__row dstack__row--edge">
+                            <div class="dstack__group">
+                                <span class="dstack__group-label"
+                                    >Edge · your infrastructure</span
+                                >
+                                <div class="dstack__nodes">
+                                    <a href="/agent/linux" class="dstack__node">
+                                        <span class="dstack__node-kind"
+                                            >Agent</span
+                                        >
+                                        <span class="dstack__node-name"
+                                            >Linux host</span
+                                        >
+                                        <span class="dstack__node-meta"
+                                            >Systemd</span
+                                        >
+                                    </a>
+                                    <a href="/agent/macos" class="dstack__node">
+                                        <span class="dstack__node-kind"
+                                            >Agent</span
+                                        >
+                                        <span class="dstack__node-name"
+                                            >macOS host</span
+                                        >
+                                        <span class="dstack__node-meta"
+                                            >launchd</span
+                                        >
+                                    </a>
+                                    <span
+                                        class="dstack__node dstack__node--muted"
+                                    >
+                                        <span class="dstack__node-kind"
+                                            >Agent</span
+                                        >
+                                        <span class="dstack__node-name"
+                                            >Windows</span
+                                        >
+                                        <span class="dstack__node-meta"
+                                            >soon</span
+                                        >
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pipe: gRPC -->
+                        <div class="dstack__pipe">
+                            <span class="dstack__pipe-label"
+                                >gRPC · TLS 1.3 · HMAC-SHA256</span
+                            >
+                            <svg
+                                class="dstack__pipe-line"
+                                viewBox="0 0 100 24"
+                                preserveAspectRatio="none"
+                                aria-hidden="true"
+                            >
+                                <line
+                                    x1="50"
+                                    y1="0"
+                                    x2="50"
+                                    y2="24"
+                                    stroke="currentColor"
+                                    stroke-width="1"
+                                    stroke-dasharray="2 3"></line>
+                                <polyline
+                                    points="46,18 50,24 54,18"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1"></polyline>
+                            </svg>
+                        </div>
+
+                        <!-- Hub node -->
+                        <div class="dstack__row">
+                            <a
+                                href="/hub/docker-compose"
+                                class="dstack__node dstack__node--core"
+                            >
+                                <span class="dstack__node-kind">Hub</span>
+                                <span class="dstack__node-name"
+                                    >Watchflare Hub</span
+                                >
+                                <span class="dstack__node-meta"
+                                    >Single Go binary · SvelteKit embedded</span
+                                >
+                                <div class="dstack__node-parts">
+                                    <span>Dashboard</span>
+                                    <span>Metrics view</span>
+                                    <span>Packages list</span>
+                                    <span>Alert engine</span>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Pipe: SQL -->
+                        <div class="dstack__pipe">
+                            <span class="dstack__pipe-label"
+                                >SQL · local socket</span
+                            >
+                            <svg
+                                class="dstack__pipe-line"
+                                viewBox="0 0 100 24"
+                                preserveAspectRatio="none"
+                                aria-hidden="true"
+                            >
+                                <line
+                                    x1="50"
+                                    y1="0"
+                                    x2="50"
+                                    y2="24"
+                                    stroke="currentColor"
+                                    stroke-width="1"
+                                    stroke-dasharray="2 3"></line>
+                                <polyline
+                                    points="46,18 50,24 54,18"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1"></polyline>
+                            </svg>
+                        </div>
+
+                        <!-- DB node -->
+                        <div class="dstack__row">
+                            <span class="dstack__node dstack__node--db">
+                                <span class="dstack__node-kind">Storage</span>
+                                <span class="dstack__node-name"
+                                    >TimescaleDB</span
+                                >
+                                <span class="dstack__node-meta"
+                                    >Hypertables · Continuous aggregates ·
+                                    Retention</span
+                                >
+                            </span>
+                        </div>
+
+                        <div class="dstack__legend">
+                            <span class="dstack__legend-dot"></span>
+                            <span>Linked nodes open their reference page.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resources aside -->
+            <aside class="dhome__resources">
+                <h2>Resources</h2>
+
+                <a
+                    href="https://github.com/watchflare-io/watchflare"
+                    class="dhome__resource"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Icon name="github" size={14} />
+                    <div>
+                        <span class="lbl">Repository</span>
+                        <span class="val">watchflare-io/watchflare</span>
+                    </div>
+                    <span class="tag">AGPL-3.0</span>
+                </a>
+
+                <a
+                    href="https://github.com/watchflare-io/watchflare/issues"
+                    class="dhome__resource"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Icon name="info" size={14} />
+                    <div>
+                        <span class="lbl">Issues & feedback</span>
+                        <span class="val">GitHub Issues</span>
+                    </div>
+                    <span class="tag">open</span>
+                </a>
+
+                <a
+                    href="https://github.com/watchflare-io/watchflare/discussions"
+                    class="dhome__resource"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Icon name="messageCircle" size={14} />
+                    <div>
+                        <span class="lbl">Community</span>
+                        <span class="val">GitHub Discussions</span>
+                    </div>
+                    <span class="tag">chat</span>
+                </a>
+
+                <div class="dhome__tech">
+                    <span class="dhome__tech-label">Built with</span>
+                    <div class="dhome__tech-list">
+                        <span>Go</span>
+                        <span>SvelteKit 5</span>
+                        <span>TimescaleDB</span>
+                        <span>gRPC</span>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <footer class="dhome__footer">
+            <span>© 2026 Watchflare — Self-hosted host monitoring</span>
+        </footer>
+    </div>
+</HomeLayout>

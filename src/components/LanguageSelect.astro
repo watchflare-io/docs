@@ -1,0 +1,192 @@
+---
+import Icon from "@components/Icon.astro";
+
+const languages = [
+    { code: "en", label: "English", available: true },
+    { code: "fr", label: "Français", available: false },
+];
+
+const current = languages.find((l) => l.code === "en")!;
+---
+
+<div class="lang-select">
+    <button
+        class="lang-btn"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        aria-label="Select language"
+    >
+        <Icon name="languages" size={14} />
+        <span class="lang-label">{current.label}</span>
+        <span class="lang-chevron"><Icon name="chevronDown" size={12} /></span>
+    </button>
+
+    <div class="lang-dropdown" role="listbox" aria-label="Language">
+        {
+            languages.map((lang) => (
+                <button
+                    class:list={[
+                        "lang-option",
+                        {
+                            "lang-option--active": lang.code === current.code,
+                            "lang-option--disabled": !lang.available,
+                        },
+                    ]}
+                    role="option"
+                    aria-selected={lang.code === current.code}
+                    aria-disabled={!lang.available}
+                    disabled={!lang.available}
+                >
+                    <span>{lang.label}</span>
+                    {!lang.available && <span class="lang-soon">soon</span>}
+                    {lang.code === current.code && (
+                        <Icon name="check" size={12} />
+                    )}
+                </button>
+            ))
+        }
+    </div>
+</div>
+
+<script>
+    let langClickHandler: (() => void) | null = null;
+    let langKeyHandler: ((e: KeyboardEvent) => void) | null = null;
+
+    function initLangSelects() {
+        if (langClickHandler) document.removeEventListener("click", langClickHandler);
+        if (langKeyHandler) document.removeEventListener("keydown", langKeyHandler);
+        langClickHandler = null;
+        langKeyHandler = null;
+
+        const selects = document.querySelectorAll<HTMLElement>(".lang-select");
+        if (!selects.length) return;
+
+        function closeAll() {
+            selects.forEach((select) => {
+                select.querySelector<HTMLButtonElement>(".lang-btn")?.setAttribute("aria-expanded", "false");
+                select.removeAttribute("data-open");
+            });
+        }
+
+        selects.forEach((select) => {
+            const btn = select.querySelector<HTMLButtonElement>(".lang-btn")!;
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const isOpen = btn.getAttribute("aria-expanded") === "true";
+                if (isOpen) {
+                    closeAll();
+                } else {
+                    closeAll();
+                    btn.setAttribute("aria-expanded", "true");
+                    select.setAttribute("data-open", "");
+                }
+            });
+        });
+
+        langClickHandler = closeAll;
+        langKeyHandler = (e: KeyboardEvent) => { if (e.key === "Escape") closeAll(); };
+        document.addEventListener("click", langClickHandler);
+        document.addEventListener("keydown", langKeyHandler);
+    }
+
+    initLangSelects();
+    document.addEventListener("astro:page-load", initLangSelects);
+</script>
+
+<style>
+    .lang-select {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .lang-btn {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 32px;
+        padding-inline: 8px;
+        border-radius: var(--radius-md);
+        color: var(--foreground-muted);
+        font-size: 13px;
+        transition:
+            color 0.1s,
+            background 0.1s;
+    }
+
+    .lang-btn:hover {
+        color: var(--foreground);
+        background: var(--surface);
+    }
+
+    .lang-chevron {
+        transition: transform 0.15s;
+    }
+
+    .lang-select[data-open] .lang-chevron {
+        transform: rotate(180deg);
+    }
+
+    /* Dropdown */
+    .lang-dropdown {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        min-width: 160px;
+        background: var(--popover);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-surface);
+        box-shadow: var(--shadow-lg);
+        padding: 4px;
+        z-index: var(--z-modal);
+    }
+
+    .lang-select[data-open] .lang-dropdown {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .lang-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 7px 10px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        color: var(--foreground-muted);
+        text-align: start;
+        transition:
+            color 0.1s,
+            background 0.1s;
+    }
+
+    .lang-option:hover:not(:disabled) {
+        color: var(--foreground);
+        background: var(--surface);
+    }
+
+    .lang-option--active {
+        color: var(--foreground);
+        font-weight: 500;
+    }
+
+    .lang-option--disabled {
+        opacity: 0.5;
+        cursor: default;
+    }
+
+    .lang-option svg {
+        margin-inline-start: auto;
+        color: var(--primary);
+    }
+
+    .lang-soon {
+        margin-inline-start: auto;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--foreground-subtle);
+    }
+
+    /* Responsive handled in global.css */
+</style>

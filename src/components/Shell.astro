@@ -1,0 +1,110 @@
+---
+interface Props {
+    title?: string;
+    code?: string;
+    pairs?: [string, string][];
+    html?: string;
+}
+
+const { title, code, pairs, html } = Astro.props;
+
+function escHtml(s: string): string {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function processCode(raw: string): string {
+    return raw
+        .split("\n")
+        .map((line) => {
+            if (line.startsWith("$ ")) {
+                return `<span class="prompt">$ </span>${escHtml(line.slice(2))}`;
+            }
+            if (line === "") return "";
+            return `<span class="out">${escHtml(line)}</span>`;
+        })
+        .join("\n");
+}
+
+function processPairs(rows: [string, string][]): string {
+    const maxLen = Math.max(...rows.map(([k]) => k.length));
+    return rows
+        .map(([key, val]) => {
+            const pad = " ".repeat(maxLen - key.length + 2);
+            return `<span class="prompt">${escHtml(key)}</span>${pad}<span class="out">${escHtml(val)}</span>`;
+        })
+        .join("\n");
+}
+
+const renderedHtml = html
+    ?? (pairs ? processPairs(pairs) : code ? processCode(code) : "");
+---
+
+<div class="sh">
+    <div class="sh__head">
+        <span class="sh__dot"></span>
+        <span class="sh__dot"></span>
+        <span class="sh__dot"></span>
+        {title && <span class="sh__title">{title}</span>}
+    </div>
+    <pre class="sh__pre" set:html={renderedHtml} />
+</div>
+
+<style is:global>
+    .sh {
+        background: var(--code-dark-bg);
+        border: 1px solid var(--code-dark-border);
+        border-radius: var(--radius-lg);
+        margin: 0 0 24px;
+        overflow: hidden;
+    }
+
+    .sh__head {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 40px;
+        padding-inline: 16px;
+        background: var(--code-dark-header);
+        border-bottom: 1px solid var(--code-dark-border);
+    }
+
+    .sh__dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--code-dark-dot);
+    }
+
+    .sh__title {
+        margin-inline-start: 10px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        color: var(--code-dark-fg-muted);
+    }
+
+    /* Higher specificity than .doc__prose pre — no !important needed */
+    .sh .sh__pre {
+        padding: 16px 20px;
+        margin: 0;
+        background: var(--code-dark-bg);
+        border: none;
+        border-radius: 0;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--code-dark-fg);
+        overflow-x: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--code-dark-border) transparent;
+    }
+
+    .sh__pre .prompt {
+        color: var(--code-dark-prompt);
+        user-select: none;
+    }
+
+    .sh__pre .out {
+        color: var(--code-dark-fg-muted);
+    }
+</style>
