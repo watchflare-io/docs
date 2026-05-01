@@ -1,4 +1,6 @@
 ---
+import Icon from "@components/Icon.astro";
+
 interface Props {
     title?: string;
     code?: string;
@@ -35,8 +37,8 @@ function processPairs(rows: [string, string][]): string {
         .join("\n");
 }
 
-const renderedHtml = html
-    ?? (pairs ? processPairs(pairs) : code ? processCode(code) : "");
+const renderedHtml =
+    html ?? (pairs ? processPairs(pairs) : code ? processCode(code) : "");
 ---
 
 <div class="sh">
@@ -45,14 +47,79 @@ const renderedHtml = html
         <span class="sh__dot"></span>
         <span class="sh__dot"></span>
         {title && <span class="sh__title">{title}</span>}
+        <button class="sh__copy" type="button" aria-label="Copy commands">
+            <span class="sh__copy-icon"><Icon name="copy" size={13} /></span>
+            <span class="sh__copy-icon-done"><Icon name="check" size={13} /></span>
+            <span class="sh__copy-label" aria-live="polite">Copy</span>
+        </button>
     </div>
     <pre class="sh__pre" set:html={renderedHtml} />
 </div>
 
+<script>
+    function initShell(sh: HTMLElement) {
+        if (sh.dataset.init) return;
+        sh.dataset.init = "1";
+
+        const btn = sh.querySelector<HTMLElement>(".sh__copy");
+        const pre = sh.querySelector<HTMLElement>(".sh__pre");
+        const label = sh.querySelector<HTMLElement>(".sh__copy-label");
+        if (!btn || !pre) return;
+
+        // Collect only command text — text nodes immediately after a "$ " prompt span
+        const commands: string[] = [];
+        const nodes = Array.from(pre.childNodes);
+        for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+            if (
+                node instanceof HTMLElement &&
+                node.classList.contains("prompt") &&
+                node.textContent === "$ "
+            ) {
+                const next = nodes[i + 1];
+                if (next && next.nodeType === 3) {
+                    const text = (next.textContent ?? "").replace(/\n$/, "").trimEnd();
+                    if (text) commands.push(text);
+                }
+            }
+        }
+
+        // No commands → hide the button (pairs mode or output-only blocks)
+        if (commands.length === 0) {
+            btn.style.display = "none";
+            return;
+        }
+
+        const text = commands.join("\n");
+        let copyTimer: ReturnType<typeof setTimeout> | null = null;
+
+        btn.addEventListener("click", async () => {
+            if (copyTimer) clearTimeout(copyTimer);
+            try {
+                await navigator.clipboard.writeText(text);
+                btn.classList.add("sh__copy--copied");
+                if (label) label.textContent = "Copied!";
+            } catch {
+                btn.classList.remove("sh__copy--copied");
+                if (label) label.textContent = "Failed";
+            }
+            copyTimer = setTimeout(() => {
+                btn.classList.remove("sh__copy--copied");
+                if (label) label.textContent = "Copy";
+                copyTimer = null;
+            }, 2000);
+        });
+    }
+
+    document.querySelectorAll<HTMLElement>(".sh").forEach(initShell);
+    document.addEventListener("astro:page-load", () => {
+        document.querySelectorAll<HTMLElement>(".sh").forEach(initShell);
+    });
+</script>
+
 <style is:global>
     .sh {
         background: var(--code-dark-bg);
-        border: 1px solid var(--code-dark-border);
         border-radius: var(--radius-lg);
         margin: 0 0 24px;
         overflow: hidden;
@@ -63,7 +130,7 @@ const renderedHtml = html
         align-items: center;
         gap: 4px;
         height: 40px;
-        padding-inline: 16px;
+        padding-inline: 16px 8px;
         background: var(--code-dark-header);
         border-bottom: 1px solid var(--code-dark-border);
     }
@@ -81,6 +148,43 @@ const renderedHtml = html
         font-size: 11px;
         letter-spacing: 0.06em;
         color: var(--code-dark-fg-muted);
+    }
+
+    .sh__copy {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 26px;
+        padding: 0 8px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        color: var(--code-dark-fg-muted);
+        border-radius: var(--radius-control);
+        transition: color 0.1s;
+        white-space: nowrap;
+        margin-inline-start: auto;
+        margin-inline-end: 6px;
+    }
+
+    .sh__copy:hover {
+        color: var(--code-dark-fg);
+    }
+
+    .sh__copy-icon-done {
+        display: none;
+    }
+
+    .sh__copy--copied {
+        color: var(--code-dark-green);
+    }
+
+    .sh__copy--copied .sh__copy-icon {
+        display: none;
+    }
+
+    .sh__copy--copied .sh__copy-icon-done {
+        display: flex;
     }
 
     /* Higher specificity than .doc__prose pre — no !important needed */

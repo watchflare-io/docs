@@ -60,7 +60,7 @@
 .doc__prose p {
     font-size: 15px;
     line-height: 1.75;
-    color: var(--foreground-muted);
+    color: var(--foreground);
     margin: 0 0 16px;
 }
 
@@ -73,7 +73,7 @@
 .doc__prose li {
     font-size: 15px;
     line-height: 1.75;
-    color: var(--foreground-muted);
+    color: var(--foreground);
     margin-bottom: 4px;
 }
 
@@ -100,6 +100,12 @@
     color: var(--primary-hover);
 }
 
+.doc__prose a:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 .doc__prose code {
     font-family: var(--font-mono);
     font-size: 13px;
@@ -112,7 +118,6 @@
 
 .doc__prose pre {
     background: var(--code-dark-bg);
-    border: 1px solid var(--code-dark-border);
     border-radius: var(--radius-lg);
     padding: 20px 24px;
     overflow-x: auto;
@@ -128,6 +133,60 @@
     font-size: 13px;
     line-height: 1.7;
     color: var(--code-dark-fg);
+}
+
+/* ── Prose copy button ── */
+
+.prose-pre-wrap {
+    position: relative;
+    margin: 0 0 24px;
+}
+
+.prose-pre-wrap pre {
+    margin: 0;
+}
+
+.prose-copy {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--code-dark-fg-muted);
+    background: var(--code-dark-header);
+    border-radius: var(--radius-control);
+    transition:
+        color 0.15s,
+        opacity 0.15s;
+    opacity: 0;
+}
+
+.prose-pre-wrap:hover .prose-copy,
+.prose-pre-wrap--touch-active .prose-copy,
+.prose-copy:focus-visible {
+    opacity: 1;
+}
+
+.prose-copy--copied {
+    color: var(--code-dark-green);
+}
+
+.prose-copy-icon-done {
+    display: none;
+}
+
+.prose-copy--copied .prose-copy-icon {
+    display: none;
+}
+
+.prose-copy--copied .prose-copy-icon-done {
+    display: flex;
 }
 
 .doc__prose blockquote {
@@ -148,17 +207,19 @@
     margin: 40px 0;
 }
 
-.doc__prose table {
-    display: block;
-    overflow: auto;
-    width: 100%;
-    border-collapse: collapse;
+.table-wrapper {
+    overflow-x: auto;
     margin: 0 0 24px;
-    font-size: 14px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
+}
+
+.doc__prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
 }
 
 .doc__prose th {
@@ -169,12 +230,9 @@
     text-transform: uppercase;
     color: var(--foreground-muted);
     background: var(--surface);
-    padding: 9px 14px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--border);
-}
-
-.doc__prose th:not(:last-child) {
-    border-right: 1px solid var(--border);
+    white-space: nowrap;
 }
 
 .doc__prose td {
@@ -182,11 +240,8 @@
     border-bottom: 1px solid var(--border-subtle);
     color: var(--foreground);
     line-height: 1.5;
-    white-space: normal;
-}
-
-.doc__prose td:not(:last-child) {
-    border-right: 1px solid var(--border-subtle);
+    vertical-align: top;
+    min-width: 80px;
 }
 
 .doc__prose tr:last-child td {
@@ -197,8 +252,8 @@
 .doc__prose th code {
     font-size: 12px;
     padding: 1px 5px;
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
     border-radius: var(--radius-sm);
 }
 
@@ -333,7 +388,8 @@
         color 0.1s;
 }
 
-.doc__mobile-sidebar-btn:hover {
+.doc__mobile-sidebar-btn:hover,
+.doc__mobile-sidebar-btn:focus-visible {
     background: var(--surface);
     color: var(--foreground);
 }
@@ -395,7 +451,8 @@
     cursor: pointer;
 }
 
-.doc__mobile-toc-summary-content:hover {
+.doc__mobile-toc-summary-content:hover,
+.doc__mobile-toc-summary-content:focus-visible {
     background: var(--surface);
     color: var(--foreground);
 }
@@ -529,15 +586,14 @@
     flex-direction: column;
     gap: 5px;
     padding: 18px 20px;
-    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     background: transparent;
     text-decoration: none;
-    transition: border-color 0.15s, background 0.15s;
+    transition: background 0.15s;
 }
 
-.doc__page-nav-link:hover {
-    border-color: var(--primary);
+.doc__page-nav-link:hover,
+.doc__page-nav-link:focus-visible {
     background: color-mix(in oklch, var(--primary) 4%, var(--background));
 }
 

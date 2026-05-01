@@ -10,21 +10,24 @@ const pathname = Astro.url.pathname;
             nav.map((group) => (
                 <div class="sidebar__group">
                     <h5 class="sidebar__group-title">{group.title}</h5>
-                    {group.items.map((item) => (
-                        <a
-                            href={item.href}
-                            class:list={[
-                                "sidebar__link",
-                                { "sidebar__link--child": item.child },
-                                {
-                                    "sidebar__link--active":
-                                        pathname === item.href,
-                                },
-                            ]}
-                        >
-                            {item.label}
-                        </a>
-                    ))}
+                    <div class="sidebar__links">
+                        {group.items.map((item) => (
+                            <a
+                                href={item.href}
+                                aria-current={pathname === item.href ? "page" : undefined}
+                                class:list={[
+                                    "sidebar__link",
+                                    { "sidebar__link--child": item.child },
+                                    {
+                                        "sidebar__link--active":
+                                            pathname === item.href,
+                                    },
+                                ]}
+                            >
+                                {item.label}
+                            </a>
+                        ))}
+                    </div>
                 </div>
             ))
         }
@@ -51,6 +54,12 @@ const pathname = Astro.url.pathname;
         color: var(--foreground-subtle);
         margin-bottom: 6px;
         padding-inline-start: 8px;
+    }
+
+    .sidebar__links {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
 
     .sidebar__link {

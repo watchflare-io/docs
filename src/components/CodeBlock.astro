@@ -46,7 +46,10 @@ const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
                 <>
                     {tabs.includes("Linux") && (
                         <div
-                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "Linux" }]}
+                            class:list={[
+                                "cb__pane",
+                                { "cb__pane--active": tabs[0] === "Linux" },
+                            ]}
                             data-pane="Linux"
                             id={`${cbId}-pane-Linux`}
                             role="tabpanel"
@@ -58,7 +61,10 @@ const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
                     )}
                     {tabs.includes("macOS") && (
                         <div
-                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "macOS" }]}
+                            class:list={[
+                                "cb__pane",
+                                { "cb__pane--active": tabs[0] === "macOS" },
+                            ]}
                             data-pane="macOS"
                             id={`${cbId}-pane-macOS`}
                             role="tabpanel"
@@ -70,31 +76,44 @@ const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
                     )}
                     {tabs.includes("Windows") && (
                         <div
-                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "Windows" }]}
+                            class:list={[
+                                "cb__pane",
+                                { "cb__pane--active": tabs[0] === "Windows" },
+                            ]}
                             data-pane="Windows"
                             id={`${cbId}-pane-Windows`}
                             role="tabpanel"
                             aria-labelledby={`${cbId}-tab-Windows`}
-                            aria-hidden={tabs[0] !== "Windows" ? "true" : "false"}
+                            aria-hidden={
+                                tabs[0] !== "Windows" ? "true" : "false"
+                            }
                         >
                             <slot name="Windows" />
                         </div>
                     )}
                     {tabs.includes("Docker") && (
                         <div
-                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "Docker" }]}
+                            class:list={[
+                                "cb__pane",
+                                { "cb__pane--active": tabs[0] === "Docker" },
+                            ]}
                             data-pane="Docker"
                             id={`${cbId}-pane-Docker`}
                             role="tabpanel"
                             aria-labelledby={`${cbId}-tab-Docker`}
-                            aria-hidden={tabs[0] !== "Docker" ? "true" : "false"}
+                            aria-hidden={
+                                tabs[0] !== "Docker" ? "true" : "false"
+                            }
                         >
                             <slot name="Docker" />
                         </div>
                     )}
                     {tabs.includes("npm") && (
                         <div
-                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "npm" }]}
+                            class:list={[
+                                "cb__pane",
+                                { "cb__pane--active": tabs[0] === "npm" },
+                            ]}
                             data-pane="npm"
                             id={`${cbId}-pane-npm`}
                             role="tabpanel"
@@ -106,7 +125,10 @@ const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
                     )}
                     {tabs.includes("pnpm") && (
                         <div
-                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "pnpm" }]}
+                            class:list={[
+                                "cb__pane",
+                                { "cb__pane--active": tabs[0] === "pnpm" },
+                            ]}
                             data-pane="pnpm"
                             id={`${cbId}-pane-pnpm`}
                             role="tabpanel"
@@ -118,7 +140,10 @@ const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
                     )}
                     {tabs.includes("yarn") && (
                         <div
-                            class:list={["cb__pane", { "cb__pane--active": tabs[0] === "yarn" }]}
+                            class:list={[
+                                "cb__pane",
+                                { "cb__pane--active": tabs[0] === "yarn" },
+                            ]}
                             data-pane="yarn"
                             id={`${cbId}-pane-yarn`}
                             role="tabpanel"
@@ -161,21 +186,28 @@ const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
             });
         });
 
+        let copyTimer: ReturnType<typeof setTimeout> | null = null;
+
         copyBtn?.addEventListener("click", async () => {
             const pre =
                 panes.length > 0
                     ? cb.querySelector<HTMLElement>(".cb__pane--active pre")
                     : cb.querySelector<HTMLElement>(".cb__content pre");
             if (!pre) return;
+            if (copyTimer) clearTimeout(copyTimer);
             try {
                 await navigator.clipboard.writeText(pre.textContent ?? "");
                 copyBtn.classList.add("cb__copy--copied");
                 if (copyLabel) copyLabel.textContent = "Copied!";
-                setTimeout(() => {
-                    copyBtn.classList.remove("cb__copy--copied");
-                    if (copyLabel) copyLabel.textContent = "Copy";
-                }, 2000);
-            } catch {}
+            } catch {
+                copyBtn.classList.remove("cb__copy--copied");
+                if (copyLabel) copyLabel.textContent = "Failed";
+            }
+            copyTimer = setTimeout(() => {
+                copyBtn.classList.remove("cb__copy--copied");
+                if (copyLabel) copyLabel.textContent = "Copy";
+                copyTimer = null;
+            }, 2000);
         });
     }
 
@@ -196,7 +228,6 @@ const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
         --cb-green: var(--code-dark-green);
 
         background: var(--cb-bg);
-        border: 1px solid var(--cb-border);
         border-radius: var(--radius-lg);
         overflow: hidden;
         margin: 0 0 24px;

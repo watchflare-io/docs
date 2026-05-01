@@ -3,10 +3,10 @@ import Icon from "@components/Icon.astro";
 
 const quickLinks = [
     { href: "/get-started/quickstart", label: "Quickstart" },
-    { href: "/hub/docker-compose", label: "Docker Compose" },
-    { href: "/agent/linux", label: "Linux Agent" },
-    { href: "/monitoring/alerts", label: "Alerts" },
-    { href: "/reference/architecture", label: "Architecture" },
+    { href: "/hub/deploy-docker", label: "Deploy with Docker" },
+    { href: "/agent/install/linux", label: "Install on Linux" },
+    { href: "/monitoring/alerts", label: "Alerts & notifications" },
+    { href: "/reference/hub-env", label: "Hub environment variables" },
 ];
 ---
 
@@ -36,7 +36,6 @@ const quickLinks = [
             >
         </div>
 
-        <!-- Quick links shown when input is empty -->
         <div id="search-suggestions" class="sp__suggestions">
             <p class="sp__suggestions-label">Quick links</p>
             <div class="sp__suggestions-links">
@@ -48,21 +47,7 @@ const quickLinks = [
                             </span>
                             <span class="sp__suggestion-label">{l.label}</span>
                             <span class="sp__suggestion-arrow">
-                                <svg
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 12 12"
-                                    fill="none"
-                                    aria-hidden="true"
-                                >
-                                    <path
-                                        d="M2.5 6h7m0 0L6.5 3m3 3L6.5 9"
-                                        stroke="currentColor"
-                                        stroke-width="1.5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
+                                <Icon name="arrowRight" size={12} />
                             </span>
                         </a>
                     ))
@@ -97,23 +82,26 @@ const quickLinks = [
 
 <script is:inline>
     (function () {
-        if (document.getElementById("search-palette")?.dataset.searchInit) return;
-        if (document.getElementById("search-palette")) {
-            document.getElementById("search-palette").dataset.searchInit = "1";
-        }
+        // Only init once (is:inline runs on every page with View Transitions)
+        var palette = document.getElementById("search-palette");
+        if (!palette || palette.dataset.searchInit) return;
+        palette.dataset.searchInit = "1";
 
-        let pagefind = null;
-        let selectedIdx = -1;
-        let currentResults = [];
-        let previousFocus = null;
+        var input = document.getElementById("search-input");
+        var closeBtn = document.getElementById("search-close");
+        var resultsEl = document.getElementById("search-results");
+        var suggestEl = document.getElementById("search-suggestions");
+        var countEl = document.getElementById("search-count");
+        var panel = palette.querySelector(".sp__panel");
+        var backdrop = palette.querySelector(".sp__backdrop");
 
-        const palette = document.getElementById("search-palette");
-        const input = document.getElementById("search-input");
-        const resultsEl = document.getElementById("search-results");
-        const closeBtn = document.getElementById("search-close");
-        const backdrop = palette.querySelector(".sp__backdrop");
-        const suggestionsEl = document.getElementById("search-suggestions");
-        const countEl = document.getElementById("search-count");
+        var pagefind = null;
+        var selectedIdx = -1;
+        var currentItems = [];
+        var previousFocus = null;
+        var debounceTimer = null;
+
+        // ── Pagefind ────────────────────────────────────────────────────────────
 
         async function loadPagefind() {
             if (pagefind) return;
@@ -125,46 +113,28 @@ const quickLinks = [
             }
         }
 
-        const panel = palette.querySelector(".sp__panel");
-
-        function showSuggestions() {
-            suggestionsEl.style.display = "";
-            resultsEl.style.display = "none";
-            countEl.textContent = "";
-            panel && panel.setAttribute("data-empty", "");
-        }
-
-        function hideSuggestions() {
-            suggestionsEl.style.display = "none";
-            resultsEl.style.display = "";
-            panel && panel.removeAttribute("data-empty");
-        }
+        // ── Scroll lock ─────────────────────────────────────────────────────────
+        // overflow:hidden on body — no position:fixed, no scroll jump.
+        // iOS: touchmove preventDefault instead (overflow:hidden doesn't work there).
 
         var isIOS =
             /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        var scrollY = 0;
-        var stopTouchMove = null;
-
-        function checkOverflowScroll(el) {
-            var style = window.getComputedStyle(el);
-            if (
-                style.overflowX === "scroll" ||
-                style.overflowY === "scroll" ||
-                (style.overflowX === "auto" &&
-                    el.clientWidth < el.scrollWidth) ||
-                (style.overflowY === "auto" &&
-                    el.clientHeight < el.scrollHeight)
-            )
-                return true;
-            var parent = el.parentNode;
-            if (!parent || parent.tagName === "BODY") return false;
-            return checkOverflowScroll(parent);
-        }
 
         function preventTouchMove(e) {
-            if (checkOverflowScroll(e.target)) return;
-            if (e.touches.length > 1) return;
-            if (e.preventDefault) e.preventDefault();
+            var scrollable = e.target.closest(".sp__results, .sp__suggestions");
+            if (scrollable && scrollable.scrollHeight > scrollable.clientHeight)
+                return;
+            e.preventDefault();
+        }
+
+        function updateViewportHeight() {
+            var vh = window.visualViewport
+                ? window.visualViewport.height
+                : window.innerHeight;
+            document.documentElement.style.setProperty(
+                "--sp-viewport-height",
+                vh + "px",
+            );
         }
 
         function lockScroll() {
@@ -172,114 +142,89 @@ const quickLinks = [
                 document.addEventListener("touchmove", preventTouchMove, {
                     passive: false,
                 });
-                stopTouchMove = function () {
-                    document.removeEventListener("touchmove", preventTouchMove);
-                };
+                updateViewportHeight();
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener(
+                        "resize",
+                        updateViewportHeight,
+                    );
+                }
             } else {
-                scrollY = window.scrollY;
-                document.body.style.position = "fixed";
-                document.body.style.top = "-" + scrollY + "px";
-                document.body.style.left = "0";
-                document.body.style.right = "0";
-                document.body.style.overflowY = "scroll";
+                document.body.style.overflow = "hidden";
             }
         }
 
         function unlockScroll() {
             if (isIOS) {
-                if (stopTouchMove) {
-                    stopTouchMove();
-                    stopTouchMove = null;
+                document.removeEventListener("touchmove", preventTouchMove);
+                if (window.visualViewport) {
+                    window.visualViewport.removeEventListener(
+                        "resize",
+                        updateViewportHeight,
+                    );
                 }
             } else {
-                document.body.style.position = "";
-                document.body.style.top = "";
-                document.body.style.left = "";
-                document.body.style.right = "";
-                document.body.style.overflowY = "";
-                window.scrollTo(0, scrollY);
+                document.body.style.overflow = "";
             }
         }
+
+        // ── Open / Close ─────────────────────────────────────────────────────────
 
         function open() {
             previousFocus = document.activeElement;
             palette.classList.add("open");
             lockScroll();
             input.focus();
-            if (!input.value.trim()) showSuggestions();
+            showSuggestions();
             loadPagefind();
         }
 
         function close() {
             palette.classList.remove("open");
             unlockScroll();
-            input.value = "";
-            resultsEl.innerHTML = "";
-            selectedIdx = -1;
-            currentResults = [];
-            showSuggestions();
-            if (previousFocus && previousFocus instanceof HTMLElement) {
-                previousFocus.focus();
+            reset();
+            if (previousFocus instanceof HTMLElement) {
+                previousFocus.focus({ preventScroll: true });
             }
         }
 
-        document
-            .getElementById("search-trigger")
-            ?.addEventListener("click", open);
-
-        document.addEventListener("keydown", function (e) {
-            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-                e.preventDefault();
-                palette.classList.contains("open") ? close() : open();
-                return;
-            }
-            if (!palette.classList.contains("open")) return;
-            if (e.key === "Escape") {
-                e.preventDefault();
-                close();
-            } else if (e.key === "ArrowDown") {
-                e.preventDefault();
-                navigate(1);
-            } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                navigate(-1);
-            } else if (e.key === "Enter") {
-                e.preventDefault();
-                selectCurrent();
-            } else if (e.key === "Tab") {
-                // Focus trap: cycle between input and close button
-                e.preventDefault();
-                if (document.activeElement === input && !e.shiftKey) {
-                    closeBtn.focus();
-                } else {
-                    input.focus();
-                }
-            }
-        });
-
-        backdrop.addEventListener("click", close);
-        closeBtn.addEventListener("click", close);
-
-        // Close when clicking a quick-link suggestion
-        suggestionsEl
-            .querySelectorAll(".sp__suggestion")
-            .forEach(function (el) {
-                el.addEventListener("click", close);
-            });
-
-        let debounceTimer;
-        input.addEventListener("input", function () {
-            const query = input.value.trim();
-            if (!query) {
-                clearTimeout(debounceTimer);
-                resultsEl.innerHTML = "";
-                currentResults = [];
-                selectedIdx = -1;
-                showSuggestions();
-                return;
-            }
-            hideSuggestions();
+        function reset() {
+            input.value = "";
+            resultsEl.innerHTML = "";
+            currentItems = [];
+            selectedIdx = -1;
             clearTimeout(debounceTimer);
+            showSuggestions();
+        }
+
+        // ── Suggestions / Results visibility ────────────────────────────────────
+
+        function showSuggestions() {
+            suggestEl.hidden = false;
+            resultsEl.hidden = true;
+            countEl.textContent = "";
+            panel.setAttribute("data-empty", "");
+        }
+
+        function showResults() {
+            suggestEl.hidden = true;
+            resultsEl.hidden = false;
+            panel.removeAttribute("data-empty");
+        }
+
+        // ── Search ───────────────────────────────────────────────────────────────
+
+        input.addEventListener("input", function () {
+            var query = input.value.trim();
+            clearTimeout(debounceTimer);
+            if (!query) {
+                showSuggestions();
+                resultsEl.innerHTML = "";
+                currentItems = [];
+                selectedIdx = -1;
+                return;
+            }
+            showResults();
             debounceTimer = setTimeout(function () {
                 runSearch(query);
             }, 200);
@@ -287,47 +232,43 @@ const quickLinks = [
 
         async function runSearch(query) {
             if (!pagefind) return;
-            const result = await pagefind.search(query);
-            const totalCount = result.results.length;
-            const data = await Promise.all(
+            var result = await pagefind.search(query);
+            var total = result.results.length;
+            var data = await Promise.all(
                 result.results.slice(0, 5).map(function (r) {
                     return r.data();
                 }),
             );
             selectedIdx = -1;
-            render(data, query, totalCount);
+            renderResults(data, query, total);
         }
 
-        function render(results, query, totalCount) {
-            if (results.length === 0) {
+        function renderResults(results, query, total) {
+            if (!results.length) {
                 resultsEl.innerHTML =
                     '<div class="sp__empty">No results for "<strong>' +
                     esc(query) +
                     '</strong>"</div>';
-                currentResults = [];
-                selectedIdx = -1;
+                currentItems = [];
                 countEl.textContent = "";
                 return;
             }
 
-            // Flatten sub_results so each section is its own result item
-            var items = [];
+            // Flatten sub_results — each section becomes its own item
+            currentItems = [];
             results.forEach(function (r) {
                 var pageTitle = r.meta && r.meta.title ? r.meta.title : "";
-                if (r.sub_results && r.sub_results.length > 0) {
+                if (r.sub_results && r.sub_results.length) {
                     r.sub_results.forEach(function (sub) {
-                        items.push({
+                        currentItems.push({
                             url: sub.url,
                             title: sub.title,
-                            pageTitle:
-                                pageTitle && pageTitle !== sub.title
-                                    ? pageTitle
-                                    : "",
+                            pageTitle: pageTitle !== sub.title ? pageTitle : "",
                             excerpt: sub.excerpt,
                         });
                     });
                 } else {
-                    items.push({
+                    currentItems.push({
                         url: r.url,
                         title: pageTitle || r.url,
                         pageTitle: "",
@@ -335,16 +276,19 @@ const quickLinks = [
                     });
                 }
             });
+            currentItems = currentItems.slice(0, 8);
 
-            currentResults = items.slice(0, 8);
-
-            resultsEl.innerHTML = currentResults
+            resultsEl.innerHTML = currentItems
                 .map(function (item, i) {
-                    var header = item.pageTitle
+                    var breadcrumb = item.pageTitle
                         ? '<span class="sp__result-page">' +
                           esc(item.pageTitle) +
-                          "</span>" +
-                          '<span class="sp__result-sep"> › </span>'
+                          '</span><span class="sp__result-sep"> › </span>'
+                        : "";
+                    var excerpt = item.excerpt
+                        ? '<div class="sp__result-excerpt">' +
+                          escExcerpt(item.excerpt) +
+                          "</div>"
                         : "";
                     return (
                         '<a href="' +
@@ -353,62 +297,108 @@ const quickLinks = [
                         i +
                         '" role="option" tabindex="-1">' +
                         '<div class="sp__result-title">' +
-                        header +
+                        breadcrumb +
                         esc(item.title) +
                         "</div>" +
-                        (item.excerpt
-                            ? '<div class="sp__result-excerpt">' +
-                              escExcerpt(item.excerpt) +
-                              "</div>"
-                            : "") +
+                        excerpt +
                         "</a>"
                     );
                 })
                 .join("");
 
-            resultsEl.querySelectorAll(".sp__result").forEach(function (el) {
-                el.addEventListener("mouseenter", function () {
-                    selectedIdx = parseInt(el.dataset.idx || "0");
-                    updateSelection();
-                });
-            });
-
-            // Update count
-            var shown = currentResults.length;
-            if (totalCount === 0) {
-                countEl.textContent = "";
-            } else if (shown >= totalCount || items.length <= 8) {
-                countEl.textContent =
-                    shown + (shown === 1 ? " result" : " results");
-            } else {
-                countEl.textContent =
-                    shown + " of " + items.length + "+ results";
-            }
+            var shown = currentItems.length;
+            countEl.textContent =
+                shown + (shown === 1 ? " result" : " results");
+            if (shown < total)
+                countEl.textContent = shown + " of " + total + "+ results";
         }
 
+        // ── Keyboard navigation ──────────────────────────────────────────────────
+
+        document.addEventListener("keydown", function (e) {
+            // ⌘K / Ctrl+K — toggle
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+                e.preventDefault();
+                palette.classList.contains("open") ? close() : open();
+                return;
+            }
+            if (!palette.classList.contains("open")) return;
+
+            switch (e.key) {
+                case "Escape":
+                    e.preventDefault();
+                    close();
+                    break;
+                case "ArrowDown":
+                    e.preventDefault();
+                    navigate(1);
+                    break;
+                case "ArrowUp":
+                    e.preventDefault();
+                    navigate(-1);
+                    break;
+                case "Enter":
+                    e.preventDefault();
+                    selectCurrent();
+                    break;
+                case "Tab":
+                    // Focus trap inside panel
+                    e.preventDefault();
+                    (document.activeElement === closeBtn
+                        ? input
+                        : closeBtn
+                    ).focus();
+                    break;
+            }
+        });
+
         function navigate(dir) {
-            if (!currentResults.length) return;
+            if (!currentItems.length) return;
             selectedIdx = Math.max(
                 -1,
-                Math.min(currentResults.length - 1, selectedIdx + dir),
+                Math.min(currentItems.length - 1, selectedIdx + dir),
             );
             updateSelection();
         }
 
         function updateSelection() {
-            const items = resultsEl.querySelectorAll(".sp__result");
-            items.forEach(function (el, i) {
+            resultsEl.querySelectorAll(".sp__result").forEach(function (el, i) {
                 el.classList.toggle("sp__result--active", i === selectedIdx);
             });
-            if (selectedIdx >= 0)
-                items[selectedIdx].scrollIntoView({ block: "nearest" });
+            if (selectedIdx >= 0) {
+                resultsEl
+                    .querySelectorAll(".sp__result")
+                    [selectedIdx].scrollIntoView({ block: "nearest" });
+            }
         }
 
         function selectCurrent() {
-            if (selectedIdx >= 0 && currentResults[selectedIdx]) {
-                window.location.href = currentResults[selectedIdx].url;
+            if (selectedIdx >= 0 && currentItems[selectedIdx]) {
+                window.location.href = currentItems[selectedIdx].url;
             }
         }
+
+        // ── Event listeners ──────────────────────────────────────────────────────
+
+        // Highlight on hover — delegation: one listener for all results
+        resultsEl.addEventListener("mouseover", function (e) {
+            var el = e.target.closest(".sp__result");
+            if (el) {
+                selectedIdx = parseInt(el.dataset.idx, 10);
+                updateSelection();
+            }
+        });
+
+        document
+            .getElementById("search-trigger")
+            ?.addEventListener("click", open);
+        backdrop.addEventListener("click", close);
+        closeBtn.addEventListener("click", close);
+        suggestEl.querySelectorAll(".sp__suggestion").forEach(function (el) {
+            el.addEventListener("click", close);
+        });
+
+        // ── Helpers ──────────────────────────────────────────────────────────────
 
         function esc(str) {
             return str
@@ -418,7 +408,6 @@ const quickLinks = [
                 .replace(/"/g, "&quot;");
         }
 
-        // Escape excerpt but preserve <mark> tags (pagefind highlights)
         function escExcerpt(str) {
             return esc(str)
                 .replace(/&lt;mark&gt;/g, "<mark>")
@@ -500,6 +489,7 @@ const quickLinks = [
 
     .sp__input {
         flex: 1;
+        min-width: 0;
         font-family: var(--font-sans);
         font-size: 15px;
         color: var(--foreground);
@@ -507,13 +497,11 @@ const quickLinks = [
         border: none;
         outline: none;
         appearance: none;
-        min-width: 0;
     }
 
     .sp__input::placeholder {
         color: var(--foreground-muted);
     }
-
     .sp__input::-webkit-search-cancel-button {
         display: none;
     }
@@ -533,7 +521,7 @@ const quickLinks = [
         line-height: 1.6;
     }
 
-    /* ── Quick links (empty state) ── */
+    /* ── Quick links ── */
     .sp__suggestions {
         padding: 6px;
         flex-shrink: 0;
@@ -641,7 +629,6 @@ const quickLinks = [
         line-height: 1.4;
         display: flex;
         align-items: baseline;
-        gap: 0;
         flex-wrap: wrap;
     }
 
@@ -664,7 +651,6 @@ const quickLinks = [
         word-break: break-word;
     }
 
-    /* Pagefind highlight marks */
     .sp__result-excerpt mark {
         background: color-mix(in oklch, var(--primary) 18%, transparent);
         color: var(--foreground);
@@ -691,7 +677,6 @@ const quickLinks = [
         color: var(--foreground-muted);
     }
 
-    /* Hide nav/open hints when showing suggestions (no results yet) */
     .sp__panel[data-empty] .sp__footer .sp__hint-nav,
     .sp__panel[data-empty] .sp__footer .sp__hint-open {
         display: none;
@@ -704,67 +689,37 @@ const quickLinks = [
         color: var(--foreground-subtle);
     }
 
-    /* ── Mobile — fullscreen ── */
+    /* ── Mobile ── */
     @media (max-width: 640px) {
         .sp {
-            position: relative;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 100lvh;
-            padding: 0;
-            align-items: stretch;
-            background: var(--popover);
-        }
-
-        .sp__backdrop {
-            display: none;
+            padding-top: 16px;
+            padding-inline: 12px;
+            /*padding: 0;*/
         }
 
         .sp__panel {
-            width: 100%;
-            max-width: 100%;
-            max-height: none;
+            max-height: calc(var(--sp-viewport-height, 100vh) - 32px);
+            /*max-height: calc(var(--sp-viewport-height, 100vh));
+            max-width: none;
             height: 100%;
-            border-radius: 0;
-            border: none;
-            box-shadow: none;
-            animation: none;
-            background: var(--popover);
+            right: 0;
+            top: 0;
+            border-radius: 0;*/
         }
 
-        /* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
+        /* Prevent iOS auto-zoom (requires font-size >= 16px) */
         .sp__input {
             font-size: 16px;
         }
 
-        /* Replace "ESC" kbd with a "Cancel" text button */
-        .sp__esc {
-            font-size: 0;
-            border: none;
-            background: none;
-            padding: 4px 0 4px 8px;
-            color: var(--primary);
-            font-family: var(--font-sans);
-            font-weight: 500;
-        }
-
-        .sp__esc::after {
-            content: "Cancel";
-            font-size: 15px;
-        }
-
-        /* Larger touch targets */
         .sp__suggestion {
             padding: 12px 14px;
             font-size: 15px;
         }
-
         .sp__result {
             padding: 12px 14px;
         }
 
-        /* Hide all keyboard hints on mobile — not relevant for touch */
         .sp__footer .sp__hint-nav,
         .sp__footer .sp__hint-open,
         .sp__footer .sp__hint-esc {

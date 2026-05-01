@@ -44,15 +44,15 @@
     /* --- Layout --- */
     --container-max-width: 1400px;
 
-    /* --- Code / Shell (always dark — theme-independent) --- */
-    --code-dark-bg: #161a18;
-    --code-dark-header: #1e2422;
-    --code-dark-border: #2a312e;
-    --code-dark-active: #252e2b;
+    /* --- Code / Shell (dark — used in dark mode, overridden in light mode) --- */
+    --code-dark-bg: #1c2220;
+    --code-dark-header: #242e2a;
+    --code-dark-border: #323d38;
+    --code-dark-active: #2c3834;
     --code-dark-fg: oklch(0.95 0.01 145);
     --code-dark-fg-muted: oklch(0.65 0.01 145);
     --code-dark-green: #86efac;
-    --code-dark-dot: oklch(0.38 0.01 145);
+    --code-dark-dot: oklch(0.42 0.02 145);
     --code-dark-prompt: oklch(0.68 0.14 150);
 
     /* --- Breakpoints (for reference — use in media queries) ---
@@ -103,28 +103,45 @@
 }
 
 /* ============================================================
+   CODE/SHELL BLOCKS — light mode overrides (attribute selector only,
+   no :root, so dark mode isn't affected)
+   ============================================================ */
+
+[data-theme="light"] {
+    --code-dark-bg: #f6f8fa;
+    --code-dark-header: #eef0f3;
+    --code-dark-border: #d8dce1;
+    --code-dark-active: #e2e5ea;
+    --code-dark-fg: #1c2128;
+    --code-dark-fg-muted: #57606a;
+    --code-dark-green: #1a7f37;
+    --code-dark-dot: #c9cdd3;
+    --code-dark-prompt: #0a5e3e;
+}
+
+/* ============================================================
    DARK THEME
    ============================================================ */
 
 [data-theme="dark"] {
-    --background: #0d0f0e;
-    --surface: #161a18;
-    --surface-raised: #1e2422;
+    --background: #141916;
+    --surface: #1c2220;
+    --surface-raised: #242e2a;
 
-    --foreground: #e8edeb;
-    --foreground-muted: #8a9590;
-    --foreground-subtle: #5a6660;
+    --foreground: #edf2f0;
+    --foreground-muted: #a0aba6;
+    --foreground-subtle: #6e7e78;
 
-    --border: #2a312e;
-    --border-subtle: #1e2422;
+    --border: #323d38;
+    --border-subtle: #242e2a;
 
-    --popover: #1e2422;
-    --overlay: rgba(0, 0, 0, 0.6);
-    --muted: #161a18;
+    --popover: #242e2a;
+    --overlay: rgba(0, 0, 0, 0.5);
+    --muted: #1c2220;
     --muted-foreground: #8a9590;
 
-    --code-bg: #161a18;
-    --code-border: #2a312e;
+    --code-bg: #1c2220;
+    --code-border: #323d38;
 
     --callout-info-bg: #0f1f3d;
     --callout-info-border: #1e3a6e;

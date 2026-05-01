@@ -124,6 +124,35 @@ pre {
 }
 
 /* ============================================================
+   SHIKI DUAL THEME — map data-theme to shiki CSS variables
+   (overrides Astro's prefers-color-scheme generated CSS)
+   ============================================================ */
+
+[data-theme="light"] .astro-code-themes {
+    background-color: var(--code-dark-bg) !important;
+}
+
+[data-theme="light"] .astro-code-themes span {
+    color: var(--shiki-light) !important;
+    background-color: transparent !important;
+    font-style: var(--shiki-light-font-style, inherit) !important;
+    font-weight: var(--shiki-light-font-weight, inherit) !important;
+    text-decoration: var(--shiki-light-text-decoration, inherit) !important;
+}
+
+[data-theme="dark"] .astro-code-themes {
+    background-color: var(--code-dark-bg) !important;
+}
+
+[data-theme="dark"] .astro-code-themes span {
+    color: var(--shiki-dark) !important;
+    background-color: transparent !important;
+    font-style: var(--shiki-dark-font-style, inherit) !important;
+    font-weight: var(--shiki-dark-font-weight, inherit) !important;
+    text-decoration: var(--shiki-dark-text-decoration, inherit) !important;
+}
+
+/* ============================================================
    FOCUS VISIBLE — keyboard navigation
    ============================================================ */
 

@@ -1,4 +1,6 @@
 ---
+import Icon from "@components/Icon.astro";
+
 interface Heading {
     depth: number;
     slug: string;
@@ -17,21 +19,7 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
     <summary class="doc__mobile-toc-summary">
         <button type="button" class="doc__mobile-toc-summary-content">
             <span class="doc__mobile-toc-label">On this page</span>
-            <svg
-                class="doc__mobile-toc-chevron"
-                viewBox="0 0 16 16"
-                width="14"
-                height="14"
-                aria-hidden="true"
-            >
-                <path
-                    d="M4 6l4 4 4-4"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-            </svg>
+            <Icon name="chevronDown" size={14} class="doc__mobile-toc-chevron" />
         </button>
     </summary>
     <nav class="doc__mobile-toc-nav">

@@ -21,7 +21,7 @@ export const nav: NavGroup[] = [
   {
     title: "Hub",
     items: [
-      { href: "/hub/deploy", label: "Deploy with Docker" },
+      { href: "/hub/deploy-docker", label: "Deploy with Docker" },
       { href: "/hub/configuration", label: "Configuration" },
       { href: "/hub/https", label: "HTTPS setup" },
       { href: "/hub/reverse-proxy", label: "Reverse proxy" },
