@@ -21,11 +21,22 @@ interface Props {
     headings?: { depth: number; slug: string; text: string }[];
     prev?: NavLink;
     next?: NavLink;
+    editUrl?: string;
+    lastUpdated?: string;
 }
 
-const { title, description, headings = [], prev, next } = Astro.props;
+const {
+    title,
+    description,
+    headings = [],
+    prev,
+    next,
+    editUrl,
+    lastUpdated,
+} = Astro.props;
 
-const canonicalURL = SITE_URL + Astro.url.pathname.replace(/\/$/, '') || SITE_URL;
+const canonicalURL =
+    SITE_URL + Astro.url.pathname.replace(/\/$/, "") || SITE_URL;
 const ogTitle = `${title} — ${SITE_NAME}`;
 ---
 
@@ -38,11 +49,15 @@ const ogTitle = `${title} — ${SITE_NAME}`;
         {description && <meta name="description" content={description} />}
         <link rel="canonical" href={canonicalURL} />
         <meta property="og:title" content={ogTitle} />
-        {description && <meta property="og:description" content={description} />}
+        {
+            description && (
+                <meta property="og:description" content={description} />
+            )
+        }
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalURL} />
         <meta property="og:site_name" content={SITE_NAME} />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
@@ -52,7 +67,12 @@ const ogTitle = `${title} — ${SITE_NAME}`;
         <script is:inline>
             (function () {
                 var intent = localStorage.getItem("wf-theme-intent") || "auto";
-                if (intent !== "auto" && intent !== "light" && intent !== "dark") intent = "auto";
+                if (
+                    intent !== "auto" &&
+                    intent !== "light" &&
+                    intent !== "dark"
+                )
+                    intent = "auto";
                 var resolved =
                     intent === "auto"
                         ? window.matchMedia("(prefers-color-scheme: dark)")
@@ -101,6 +121,27 @@ const ogTitle = `${title} — ${SITE_NAME}`;
                     <slot />
                 </div>
 
+                {(editUrl || lastUpdated) && (
+                    <div class="doc__page-footer">
+                        {editUrl && (
+                            <a
+                                href={editUrl}
+                                class="doc__edit-link"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <Icon name="pencil" size={14} />
+                                Edit this page on GitHub
+                            </a>
+                        )}
+                        {lastUpdated && (
+                            <span class="doc__last-updated">
+                                Last updated: {lastUpdated}
+                            </span>
+                        )}
+                    </div>
+                )}
+
                 {
                     (prev || next) && (
                         <nav class="doc__page-nav" aria-label="Page navigation">
@@ -110,8 +151,12 @@ const ogTitle = `${title} — ${SITE_NAME}`;
                                         href={prev.href}
                                         class="doc__page-nav-link doc__page-nav-link--prev"
                                     >
-                                        <span class="doc__page-nav-dir">← Previous</span>
-                                        <span class="doc__page-nav-label">{prev.label}</span>
+                                        <span class="doc__page-nav-dir">
+                                            ← Previous
+                                        </span>
+                                        <span class="doc__page-nav-label">
+                                            {prev.label}
+                                        </span>
                                     </a>
                                 ) : (
                                     <span />
@@ -121,8 +166,12 @@ const ogTitle = `${title} — ${SITE_NAME}`;
                                         href={next.href}
                                         class="doc__page-nav-link doc__page-nav-link--next"
                                     >
-                                        <span class="doc__page-nav-dir">Next →</span>
-                                        <span class="doc__page-nav-label">{next.label}</span>
+                                        <span class="doc__page-nav-dir">
+                                            Next →
+                                        </span>
+                                        <span class="doc__page-nav-label">
+                                            {next.label}
+                                        </span>
                                     </a>
                                 ) : (
                                     <span />
@@ -160,7 +209,8 @@ const ogTitle = `${title} — ${SITE_NAME}`;
                 if (!btn || !sidebar || !overlay) return;
 
                 // Mark sidebar as hidden from AT when in mobile drawer mode
-                if (window.innerWidth <= 768) sidebar.setAttribute("aria-hidden", "true");
+                if (window.innerWidth <= 768)
+                    sidebar.setAttribute("aria-hidden", "true");
 
                 const open = () => {
                     sidebar.classList.add("sidebar--open");
@@ -187,85 +237,125 @@ const ogTitle = `${title} — ${SITE_NAME}`;
                 overlay.addEventListener("click", close);
 
                 // Close on sidebar link click
-                sidebar.querySelectorAll<HTMLElement>(".sidebar__link").forEach(
-                    (link) => link.addEventListener("click", close),
-                );
+                sidebar
+                    .querySelectorAll<HTMLElement>(".sidebar__link")
+                    .forEach((link) => link.addEventListener("click", close));
 
                 // ESC key
                 docsEscHandler = (e: KeyboardEvent) => {
-                    if (e.key === "Escape" && sidebar.classList.contains("sidebar--open")) close();
+                    if (
+                        e.key === "Escape" &&
+                        sidebar.classList.contains("sidebar--open")
+                    )
+                        close();
                 };
                 document.addEventListener("keydown", docsEscHandler);
 
-                docsResizeHandler = () => { if (window.innerWidth > 768) close(); };
+                docsResizeHandler = () => {
+                    if (window.innerWidth > 768) close();
+                };
                 window.addEventListener("resize", docsResizeHandler);
             }
 
-            var COPY_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-            var CHECK_SVG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+            var COPY_SVG =
+                '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+            var CHECK_SVG =
+                '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 
             function injectProseCopyButtons() {
-                document.querySelectorAll<HTMLElement>(".doc__prose pre").forEach((pre) => {
-                    if (pre.closest(".cb") || pre.closest(".sh")) return;
-                    if (pre.closest(".prose-pre-wrap")) return;
+                document
+                    .querySelectorAll<HTMLElement>(".doc__prose pre")
+                    .forEach((pre) => {
+                        if (pre.closest(".cb") || pre.closest(".sh")) return;
+                        if (pre.closest(".prose-pre-wrap")) return;
 
-                    const wrapper = document.createElement("div");
-                    wrapper.className = "prose-pre-wrap";
-                    pre.parentNode!.insertBefore(wrapper, pre);
-                    wrapper.appendChild(pre);
+                        const wrapper = document.createElement("div");
+                        wrapper.className = "prose-pre-wrap";
+                        pre.parentNode!.insertBefore(wrapper, pre);
+                        wrapper.appendChild(pre);
 
-                    const btn = document.createElement("button");
-                    btn.className = "prose-copy";
-                    btn.type = "button";
-                    btn.setAttribute("aria-label", "Copy code");
-                    btn.innerHTML =
-                        '<span class="prose-copy-icon">' + COPY_SVG + '</span>' +
-                        '<span class="prose-copy-icon-done">' + CHECK_SVG + '</span>' +
-                        '<span class="prose-copy-label" aria-live="polite">Copy</span>';
-                    wrapper.appendChild(btn);
+                        const btn = document.createElement("button");
+                        btn.className = "prose-copy";
+                        btn.type = "button";
+                        btn.setAttribute("aria-label", "Copy code");
+                        btn.innerHTML =
+                            '<span class="prose-copy-icon">' +
+                            COPY_SVG +
+                            "</span>" +
+                            '<span class="prose-copy-icon-done">' +
+                            CHECK_SVG +
+                            "</span>" +
+                            '<span class="prose-copy-label" aria-live="polite">Copy</span>';
+                        wrapper.appendChild(btn);
 
-                    let copyTimer: ReturnType<typeof setTimeout> | null = null;
-                    const label = btn.querySelector<HTMLElement>(".prose-copy-label");
+                        let copyTimer: ReturnType<typeof setTimeout> | null =
+                            null;
+                        const label =
+                            btn.querySelector<HTMLElement>(".prose-copy-label");
 
-                    btn.addEventListener("click", async () => {
-                        if (copyTimer) clearTimeout(copyTimer);
-                        try {
-                            await navigator.clipboard.writeText(pre.textContent ?? "");
-                            btn.classList.add("prose-copy--copied");
-                            if (label) label.textContent = "Copied!";
-                        } catch {
-                            btn.classList.remove("prose-copy--copied");
-                            if (label) label.textContent = "Failed";
-                        }
-                        copyTimer = setTimeout(() => {
-                            btn.classList.remove("prose-copy--copied");
-                            if (label) label.textContent = "Copy";
-                            copyTimer = null;
-                        }, 2000);
+                        btn.addEventListener("click", async () => {
+                            if (copyTimer) clearTimeout(copyTimer);
+                            try {
+                                await navigator.clipboard.writeText(
+                                    pre.textContent ?? "",
+                                );
+                                btn.classList.add("prose-copy--copied");
+                                if (label) label.textContent = "Copied!";
+                            } catch {
+                                btn.classList.remove("prose-copy--copied");
+                                if (label) label.textContent = "Failed";
+                            }
+                            copyTimer = setTimeout(() => {
+                                btn.classList.remove("prose-copy--copied");
+                                if (label) label.textContent = "Copy";
+                                copyTimer = null;
+                            }, 2000);
+                        });
                     });
-                });
             }
 
             function wrapProseTables() {
-                document.querySelectorAll<HTMLTableElement>(".doc__prose table").forEach((table) => {
-                    if (table.parentElement?.classList.contains("table-wrapper")) return;
-                    const wrapper = document.createElement("div");
-                    wrapper.className = "table-wrapper";
-                    table.parentNode!.insertBefore(wrapper, table);
-                    wrapper.appendChild(table);
-                });
+                document
+                    .querySelectorAll<HTMLTableElement>(".doc__prose table")
+                    .forEach((table) => {
+                        if (
+                            table.parentElement?.classList.contains(
+                                "table-wrapper",
+                            )
+                        )
+                            return;
+                        const wrapper = document.createElement("div");
+                        wrapper.className = "table-wrapper";
+                        table.parentNode!.insertBefore(wrapper, table);
+                        wrapper.appendChild(table);
+                    });
             }
 
             function initProseTouchCopy() {
                 if (document.documentElement.dataset.proseTouchInit) return;
                 document.documentElement.dataset.proseTouchInit = "1";
-                document.addEventListener("touchstart", (e) => {
-                    const wrapper = (e.target as HTMLElement).closest<HTMLElement>(".prose-pre-wrap");
-                    document.querySelectorAll<HTMLElement>(".prose-pre-wrap--touch-active").forEach((el) => {
-                        el.classList.remove("prose-pre-wrap--touch-active");
-                    });
-                    if (wrapper) wrapper.classList.add("prose-pre-wrap--touch-active");
-                }, { passive: true });
+                document.addEventListener(
+                    "touchstart",
+                    (e) => {
+                        const wrapper = (
+                            e.target as HTMLElement
+                        ).closest<HTMLElement>(".prose-pre-wrap");
+                        document
+                            .querySelectorAll<HTMLElement>(
+                                ".prose-pre-wrap--touch-active",
+                            )
+                            .forEach((el) => {
+                                el.classList.remove(
+                                    "prose-pre-wrap--touch-active",
+                                );
+                            });
+                        if (wrapper)
+                            wrapper.classList.add(
+                                "prose-pre-wrap--touch-active",
+                            );
+                    },
+                    { passive: true },
+                );
             }
 
             initDocsMobileNav();
@@ -280,4 +370,3 @@ const ogTitle = `${title} — ${SITE_NAME}`;
         </script>
     </body>
 </html>
-

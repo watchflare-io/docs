@@ -14,7 +14,9 @@ const pathname = Astro.url.pathname;
                         {group.items.map((item) => (
                             <a
                                 href={item.href}
-                                aria-current={pathname === item.href ? "page" : undefined}
+                                aria-current={
+                                    pathname === item.href ? "page" : undefined
+                                }
                                 class:list={[
                                     "sidebar__link",
                                     { "sidebar__link--child": item.child },
@@ -59,7 +61,6 @@ const pathname = Astro.url.pathname;
     .sidebar__links {
         display: flex;
         flex-direction: column;
-        gap: 4px;
     }
 
     .sidebar__link {
@@ -71,7 +72,7 @@ const pathname = Astro.url.pathname;
         transition:
             color 0.1s,
             background 0.1s;
-        line-height: 1.5;
+        line-height: 2;
     }
 
     .sidebar__link:hover {

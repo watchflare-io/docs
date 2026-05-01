@@ -1,5 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
+import { spawnSync } from 'node:child_process';
 import DocsLayout from '@layouts/DocsLayout.astro';
 import { navFlat } from '@utils/nav';
 
@@ -19,6 +20,17 @@ const currentIdx = navFlat.findIndex(item => item.href === currentPath);
 
 const prev = currentIdx > 0 ? navFlat[currentIdx - 1] : undefined;
 const next = currentIdx !== -1 && currentIdx < navFlat.length - 1 ? navFlat[currentIdx + 1] : undefined;
+
+const srcPath = `src/content/docs/${entry.id}.mdx`;
+const editUrl = `https://github.com/watchflare-io/docs/edit/main/${srcPath}`;
+
+let lastUpdated = '';
+const gitResult = spawnSync('git', ['log', '-1', '--format=%ct', '--', srcPath], { encoding: 'utf8' });
+const ts = gitResult.stdout.trim();
+if (ts) {
+  const d = new Date(Number(ts) * 1000);
+  lastUpdated = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+}
 ---
 
 <DocsLayout
@@ -27,6 +39,8 @@ const next = currentIdx !== -1 && currentIdx < navFlat.length - 1 ? navFlat[curr
   headings={headings}
   prev={prev}
   next={next}
+  editUrl={editUrl}
+  lastUpdated={lastUpdated || undefined}
 >
   <Content />
 </DocsLayout>

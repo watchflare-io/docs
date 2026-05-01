@@ -1,5 +1,7 @@
 {
-  "name": "",
+  "name": "watchflare-docs",
+  "description": "Documentation site for Watchflare — self-hosted host monitoring",
+  "private": true,
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -8,7 +10,7 @@
   "scripts": {
     "dev": "astro dev",
     "dev:search": "pnpm build && cp -r dist/pagefind public/ && astro dev",
-    "build": "astro build && npx -y pagefind --site dist",
+    "build": "astro build && pnpm exec pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -17,6 +19,7 @@
     "astro": "^6.1.9"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "pagefind": "^1.5.2"
   }
 }
