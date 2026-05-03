@@ -11,6 +11,7 @@
       "@styles/*": ["styles/*"],
       "@content/*": ["content/*"],
       "@utils/*": ["utils/*"],
+      "@i18n/*": ["i18n/*"],
       "@images/*": ["images/*"],
       "@consts": ["consts.ts"],
     },
