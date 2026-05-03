@@ -3,7 +3,7 @@
   "description": "Documentation site for Watchflare — self-hosted host monitoring",
   "private": true,
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.33.1",
   "engines": {
     "node": ">=22.12.0"
   },
