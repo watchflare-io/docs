@@ -8,58 +8,58 @@ const version = await fetchLatestVersion();
 
 const cards = [
     {
-        href: "/get-started/quickstart/",
-        title: "Quickstart in 5 minutes",
+        href: "/fr/get-started/quickstart/",
+        title: "Démarrage en 5 minutes",
         description:
-            "Deploy the Hub with Docker Compose, create the admin account, enroll your first machine. Six steps, zero optional config.",
-        cta: "Start here",
+            "Déployez le Hub avec Docker Compose, créez le compte admin et enrôlez votre première machine. Six étapes, zéro configuration optionnelle.",
+        cta: "Commencer",
         meta: "~5 min",
         icon: "bolt" as const,
         iconSize: 22,
         primary: true,
     },
     {
-        href: "/agent/install/linux/",
-        title: "Install the Agent",
+        href: "/fr/agent/install/linux/",
+        title: "Installer l'Agent",
         description:
-            "Enroll any Linux machine in two commands, or use Homebrew on macOS. The agent registers itself, generates its key, and starts reporting in under a minute.",
-        cta: "Read guide",
+            "Enrôlez n'importe quelle machine Linux en deux commandes, ou via Homebrew sur macOS. L'agent s'enregistre, génère sa clé et commence à remonter les métriques en moins d'une minute.",
+        cta: "Lire le guide",
         icon: "monitor" as const,
         iconSize: 20,
     },
     {
-        href: "/monitoring/alerts/",
-        title: "Set Up Alerts",
+        href: "/fr/monitoring/alerts/",
+        title: "Configurer les alertes",
         description:
-            "Define CPU, memory, disk, and load thresholds per host. Connect a notification channel and get paged before a problem becomes an outage.",
-        cta: "Read guide",
+            "Définissez des seuils CPU, mémoire, disque et charge par hôte. Connectez un canal de notification pour être prévenu avant qu'un problème ne devienne une panne.",
+        cta: "Lire le guide",
         icon: "alertTriangle" as const,
         iconSize: 20,
     },
     {
-        href: "/monitoring/packages/",
-        title: "Monitor Packages",
+        href: "/fr/monitoring/packages/",
+        title: "Surveiller les paquets",
         description:
-            "Track every installed package across your fleet. Watchflare flags outdated and security-vulnerable software so you know what needs patching.",
-        cta: "Read guide",
+            "Suivez chaque paquet installé sur votre parc. Watchflare signale les logiciels obsolètes et vulnérables afin que vous sachiez ce qui doit être mis à jour.",
+        cta: "Lire le guide",
         icon: "package" as const,
         iconSize: 20,
     },
     {
-        href: "/get-started/architecture/",
-        title: "Architecture & Security",
+        href: "/fr/get-started/architecture/",
+        title: "Architecture & Sécurité",
         description:
-            "The Hub and its agents communicate over gRPC/TLS 1.3 with per-request HMAC auth. Data never leaves your infrastructure. Understand the trust model before going to production.",
-        cta: "Read concept",
+            "Le Hub et ses agents communiquent via gRPC/TLS 1.3 avec authentification HMAC par requête. Les données ne quittent jamais votre infrastructure.",
+        cta: "Lire le concept",
         icon: "shield" as const,
         iconSize: 20,
     },
     {
-        href: "/hub/configuration/",
-        title: "Configuration Reference",
+        href: "/fr/hub/configuration/",
+        title: "Référence de configuration",
         description:
-            "All environment variables, config file options, and tuning knobs in one place — WAL size, collection intervals, retention, TLS, and more.",
-        cta: "Read guide",
+            "Toutes les variables d'environnement, options de configuration et paramètres de réglage en un seul endroit — WAL, intervalles, rétention, TLS, et plus.",
+        cta: "Lire le guide",
         icon: "server" as const,
         iconSize: 20,
     },
@@ -89,16 +89,16 @@ const cards = [
                     rel="noopener noreferrer">Changelog →</a
                 >
             </div>
-            <h1 class="dhome__title">Watchflare documentation</h1>
+            <h1 class="dhome__title">Documentation Watchflare</h1>
             <p class="dhome__lede">
-                Guides, reference and concepts to deploy the Hub, enroll agents
-                and read your metrics. Self-hosted, a single Go binary,
-                TimescaleDB, gRPC over TLS&nbsp;1.3.
+                Guides, référence et concepts pour déployer le Hub, enrôler des
+                agents et lire vos métriques. Auto-hébergé, un seul binaire Go,
+                TimescaleDB, gRPC sur TLS&nbsp;1.3.
             </p>
         </header>
 
         <!-- Card grid -->
-        <section class="dhome__cards" aria-label="Documentation guides">
+        <section class="dhome__cards" aria-label="Guides de documentation">
             {
                 cards.map((card) => (
                     <HomeCard
@@ -124,10 +124,10 @@ const cards = [
             <!-- Stack diagram -->
             <div>
                 <div class="dhome__bottom-head">
-                    <h2>Stack overview</h2>
+                    <h2>Vue d'ensemble du stack</h2>
                     <a
-                        href="/get-started/architecture/"
-                        class="dhome__bottom-link">Architecture →</
+                        href="/fr/get-started/architecture/"
+                        class="dhome__bottom-link">Architecture →</a
                     >
                 </div>
 
@@ -137,26 +137,26 @@ const cards = [
                         <div class="dstack__row dstack__row--edge">
                             <div class="dstack__group">
                                 <span class="dstack__group-label"
-                                    >Edge · your infrastructure</span
+                                    >Edge · votre infrastructure</span
                                 >
                                 <div class="dstack__nodes">
-                                    <a href="/agent/install/linux/" class="dstack__node">
+                                    <a href="/fr/agent/install/linux/" class="dstack__node">
                                         <span class="dstack__node-kind"
                                             >Agent</span
                                         >
                                         <span class="dstack__node-name"
-                                            >Linux host</span
+                                            >Hôte Linux</span
                                         >
                                         <span class="dstack__node-meta"
                                             >Systemd</span
                                         >
                                     </a>
-                                    <a href="/agent/install/macos/" class="dstack__node">
+                                    <a href="/fr/agent/install/macos/" class="dstack__node">
                                         <span class="dstack__node-kind"
                                             >Agent</span
                                         >
                                         <span class="dstack__node-name"
-                                            >macOS host</span
+                                            >Hôte macOS</span
                                         >
                                         <span class="dstack__node-meta"
                                             >launchd</span
@@ -172,7 +172,7 @@ const cards = [
                                             >Windows</span
                                         >
                                         <span class="dstack__node-meta"
-                                            >soon</span
+                                            >bientôt</span
                                         >
                                     </span>
                                 </div>
@@ -209,7 +209,7 @@ const cards = [
                         <!-- Hub node -->
                         <div class="dstack__row">
                             <a
-                                href="/hub/deploy-docker/"
+                                href="/fr/hub/deploy-docker/"
                                 class="dstack__node dstack__node--core"
                             >
                                 <span class="dstack__node-kind">Hub</span>
@@ -217,13 +217,13 @@ const cards = [
                                     >Watchflare Hub</span
                                 >
                                 <span class="dstack__node-meta"
-                                    >Single Go binary · SvelteKit embedded</span
+                                    >Binaire Go unique · SvelteKit embarqué</span
                                 >
                                 <div class="dstack__node-parts">
                                     <span>Dashboard</span>
-                                    <span>Metrics view</span>
-                                    <span>Packages list</span>
-                                    <span>Alert engine</span>
+                                    <span>Vue métriques</span>
+                                    <span>Liste paquets</span>
+                                    <span>Moteur d'alertes</span>
                                 </div>
                             </a>
                         </div>
@@ -231,7 +231,7 @@ const cards = [
                         <!-- Pipe: SQL -->
                         <div class="dstack__pipe">
                             <span class="dstack__pipe-label"
-                                >SQL · local socket</span
+                                >SQL · socket local</span
                             >
                             <svg
                                 class="dstack__pipe-line"
@@ -258,20 +258,20 @@ const cards = [
                         <!-- DB node -->
                         <div class="dstack__row">
                             <span class="dstack__node dstack__node--db">
-                                <span class="dstack__node-kind">Storage</span>
+                                <span class="dstack__node-kind">Stockage</span>
                                 <span class="dstack__node-name"
                                     >TimescaleDB</span
                                 >
                                 <span class="dstack__node-meta"
-                                    >Hypertables · Continuous aggregates ·
-                                    Retention</span
+                                    >Hypertables · Agrégats continus ·
+                                    Rétention</span
                                 >
                             </span>
                         </div>
 
                         <div class="dstack__legend">
                             <span class="dstack__legend-dot"></span>
-                            <span>Linked nodes open their reference page.</span>
+                            <span>Les nœuds liés ouvrent leur page de référence.</span>
                         </div>
                     </div>
                 </div>
@@ -279,7 +279,7 @@ const cards = [
 
             <!-- Resources aside -->
             <aside class="dhome__resources">
-                <h2>Resources</h2>
+                <h2>Ressources</h2>
 
                 <a
                     href="https://github.com/watchflare-io/watchflare"
@@ -289,7 +289,7 @@ const cards = [
                 >
                     <Icon name="github" size={14} />
                     <div>
-                        <span class="lbl">Repository</span>
+                        <span class="lbl">Dépôt</span>
                         <span class="val">watchflare-io/watchflare</span>
                     </div>
                     <span class="tag">AGPL-3.0</span>
@@ -303,7 +303,7 @@ const cards = [
                 >
                     <Icon name="info" size={14} />
                     <div>
-                        <span class="lbl">Issues & feedback</span>
+                        <span class="lbl">Issues & retours</span>
                         <span class="val">GitHub Issues</span>
                     </div>
                     <span class="tag">open</span>
@@ -317,14 +317,14 @@ const cards = [
                 >
                     <Icon name="messageCircle" size={14} />
                     <div>
-                        <span class="lbl">Community</span>
+                        <span class="lbl">Communauté</span>
                         <span class="val">GitHub Discussions</span>
                     </div>
                     <span class="tag">chat</span>
                 </a>
 
                 <div class="dhome__tech">
-                    <span class="dhome__tech-label">Built with</span>
+                    <span class="dhome__tech-label">Construit avec</span>
                     <div class="dhome__tech-list">
                         <span>Go</span>
                         <span>SvelteKit 5</span>
@@ -336,7 +336,7 @@ const cards = [
         </section>
 
         <footer class="dhome__footer">
-            <span>© 2026 Watchflare — Self-hosted host monitoring</span>
+            <span>© 2026 Watchflare — Supervision d'hôtes auto-hébergée</span>
         </footer>
     </div>
 </HomeLayout>
