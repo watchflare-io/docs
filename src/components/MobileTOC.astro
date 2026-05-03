@@ -1,5 +1,6 @@
 ---
 import Icon from "@components/Icon.astro";
+import { useTranslations } from "@i18n/utils";
 
 interface Heading {
     depth: number;
@@ -13,12 +14,13 @@ interface Props {
 
 const { headings } = Astro.props;
 const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 ---
 
 <details class="doc__mobile-toc">
     <summary class="doc__mobile-toc-summary">
         <button type="button" class="doc__mobile-toc-summary-content">
-            <span class="doc__mobile-toc-label">On this page</span>
+            <span class="doc__mobile-toc-label">{t('toc.onThisPage')}</span>
             <Icon name="chevronDown" size={14} class="doc__mobile-toc-chevron" />
         </button>
     </summary>
@@ -53,7 +55,8 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
         const btn = details.querySelector<HTMLButtonElement>(".doc__mobile-toc-summary-content");
 
-        btn?.addEventListener("click", () => {
+        btn?.addEventListener("click", (e) => {
+            e.stopPropagation();
             details.open = !details.open;
         });
 
@@ -69,6 +72,5 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
         document.addEventListener("click", mobileTocClickHandler);
     }
 
-    initMobileTOC();
     document.addEventListener("astro:page-load", initMobileTOC);
 </script>

@@ -1,15 +1,27 @@
 ---
 import Icon from "@components/Icon.astro";
+import { useTranslations } from "@i18n/utils";
+
+const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 ---
 
 <button
     class="search-bar"
     id="search-trigger"
-    aria-label="Search documentation"
+    aria-label={t('searchbar.label')}
 >
     <Icon name="search" size={14} />
-    <span class="search-bar__ph">Search</span>
+    <span class="search-bar__ph">{t('searchbar.placeholder')}</span>
     <kbd class="search-bar__kbd wf-kbd">⌘K</kbd>
 </button>
+<script is:inline>
+  (function () {
+    var isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
+    if (!isMac) {
+      var el = document.querySelector('.search-bar__kbd');
+      if (el) el.textContent = 'Ctrl K';
+    }
+  })();
+</script>
 
 <!-- Open/close logic in Search.astro — styles in global.css -->

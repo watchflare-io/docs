@@ -4,48 +4,51 @@ import SearchBar from "@components/SearchBar.astro";
 import ThemeToggle from "@components/ThemeToggle.astro";
 import LanguageSelect from "@components/LanguageSelect.astro";
 import MobileMenu from "@components/MobileMenu.astro";
+import { useTranslations, localePrefix } from "@i18n/utils";
 
+const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
+const prefix = localePrefix(Astro.currentLocale, Astro.url.pathname);
 const pathname = Astro.url.pathname;
-const isHome = pathname === "/";
+const isHome = pathname === "/" || pathname === "/fr/";
 
-function isActive(prefix: string) {
-    return pathname.startsWith(prefix);
+function isActive(path: string) {
+    return pathname.startsWith(path);
 }
 ---
 
 <header class="dx-nav" data-pagefind-ignore>
     <div class="dx-nav__inner">
         <!-- Brand -->
-        <a href="/" class="dx-nav__brand">
+        <a href={`${prefix}/`} class="dx-nav__brand">
             <span class="dx-nav__mark">W</span>
             <span class="dx-nav__name">Watchflare</span>
             <span class="dx-nav__docs-tag">docs</span>
         </a>
 
         <!-- Nav links (hidden ≤768px) -->
-        <nav class="dx-nav__links" aria-label="Main navigation">
-            <a href="/" class:list={["dx-nav__link", { active: isHome }]}
-                >Home</a
+        <nav class="dx-nav__links" aria-label={t('nav.aria.main')}>
+            <a href={`${prefix}/`} class:list={["dx-nav__link", { active: isHome }]}
+                >{t('nav.home')}</a
             >
             <a
-                href="/get-started/quickstart"
+                href={`${prefix}/get-started/quickstart/`}
                 class:list={[
                     "dx-nav__link",
                     {
                         active:
-                            isActive("/get-started") ||
-                            isActive("/hub") ||
-                            isActive("/agents") ||
-                            isActive("/platform") ||
-                            isActive("/security"),
+                            isActive(`${prefix}/get-started`) ||
+                            isActive(`${prefix}/hub`) ||
+                            isActive(`${prefix}/agent`) ||
+                            isActive(`${prefix}/monitoring`) ||
+                            isActive(`${prefix}/reference`),
                     },
-                ]}>Guides</a
+                ]}>{t('nav.guides')}</a
             >
             <a
                 href="https://github.com/watchflare-io/watchflare/releases"
                 class="dx-nav__link"
                 target="_blank"
-                rel="noopener noreferrer">Changelog</a
+                rel="noopener noreferrer">{t('nav.changelog')}</a
             >
         </nav>
 
@@ -62,7 +65,7 @@ function isActive(prefix: string) {
                     class="dx-nav__icon-btn"
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="GitHub repository"
+                    aria-label={t('nav.aria.github')}
                 >
                     <Icon name="github" size={16} />
                 </a>

@@ -195,23 +195,23 @@ const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
                     : cb.querySelector<HTMLElement>(".cb__content pre");
             if (!pre) return;
             if (copyTimer) clearTimeout(copyTimer);
+            let copied = false;
             try {
                 await navigator.clipboard.writeText(pre.textContent ?? "");
+                copied = true;
                 copyBtn.classList.add("cb__copy--copied");
                 if (copyLabel) copyLabel.textContent = "Copied!";
             } catch {
-                copyBtn.classList.remove("cb__copy--copied");
                 if (copyLabel) copyLabel.textContent = "Failed";
             }
             copyTimer = setTimeout(() => {
-                copyBtn.classList.remove("cb__copy--copied");
+                if (copied) copyBtn.classList.remove("cb__copy--copied");
                 if (copyLabel) copyLabel.textContent = "Copy";
                 copyTimer = null;
             }, 2000);
         });
     }
 
-    document.querySelectorAll<HTMLElement>(".cb").forEach(initCodeBlock);
     document.addEventListener("astro:page-load", () => {
         document.querySelectorAll<HTMLElement>(".cb").forEach(initCodeBlock);
     });

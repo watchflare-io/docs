@@ -1,15 +1,20 @@
 ---
-import { nav } from "@utils/nav";
+import { getLocalizedNav } from "@utils/nav";
+import { useTranslations } from "@i18n/utils";
 
 const pathname = Astro.url.pathname;
+const t = useTranslations(Astro.currentLocale, pathname);
+const localizedNav = getLocalizedNav(
+  pathname.startsWith('/fr') ? 'fr' : (Astro.currentLocale ?? 'en')
+);
 ---
 
 <aside class="sidebar" data-pagefind-ignore>
-    <nav class="sidebar__nav" aria-label="Documentation sidebar">
+    <nav class="sidebar__nav" aria-label={t('sidebar.aria')}>
         {
-            nav.map((group) => (
+            localizedNav.map((group) => (
                 <div class="sidebar__group">
-                    <h5 class="sidebar__group-title">{group.title}</h5>
+                    <h5 class="sidebar__group-title">{t(group.titleKey)}</h5>
                     <div class="sidebar__links">
                         {group.items.map((item) => (
                             <a

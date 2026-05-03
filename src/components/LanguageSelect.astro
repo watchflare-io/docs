@@ -1,12 +1,19 @@
 ---
 import Icon from "@components/Icon.astro";
+import { useTranslations, resolveLocale } from "@i18n/utils";
+
+const pathname = Astro.url.pathname;
+const locale = resolveLocale(Astro.currentLocale, pathname);
+const t = useTranslations(Astro.currentLocale, pathname);
+
+// Compute alternate-locale URL from current pathname
+const enUrl = locale === 'fr' ? (pathname.replace(/^\/fr/, '') || '/') : pathname;
+const frUrl = locale === 'en' ? '/fr' + pathname : pathname;
 
 const languages = [
-    { code: "en", label: "English", available: true },
-    { code: "fr", label: "Français", available: false },
+    { code: 'en', label: t('lang.en'), href: enUrl },
+    { code: 'fr', label: t('lang.fr'), href: frUrl },
 ];
-
-const current = languages.find((l) => l.code === "en")!;
 ---
 
 <div class="lang-select">
@@ -14,35 +21,30 @@ const current = languages.find((l) => l.code === "en")!;
         class="lang-btn"
         aria-haspopup="listbox"
         aria-expanded="false"
-        aria-label="Select language"
+        aria-label={t('lang.select')}
     >
         <Icon name="languages" size={14} />
-        <span class="lang-label">{current.label}</span>
+        <span class="lang-label">{languages.find(l => l.code === locale)?.label}</span>
         <span class="lang-chevron"><Icon name="chevronDown" size={12} /></span>
     </button>
 
-    <div class="lang-dropdown" role="listbox" aria-label="Language">
+    <div class="lang-dropdown" role="listbox" aria-label={t('lang.select')}>
         {
             languages.map((lang) => (
-                <button
+                <a
+                    href={lang.href}
                     class:list={[
                         "lang-option",
-                        {
-                            "lang-option--active": lang.code === current.code,
-                            "lang-option--disabled": !lang.available,
-                        },
+                        { "lang-option--active": lang.code === locale },
                     ]}
                     role="option"
-                    aria-selected={lang.code === current.code}
-                    aria-disabled={!lang.available}
-                    disabled={!lang.available}
+                    aria-selected={lang.code === locale}
                 >
                     <span>{lang.label}</span>
-                    {!lang.available && <span class="lang-soon">soon</span>}
-                    {lang.code === current.code && (
+                    {lang.code === locale && (
                         <Icon name="check" size={12} />
                     )}
-                </button>
+                </a>
             ))
         }
     </div>
@@ -84,12 +86,25 @@ const current = languages.find((l) => l.code === "en")!;
         });
 
         langClickHandler = closeAll;
-        langKeyHandler = (e: KeyboardEvent) => { if (e.key === "Escape") closeAll(); };
+        langKeyHandler = (e: KeyboardEvent) => {
+            if (e.key === "Escape") { closeAll(); return; }
+            const openSelect = document.querySelector<HTMLElement>(".lang-select[data-open]");
+            if (!openSelect) return;
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                e.preventDefault();
+                const options = Array.from(openSelect.querySelectorAll<HTMLAnchorElement>(".lang-option"));
+                const focused = document.activeElement;
+                const idx = options.findIndex(o => o === focused);
+                const next = e.key === "ArrowDown"
+                    ? options[idx + 1] ?? options[0]
+                    : options[idx - 1] ?? options[options.length - 1];
+                next?.focus();
+            }
+        };
         document.addEventListener("click", langClickHandler);
         document.addEventListener("keydown", langKeyHandler);
     }
 
-    initLangSelects();
     document.addEventListener("astro:page-load", initLangSelects);
 </script>
 
@@ -155,13 +170,13 @@ const current = languages.find((l) => l.code === "en")!;
         border-radius: var(--radius-md);
         font-size: 13px;
         color: var(--foreground-muted);
-        text-align: start;
+        text-decoration: none;
         transition:
             color 0.1s,
             background 0.1s;
     }
 
-    .lang-option:hover:not(:disabled) {
+    .lang-option:hover {
         color: var(--foreground);
         background: var(--surface);
     }
@@ -171,21 +186,9 @@ const current = languages.find((l) => l.code === "en")!;
         font-weight: 500;
     }
 
-    .lang-option--disabled {
-        opacity: 0.5;
-        cursor: default;
-    }
-
     .lang-option svg {
         margin-inline-start: auto;
         color: var(--primary);
-    }
-
-    .lang-soon {
-        margin-inline-start: auto;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        color: var(--foreground-subtle);
     }
 
     /* Responsive handled in global.css */

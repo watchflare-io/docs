@@ -1,4 +1,6 @@
 ---
+import { useTranslations } from "@i18n/utils";
+
 interface Heading {
   depth: number;
   slug: string;
@@ -11,10 +13,11 @@ interface Props {
 
 const { headings } = Astro.props;
 const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
+const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 ---
 
-<aside class="doc__toc" aria-label="On this page">
-  <h5 class="doc__toc-title">On this page</h5>
+<aside class="doc__toc" aria-label={t('toc.onThisPage')}>
+  <h5 class="doc__toc-title">{t('toc.onThisPage')}</h5>
   <nav>
     {tocHeadings.map(h => (
       <a
@@ -70,7 +73,6 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
     headingEls.forEach(el => tocObserver!.observe(el));
   }
 
-  initTOC();
   document.addEventListener('astro:page-load', initTOC);
 </script>
 

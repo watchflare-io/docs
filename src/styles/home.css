@@ -61,6 +61,9 @@
     .dhome__eyebrow-dot {
         animation: none;
     }
+    .dstack__node:is(a):hover {
+        transform: none;
+    }
 }
 
 .dhome__eyebrow-sep {

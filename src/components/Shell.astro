@@ -95,23 +95,23 @@ const renderedHtml =
 
         btn.addEventListener("click", async () => {
             if (copyTimer) clearTimeout(copyTimer);
+            let copied = false;
             try {
                 await navigator.clipboard.writeText(text);
+                copied = true;
                 btn.classList.add("sh__copy--copied");
                 if (label) label.textContent = "Copied!";
             } catch {
-                btn.classList.remove("sh__copy--copied");
                 if (label) label.textContent = "Failed";
             }
             copyTimer = setTimeout(() => {
-                btn.classList.remove("sh__copy--copied");
+                if (copied) btn.classList.remove("sh__copy--copied");
                 if (label) label.textContent = "Copy";
                 copyTimer = null;
             }, 2000);
         });
     }
 
-    document.querySelectorAll<HTMLElement>(".sh").forEach(initShell);
     document.addEventListener("astro:page-load", () => {
         document.querySelectorAll<HTMLElement>(".sh").forEach(initShell);
     });

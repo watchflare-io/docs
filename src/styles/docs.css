@@ -2,6 +2,18 @@
    DOCS PAGE STYLES
    ============================================================ */
 
+/* ── Fallback notice ── */
+
+.doc__fallback-notice {
+    padding: 10px 14px;
+    margin-bottom: 24px;
+    background: var(--callout-warn-bg);
+    border: 1px solid var(--callout-warn-border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--callout-warn-fg);
+}
+
 /* ── Page header ── */
 
 .doc__title {
@@ -537,9 +549,10 @@
         transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
-    .sidebar--open {
-        transform: translateX(0) !important;
-    }
+}
+
+body[data-sidebar-open] .sidebar {
+    transform: translateX(0) !important;
 }
 
 /* ── Sidebar overlay backdrop ── */
@@ -560,10 +573,15 @@
         visibility 0.35s ease;
 }
 
-.doc__sidebar-overlay--open {
+body[data-sidebar-open] .doc__sidebar-overlay {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+}
+
+/* Scroll lock when mobile sidebar is open */
+html:has(body[data-sidebar-open]) {
+    overflow: hidden;
 }
 
 /* ── Page navigation ── */

@@ -2,6 +2,10 @@
 import Icon from "@components/Icon.astro";
 import ThemeToggle from "@components/ThemeToggle.astro";
 import LanguageSelect from "@components/LanguageSelect.astro";
+import { useTranslations, localePrefix } from "@i18n/utils";
+
+const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
+const prefix = localePrefix(Astro.currentLocale, Astro.url.pathname);
 ---
 
 <div class="mm" id="mobile-menu">
@@ -22,14 +26,14 @@ import LanguageSelect from "@components/LanguageSelect.astro";
     <!-- Full-screen overlay -->
     <div class="mm__overlay" id="mm-overlay">
         <div class="mm__container">
-            <nav class="mm__nav" aria-label="Mobile navigation">
-                <a href="/" class="mm__link">Home</a>
-                <a href="/get-started/quickstart" class="mm__link">Guides</a>
+            <nav class="mm__nav" aria-label={t('nav.aria.main')}>
+                <a href={`${prefix}/`} class="mm__link">{t('nav.home')}</a>
+                <a href={`${prefix}/get-started/quickstart/`} class="mm__link">{t('nav.guides')}</a>
                 <a
                     href="https://github.com/watchflare-io/watchflare/releases"
                     class="mm__link"
                     target="_blank"
-                    rel="noopener noreferrer">Changelog</a
+                    rel="noopener noreferrer">{t('nav.changelog')}</a
                 >
             </nav>
 
@@ -126,7 +130,6 @@ import LanguageSelect from "@components/LanguageSelect.astro";
         document.body.style.overflow = "";
     });
 
-    initMobileMenu();
     document.addEventListener("astro:page-load", initMobileMenu);
 </script>
 
