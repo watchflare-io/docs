@@ -43,24 +43,30 @@ const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 
 <script>
     let mobileTocClickHandler: ((e: MouseEvent) => void) | null = null;
+    let mobileTocObserver: IntersectionObserver | null = null;
 
     function initMobileTOC() {
         if (mobileTocClickHandler) {
             document.removeEventListener("click", mobileTocClickHandler);
             mobileTocClickHandler = null;
         }
+        if (mobileTocObserver) {
+            mobileTocObserver.disconnect();
+            mobileTocObserver = null;
+        }
 
         const details = document.querySelector<HTMLDetailsElement>(".doc__mobile-toc");
         if (!details) return;
 
         const btn = details.querySelector<HTMLButtonElement>(".doc__mobile-toc-summary-content");
+        const links = details.querySelectorAll<HTMLAnchorElement>(".doc__mobile-toc-link");
 
         btn?.addEventListener("click", (e) => {
             e.stopPropagation();
             details.open = !details.open;
         });
 
-        details.querySelectorAll<HTMLAnchorElement>(".doc__mobile-toc-link").forEach((link) => {
+        links.forEach((link) => {
             link.addEventListener("click", () => { details.open = false; });
         });
 
@@ -70,6 +76,38 @@ const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
             }
         };
         document.addEventListener("click", mobileTocClickHandler);
+
+        // Active heading tracking
+        const headingIds = Array.from(links)
+            .map(l => l.getAttribute("href")?.slice(1))
+            .filter(Boolean) as string[];
+        const headingEls = headingIds
+            .map(id => document.getElementById(id))
+            .filter(Boolean) as HTMLElement[];
+
+        if (!headingEls.length) return;
+
+        const setActive = (id: string) => {
+            links.forEach(link => {
+                link.classList.toggle("doc__mobile-toc-link--active", link.getAttribute("href") === `#${id}`);
+            });
+        };
+
+        setActive(headingEls[0].id);
+
+        mobileTocObserver = new IntersectionObserver(
+            entries => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        setActive(entry.target.id);
+                        break;
+                    }
+                }
+            },
+            { rootMargin: `-80px 0px -60% 0px`, threshold: 0 }
+        );
+
+        headingEls.forEach(el => mobileTocObserver!.observe(el));
     }
 
     document.addEventListener("astro:page-load", initMobileTOC);

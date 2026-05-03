@@ -498,13 +498,13 @@
     width: fit-content;
     max-width: 450px;
     z-index: var(--z-overlay);
-    padding: 6px 6px 8px;
+    padding: 6px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     background: var(--surface);
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
     max-height: calc(
         100vh - var(--nav-height) - var(--mobile-bar-height) - 16px
     );
@@ -513,9 +513,10 @@
 
 .doc__mobile-toc-link {
     font-size: 13px;
+    font-weight: 500;
     color: var(--foreground-muted);
-    padding: 5px 8px;
-    border-radius: var(--radius-md);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
     transition:
         color 0.1s,
         background 0.1s;
@@ -523,13 +524,25 @@
 }
 
 .doc__mobile-toc-link--sub {
-    padding-inline-start: 20px;
+    padding-inline-start: 22px;
     font-size: 12px;
+    font-weight: 400;
+    color: var(--foreground-subtle);
 }
 
 .doc__mobile-toc-link:hover {
     color: var(--foreground);
-    background: var(--surface-raised);
+    background: color-mix(in oklch, var(--foreground) 6%, var(--background));
+}
+
+.doc__mobile-toc-link--active {
+    color: var(--foreground);
+    background: color-mix(in oklch, var(--foreground) 6%, var(--background));
+    font-weight: 600;
+}
+
+.doc__mobile-toc-link--active:hover {
+    background: color-mix(in oklch, var(--foreground) 6%, var(--background));
 }
 
 /* ── Sidebar mobile drawer ── */
