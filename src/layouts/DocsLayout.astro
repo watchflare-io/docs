@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from "astro:transitions";
 import Header from "@components/Header.astro";
 import Icon from "@components/Icon.astro";
 import Sidebar from "@components/Sidebar.astro";
@@ -9,6 +10,7 @@ import "@styles/tokens.css";
 import "@styles/global.css";
 import "@styles/docs.css";
 import { SITE_URL, SITE_NAME } from "@consts";
+import { useTranslations } from "@i18n/utils";
 
 interface NavLink {
     label: string;
@@ -23,6 +25,7 @@ interface Props {
     next?: NavLink;
     editUrl?: string;
     lastUpdated?: string;
+    isFallback?: boolean;
 }
 
 const {
@@ -33,21 +36,33 @@ const {
     next,
     editUrl,
     lastUpdated,
+    isFallback = false,
 } = Astro.props;
 
-const canonicalURL =
-    SITE_URL + Astro.url.pathname.replace(/\/$/, "") || SITE_URL;
+const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
+const lang = Astro.currentLocale === 'fr' ? 'fr' : 'en';
+
+const canonicalURL = SITE_URL + Astro.url.pathname.replace(/\/$/, "");
 const ogTitle = `${title} — ${SITE_NAME}`;
+
+const _path = Astro.url.pathname.replace(/\/$/, "");
+const _enPath = _path.startsWith("/fr") ? _path.replace(/^\/fr/, "") || "/" : _path;
+const _frPath = _path.startsWith("/fr") ? _path : "/fr" + _path;
+const hrefLangEn = SITE_URL + _enPath;
+const hrefLangFr = SITE_URL + _frPath;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang} transition:name="root" transition:animate="none">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{title} — Watchflare Docs</title>
         {description && <meta name="description" content={description} />}
         <link rel="canonical" href={canonicalURL} />
+        <link rel="alternate" hreflang="en" href={hrefLangEn} />
+        <link rel="alternate" hreflang="fr" href={hrefLangFr} />
+        <link rel="alternate" hreflang="x-default" href={hrefLangEn} />
         <meta property="og:title" content={ogTitle} />
         {
             description && (
@@ -57,12 +72,18 @@ const ogTitle = `${title} — ${SITE_NAME}`;
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalURL} />
         <meta property="og:site_name" content={SITE_NAME} />
+        <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
+        <meta property="og:image:alt" content={SITE_NAME} />
+        <meta property="og:locale" content={lang === 'fr' ? 'fr_FR' : 'en_US'} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <link rel="prefetch" href="/pagefind/pagefind.js" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
             rel="stylesheet"
         />
+        <ClientRouter />
         <!-- Theme init — must run before first paint to avoid flash -->
         <script is:inline>
             (function () {
@@ -86,7 +107,7 @@ const ogTitle = `${title} — ${SITE_NAME}`;
         </script>
     </head>
     <body>
-        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <a href="#main-content" class="skip-link">{t("doc.skipToMain")}</a>
         <Header />
         <Search />
 
@@ -94,11 +115,14 @@ const ogTitle = `${title} — ${SITE_NAME}`;
         <div class="doc__mobile-bar">
             <button
                 class="doc__mobile-sidebar-btn"
-                aria-label="Open navigation"
+                aria-label={t("doc.openNav")}
                 aria-expanded="false"
+                aria-controls="sidebar-nav"
             >
                 <Icon name="menu" size={16} />
-                <span class="doc__mobile-sidebar-btn-label">Menu</span>
+                <span class="doc__mobile-sidebar-btn-label"
+                    >{t("doc.menu")}</span
+                >
             </button>
             {headings.length > 0 && <MobileTOC headings={headings} />}
         </div>
@@ -114,6 +138,11 @@ const ogTitle = `${title} — ${SITE_NAME}`;
         >
             <Sidebar />
             <main class="doc-main" id="main-content" data-pagefind-body>
+                {isFallback && (
+                    <div class="doc__fallback-notice" role="note">
+                        {t('doc.fallbackNotice')}
+                    </div>
+                )}
                 <h1 class="doc__title" data-pagefind-meta="title">{title}</h1>
                 {description && <p class="doc__lede">{description}</p>}
 
@@ -121,30 +150,35 @@ const ogTitle = `${title} — ${SITE_NAME}`;
                     <slot />
                 </div>
 
-                {(editUrl || lastUpdated) && (
-                    <div class="doc__page-footer">
-                        {editUrl && (
-                            <a
-                                href={editUrl}
-                                class="doc__edit-link"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                <Icon name="pencil" size={14} />
-                                Edit this page on GitHub
-                            </a>
-                        )}
-                        {lastUpdated && (
-                            <span class="doc__last-updated">
-                                Last updated: {lastUpdated}
-                            </span>
-                        )}
-                    </div>
-                )}
+                {
+                    (editUrl || lastUpdated) && (
+                        <div class="doc__page-footer">
+                            {editUrl && (
+                                <a
+                                    href={editUrl}
+                                    class="doc__edit-link"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <Icon name="pencil" size={14} />
+                                    {t("doc.editOnGithub")}
+                                </a>
+                            )}
+                            {lastUpdated && (
+                                <span class="doc__last-updated">
+                                    {t("doc.lastUpdated")} {lastUpdated}
+                                </span>
+                            )}
+                        </div>
+                    )
+                }
 
                 {
                     (prev || next) && (
-                        <nav class="doc__page-nav" aria-label="Page navigation">
+                        <nav
+                            class="doc__page-nav"
+                            aria-label={t("doc.pageNav")}
+                        >
                             <div class="doc__page-nav-inner">
                                 {prev ? (
                                     <a
@@ -152,7 +186,7 @@ const ogTitle = `${title} — ${SITE_NAME}`;
                                         class="doc__page-nav-link doc__page-nav-link--prev"
                                     >
                                         <span class="doc__page-nav-dir">
-                                            ← Previous
+                                            {t("doc.prev")}
                                         </span>
                                         <span class="doc__page-nav-label">
                                             {prev.label}
@@ -167,7 +201,7 @@ const ogTitle = `${title} — ${SITE_NAME}`;
                                         class="doc__page-nav-link doc__page-nav-link--next"
                                     >
                                         <span class="doc__page-nav-dir">
-                                            Next →
+                                            {t("doc.next")}
                                         </span>
                                         <span class="doc__page-nav-label">
                                             {next.label}
@@ -185,77 +219,36 @@ const ogTitle = `${title} — ${SITE_NAME}`;
         </div>
 
         <script>
-            let docsResizeHandler: (() => void) | null = null;
-            let docsEscHandler: ((e: KeyboardEvent) => void) | null = null;
-
-            function initDocsMobileNav() {
-                if (docsResizeHandler) {
-                    window.removeEventListener("resize", docsResizeHandler);
-                    docsResizeHandler = null;
-                }
-                if (docsEscHandler) {
-                    document.removeEventListener("keydown", docsEscHandler);
-                    docsEscHandler = null;
-                }
-
-                const btn = document.querySelector<HTMLButtonElement>(
-                    ".doc__mobile-sidebar-btn",
-                );
-                const sidebar = document.querySelector<HTMLElement>(".sidebar");
-                const overlay = document.querySelector<HTMLElement>(
-                    ".doc__sidebar-overlay",
-                );
-
-                if (!btn || !sidebar || !overlay) return;
-
-                // Mark sidebar as hidden from AT when in mobile drawer mode
-                if (window.innerWidth <= 768)
-                    sidebar.setAttribute("aria-hidden", "true");
-
-                const open = () => {
-                    sidebar.classList.add("sidebar--open");
-                    sidebar.removeAttribute("aria-hidden");
-                    overlay.classList.add("doc__sidebar-overlay--open");
-                    btn.setAttribute("aria-expanded", "true");
-                    document.body.style.overflow = "hidden";
-                };
-
-                const close = () => {
-                    sidebar.classList.remove("sidebar--open");
-                    sidebar.setAttribute("aria-hidden", "true");
-                    overlay.classList.remove("doc__sidebar-overlay--open");
-                    btn.setAttribute("aria-expanded", "false");
-                    document.body.style.overflow = "";
-                };
-
-                btn.addEventListener("click", () => {
-                    sidebar.classList.contains("sidebar--open")
-                        ? close()
-                        : open();
-                });
-
-                overlay.addEventListener("click", close);
-
-                // Close on sidebar link click
-                sidebar
-                    .querySelectorAll<HTMLElement>(".sidebar__link")
-                    .forEach((link) => link.addEventListener("click", close));
-
-                // ESC key
-                docsEscHandler = (e: KeyboardEvent) => {
-                    if (
-                        e.key === "Escape" &&
-                        sidebar.classList.contains("sidebar--open")
-                    )
-                        close();
-                };
-                document.addEventListener("keydown", docsEscHandler);
-
-                docsResizeHandler = () => {
-                    if (window.innerWidth > 768) close();
-                };
-                window.addEventListener("resize", docsResizeHandler);
+            // Mobile sidebar — toggle data-sidebar-open on <body>, CSS does the rest
+            function openSidebar() {
+                document.body.setAttribute("data-sidebar-open", "");
+                document
+                    .querySelector(".doc__mobile-sidebar-btn")
+                    ?.setAttribute("aria-expanded", "true");
             }
+            function closeSidebar() {
+                document.body.removeAttribute("data-sidebar-open");
+                document
+                    .querySelector(".doc__mobile-sidebar-btn")
+                    ?.setAttribute("aria-expanded", "false");
+            }
+
+            // Single delegated listener — button, overlay, sidebar links
+            document.addEventListener("click", (e) => {
+                const target = e.target as HTMLElement;
+                if (target.closest(".doc__mobile-sidebar-btn"))
+                    document.body.hasAttribute("data-sidebar-open")
+                        ? closeSidebar()
+                        : openSidebar();
+                else if (
+                    target.closest(".doc__sidebar-overlay") ||
+                    target.closest(".sidebar__link")
+                )
+                    closeSidebar();
+            });
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeSidebar();
+            });
 
             var COPY_SVG =
                 '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
@@ -295,18 +288,19 @@ const ogTitle = `${title} — ${SITE_NAME}`;
 
                         btn.addEventListener("click", async () => {
                             if (copyTimer) clearTimeout(copyTimer);
+                            let copied = false;
                             try {
                                 await navigator.clipboard.writeText(
                                     pre.textContent ?? "",
                                 );
+                                copied = true;
                                 btn.classList.add("prose-copy--copied");
                                 if (label) label.textContent = "Copied!";
                             } catch {
-                                btn.classList.remove("prose-copy--copied");
                                 if (label) label.textContent = "Failed";
                             }
                             copyTimer = setTimeout(() => {
-                                btn.classList.remove("prose-copy--copied");
+                                if (copied) btn.classList.remove("prose-copy--copied");
                                 if (label) label.textContent = "Copy";
                                 copyTimer = null;
                             }, 2000);
@@ -358,14 +352,31 @@ const ogTitle = `${title} — ${SITE_NAME}`;
                 );
             }
 
-            initDocsMobileNav();
-            wrapProseTables();
-            injectProseCopyButtons();
-            initProseTouchCopy();
+            // Preserve sidebar scroll + close mobile drawer before each swap
+            // Also carry over data-theme / data-theme-intent so the new document
+            // inherits the resolved theme before the swap (server doesn't know localStorage)
+            let _sidebarScroll = 0;
+            document.addEventListener("astro:before-swap", (e) => {
+                const html = document.documentElement;
+                const incoming = (e as any).newDocument?.documentElement;
+                if (incoming) {
+                    if (html.dataset.theme) incoming.dataset.theme = html.dataset.theme;
+                    if (html.dataset.themeIntent) incoming.dataset.themeIntent = html.dataset.themeIntent;
+                }
+                const sidebar = document.querySelector<HTMLElement>(".sidebar");
+                if (sidebar) _sidebarScroll = sidebar.scrollTop;
+                closeSidebar();
+            });
+            document.addEventListener("astro:after-swap", () => {
+                const sidebar = document.querySelector<HTMLElement>(".sidebar");
+                if (sidebar) sidebar.scrollTop = _sidebarScroll;
+            });
+
+            // astro:page-load fires on initial load + every navigation with ClientRouter
             document.addEventListener("astro:page-load", () => {
-                initDocsMobileNav();
                 wrapProseTables();
                 injectProseCopyButtons();
+                initProseTouchCopy();
             });
         </script>
     </body>
