@@ -1,8 +1,11 @@
 ---
 import Icon from '@components/Icon.astro';
+import { useTranslations } from '@i18n/utils';
+
+const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 ---
 
-<button class="theme-toggle" aria-label="Toggle theme">
+<button class="theme-toggle" aria-label={t('theme.toggle')}>
   <!-- Wrapper spans carry the Astro scope hash so CSS selectors work correctly -->
   <span class="ti ti--auto"><Icon name="monitor" size={14} /></span>
   <span class="ti ti--light"><Icon name="sun"     size={14} /></span>

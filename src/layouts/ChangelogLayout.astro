@@ -1,0 +1,167 @@
+---
+import { ClientRouter } from "astro:transitions";
+import Header from "@components/Header.astro";
+import TOC from "@components/TOC.astro";
+import MobileTOC from "@components/MobileTOC.astro";
+import Search from "@components/Search.astro";
+import "@styles/tokens.css";
+import "@styles/global.css";
+import "@styles/docs.css";
+import { SITE_URL, SITE_NAME } from "@consts";
+import { useTranslations } from "@i18n/utils";
+
+interface Heading {
+    depth: number;
+    slug: string;
+    text: string;
+}
+
+interface Props {
+    title: string;
+    description?: string;
+    headings?: Heading[];
+}
+
+const { title, description, headings = [] } = Astro.props;
+
+const canonicalURL = SITE_URL + Astro.url.pathname.replace(/\/$/, "");
+const ogTitle = `${title} — ${SITE_NAME}`;
+const lang = Astro.currentLocale === "fr" ? "fr" : "en";
+const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
+---
+
+<!doctype html>
+<html lang={lang} transition:name="root" transition:animate="none">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{ogTitle}</title>
+        {description && <meta name="description" content={description} />}
+        <link rel="canonical" href={canonicalURL} />
+        <meta property="og:title" content={ogTitle} />
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalURL} />
+        <meta property="og:site_name" content={SITE_NAME} />
+        <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
+        <meta property="og:image:alt" content={SITE_NAME} />
+        <meta property="og:locale" content={lang === "fr" ? "fr_FR" : "en_US"} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <link rel="prefetch" href="/pagefind/pagefind.js" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <ClientRouter />
+        <script is:inline>
+            (function () {
+                var intent = localStorage.getItem("wf-theme-intent") || "auto";
+                if (intent !== "auto" && intent !== "light" && intent !== "dark")
+                    intent = "auto";
+                var resolved =
+                    intent === "auto"
+                        ? window.matchMedia("(prefers-color-scheme: dark)").matches
+                            ? "dark"
+                            : "light"
+                        : intent;
+                document.documentElement.dataset.theme = resolved;
+                document.documentElement.dataset.themeIntent = intent;
+            })();
+        </script>
+    </head>
+    <body>
+        <a href="#main-content" class="skip-link">{t("doc.skipToMain")}</a>
+        <Header />
+        <Search />
+
+        {headings.length > 0 && (
+            <div class="doc__mobile-bar cl-mobile-bar">
+                <MobileTOC headings={headings} />
+            </div>
+        )}
+
+        <div class:list={["cl-layout", { "cl-layout--no-toc": headings.length === 0 }]}>
+            <main class="cl-main" id="main-content" data-pagefind-body>
+                <h1 class="cl-title" data-pagefind-meta="title">{title}</h1>
+                {description && <p class="cl-lede">{description}</p>}
+                <div class="doc__prose">
+                    <slot />
+                </div>
+            </main>
+            {headings.length > 0 && <TOC headings={headings} />}
+        </div>
+    </body>
+</html>
+
+<style>
+    /* Mobile bar has no sidebar — always full width */
+    .cl-mobile-bar {
+        left: 0 !important;
+    }
+
+    .cl-layout {
+        display: grid;
+        grid-template-columns: 1fr var(--toc-width);
+        grid-template-areas: "main toc";
+        min-height: 100vh;
+        padding-top: var(--nav-height);
+        max-width: calc(760px + var(--toc-width) + 96px);
+        margin-inline: auto;
+        padding-inline: 48px;
+        box-sizing: content-box;
+    }
+
+    .cl-layout--no-toc {
+        grid-template-columns: 1fr;
+        grid-template-areas: "main";
+        max-width: 760px;
+    }
+
+    @media (max-width: 1280px) {
+        .cl-layout {
+            grid-template-columns: 1fr;
+            grid-template-areas: "main";
+        }
+    }
+
+    @media (max-width: 768px) {
+        .cl-layout {
+            padding-inline: 20px;
+        }
+    }
+
+    .cl-main {
+        grid-area: main;
+        padding: 48px 48px 96px 0;
+        min-width: 0;
+    }
+
+    @media (max-width: 1280px) {
+        .cl-main {
+            padding-top: calc(40px + var(--mobile-bar-height));
+            padding-right: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .cl-main {
+            padding: calc(24px + var(--mobile-bar-height)) 0 80px;
+        }
+    }
+
+    .cl-title {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--foreground);
+        margin-bottom: 8px;
+    }
+
+    .cl-lede {
+        font-size: 1rem;
+        color: var(--foreground-muted);
+        margin-bottom: 40px;
+    }
+</style>

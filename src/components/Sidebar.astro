@@ -82,20 +82,12 @@ const localizedNav = getLocalizedNav(
 
     .sidebar__link:hover {
         color: var(--foreground);
-        background: color-mix(
-            in oklch,
-            var(--foreground) 6%,
-            var(--background)
-        );
+        background: var(--muted);
     }
 
     .sidebar__link--active {
         color: var(--foreground);
-        background: color-mix(
-            in oklch,
-            var(--foreground) 6%,
-            var(--background)
-        );
+        background: var(--muted);
         font-weight: 500;
     }
 

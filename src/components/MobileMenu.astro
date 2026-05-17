@@ -29,12 +29,7 @@ const prefix = localePrefix(Astro.currentLocale, Astro.url.pathname);
             <nav class="mm__nav" aria-label={t('nav.aria.main')}>
                 <a href={`${prefix}/`} class="mm__link">{t('nav.home')}</a>
                 <a href={`${prefix}/get-started/quickstart/`} class="mm__link">{t('nav.guides')}</a>
-                <a
-                    href="https://github.com/watchflare-io/watchflare/releases"
-                    class="mm__link"
-                    target="_blank"
-                    rel="noopener noreferrer">{t('nav.changelog')}</a
-                >
+                <a href={`${prefix}/changelog/`} class="mm__link">{t('nav.changelog')}</a>
             </nav>
 
             <div class="mm__footer">
@@ -121,8 +116,8 @@ const prefix = localePrefix(Astro.currentLocale, Astro.url.pathname);
     }
 
     // Close when viewport exceeds mobile breakpoint
-    window.matchMedia("(min-width: 769px)").addEventListener("change", (e) => {
-        if (!e.matches) return;
+    window.matchMedia("(max-width: 768px)").addEventListener("change", (e) => {
+        if (e.matches) return;
         document.getElementById("mobile-menu")?.removeAttribute("data-open");
         document
             .getElementById("mm-trigger")

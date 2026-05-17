@@ -19,7 +19,14 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
-    scroll-padding-top: calc(var(--nav-height) + 24px);
+    /*scroll-padding-top: var(--nav-height);*/
+    scroll-padding-top: 5px;
+}
+
+@media (max-width: 1280px) {
+    html {
+        scroll-padding-top: var(--mobile-bar-height);
+    }
 }
 
 body {
@@ -62,7 +69,7 @@ pre {
     padding-inline: 10px;
     border: 1px solid transparent;
     border-radius: var(--radius-control);
-    background: color-mix(in oklch, var(--foreground) 4%, var(--background));
+    background: var(--muted);
 }
 
 [data-theme="dark"] .search-bar {
@@ -76,7 +83,7 @@ pre {
 }
 
 .search-bar:hover {
-    border-color: var(--foreground-subtle);
+    border-color: var(--border-strong);
     color: var(--foreground);
 }
 

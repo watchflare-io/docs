@@ -12,7 +12,7 @@ const pathname = Astro.url.pathname;
 const isHome = pathname === "/" || pathname === "/fr/";
 
 function isActive(path: string) {
-    return pathname.startsWith(path);
+    return pathname === path || pathname.startsWith(`${path}/`);
 }
 ---
 
@@ -45,10 +45,9 @@ function isActive(path: string) {
                 ]}>{t('nav.guides')}</a
             >
             <a
-                href="https://github.com/watchflare-io/watchflare/releases"
-                class="dx-nav__link"
-                target="_blank"
-                rel="noopener noreferrer">{t('nav.changelog')}</a
+                href={`${prefix}/changelog/`}
+                class:list={["dx-nav__link", { active: isActive(`${prefix}/changelog`) }]}
+                >{t('nav.changelog')}</a
             >
         </nav>
 

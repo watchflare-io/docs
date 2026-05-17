@@ -5,7 +5,7 @@ import DocsLayout from '@layouts/DocsLayout.astro';
 import { getNavFlat } from '@utils/nav';
 
 export async function getStaticPaths() {
-  const entries = await getCollection('docs', (e) => e.id.startsWith('en/'));
+  const entries = await getCollection('docs', (e) => e.id.startsWith('en/') && e.id !== 'en/changelog');
   return entries.map((entry) => ({
     params: { slug: entry.id.slice(3) },
     props: { entry },
@@ -28,10 +28,12 @@ const editUrl = `https://github.com/watchflare-io/docs/edit/main/${srcPath}`;
 
 let lastUpdated = '';
 const gitResult = spawnSync('git', ['log', '-1', '--format=%ct', '--', srcPath], { encoding: 'utf8' });
-const ts = gitResult.stdout.trim();
-if (ts) {
-  const d = new Date(Number(ts) * 1000);
-  lastUpdated = `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`;
+if (!gitResult.error) {
+  const ts = gitResult.stdout.trim();
+  if (ts) {
+    const d = new Date(Number(ts) * 1000);
+    lastUpdated = `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`;
+  }
 }
 ---
 

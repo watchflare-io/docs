@@ -43,6 +43,7 @@ const fr: Translations = {
   'search.hint.open': 'ouvrir',
   'search.hint.close': 'fermer',
   'search.cancel': 'Annuler',
+  'search.close': 'Fermer la recherche',
   'search.empty': 'Aucun résultat pour',
   'search.result': 'résultat',
   'search.results': 'résultats',
@@ -50,6 +51,9 @@ const fr: Translations = {
 
   // Fallback notice
   'doc.fallbackNotice': "Cette page n'est pas encore disponible en français. Vous lisez la version anglaise.",
+
+  // Theme toggle
+  'theme.toggle': 'Changer le thème',
 
   // Language selector
   'lang.select': 'Choisir la langue',

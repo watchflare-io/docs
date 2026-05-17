@@ -62,7 +62,7 @@ export const nav: NavGroup[] = [
     items: [
       { href: '/reference/hub-env/', label: 'Hub environment variables', labelFr: "Variables d'environnement Hub" },
       { href: '/reference/agent-config/', label: 'Agent config (TOML)', labelFr: 'Config agent (TOML)' },
-      { href: '/reference/changelog/', label: 'Changelog' },
+      { href: '/reference/troubleshooting/', label: 'Troubleshooting', labelFr: 'Dépannage' },
     ],
   },
 ];
@@ -90,5 +90,3 @@ export function getNavFlat(locale: string | undefined) {
   return getLocalizedNav(locale).flatMap((g) => g.items);
 }
 
-/** @deprecated Use getNavFlat('en') */
-export const navFlat = nav.flatMap((g) => g.items);

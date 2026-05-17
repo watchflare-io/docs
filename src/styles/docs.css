@@ -422,6 +422,16 @@
     }
 }
 
+/* ── Mobile TOC full-width (changelog — no burger button) ── */
+
+.cl-mobile-bar .doc__mobile-toc-summary {
+    justify-content: flex-end;
+}
+
+.cl-mobile-bar .doc__mobile-toc-nav {
+    left: auto;
+}
+
 /* ── Mobile TOC (inside the bar) ── */
 
 .doc__mobile-toc {
@@ -532,17 +542,17 @@
 
 .doc__mobile-toc-link:hover {
     color: var(--foreground);
-    background: color-mix(in oklch, var(--foreground) 6%, var(--background));
+    background: var(--muted);
 }
 
 .doc__mobile-toc-link--active {
     color: var(--foreground);
-    background: color-mix(in oklch, var(--foreground) 6%, var(--background));
+    background: var(--muted);
     font-weight: 600;
 }
 
 .doc__mobile-toc-link--active:hover {
-    background: color-mix(in oklch, var(--foreground) 6%, var(--background));
+    background: var(--muted);
 }
 
 /* ── Sidebar mobile drawer ── */

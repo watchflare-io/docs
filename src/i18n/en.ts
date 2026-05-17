@@ -41,6 +41,7 @@ const en = {
   'search.hint.open': 'open',
   'search.hint.close': 'close',
   'search.cancel': 'Cancel',
+  'search.close': 'Close search',
   'search.empty': 'No results for',
   'search.result': 'result',
   'search.results': 'results',
@@ -48,6 +49,9 @@ const en = {
 
   // Fallback notice
   'doc.fallbackNotice': 'This page is not yet available in your language. You are reading the English version.',
+
+  // Theme toggle
+  'theme.toggle': 'Toggle theme',
 
   // Language selector
   'lang.select': 'Select language',

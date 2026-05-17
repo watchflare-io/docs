@@ -1,17 +1,23 @@
 ---
 import Icon from "@components/Icon.astro";
 import { useTranslations, localePrefix } from "@i18n/utils";
+import { getLocalizedNav } from "@utils/nav";
 
 const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 const prefix = localePrefix(Astro.currentLocale, Astro.url.pathname);
 
-const quickLinks = [
-    { href: `${prefix}/get-started/quickstart/`, label: "Quickstart" },
-    { href: `${prefix}/hub/deploy-docker/`, label: "Deploy with Docker" },
-    { href: `${prefix}/agent/install/linux/`, label: "Install on Linux" },
-    { href: `${prefix}/monitoring/alerts/`, label: "Alerts & notifications" },
-    { href: `${prefix}/reference/hub-env/`, label: "Hub environment variables" },
+const navItems = getLocalizedNav(Astro.currentLocale).flatMap((g) => g.items);
+const quickLinkSlugs = [
+    '/get-started/quickstart/',
+    '/hub/deploy-docker/',
+    '/agent/install/linux/',
+    '/monitoring/alerts/',
+    '/reference/hub-env/',
 ];
+const quickLinks = quickLinkSlugs.map((slug) => {
+    const href = `${prefix}${slug}`;
+    return { href, label: navItems.find((i) => i.href === href)?.label ?? slug };
+});
 ---
 
 <div
@@ -39,7 +45,7 @@ const quickLinks = [
                 spellcheck="false"
                 aria-label={t('search.aria')}
             />
-            <button class="sp__esc" id="search-close" aria-label="Close search">
+            <button class="sp__esc" id="search-close" aria-label={t('search.close')}>
                 <span class="sp__esc-label--desktop">ESC</span>
                 <span class="sp__esc-label--mobile">{t('search.cancel')}</span>
             </button>
@@ -274,6 +280,7 @@ const quickLinks = [
 
         function selectCurrent() {
             if (selectedIdx >= 0 && currentItems[selectedIdx]) {
+                unlockScroll();
                 window.location.href = currentItems[selectedIdx].url;
             }
         }
@@ -304,6 +311,13 @@ const quickLinks = [
         // ── Per-page init — re-attach DOM listeners on each navigation ────────────
 
         document.addEventListener("astro:page-load", () => {
+            // Always release scroll lock on navigation — covers direct <a> clicks on results
+            unlockScroll();
+            // Cancel any in-flight debounce and reset stale state from previous page
+            if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
+            selectedIdx = -1;
+            currentItems = [];
+
             const palette = document.getElementById("search-palette");
             if (!palette) return;
 
@@ -505,7 +519,7 @@ const quickLinks = [
 
     .sp__suggestion:hover {
         color: var(--foreground);
-        background: color-mix(in oklch, var(--foreground) 6%, var(--popover));
+        background: var(--muted);
     }
 
     .sp__suggestion-icon {
@@ -564,7 +578,7 @@ const quickLinks = [
 
     .sp__result:hover,
     .sp__result--active {
-        background: color-mix(in oklch, var(--foreground) 6%, var(--popover));
+        background: var(--muted);
     }
 
     .sp__result-title {
