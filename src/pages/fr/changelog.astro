@@ -1,0 +1,14 @@
+---
+import { getEntry, render } from 'astro:content';
+import ChangelogLayout from '@layouts/ChangelogLayout.astro';
+
+const frEntry = await getEntry('docs', 'fr/changelog');
+const enEntry = await getEntry('docs', 'en/changelog');
+const entry = frEntry ?? enEntry;
+if (!entry) throw new Error('Changelog entry not found');
+const { Content, headings } = await render(entry);
+---
+
+<ChangelogLayout title={entry.data.title} description={entry.data.description} headings={headings}>
+    <Content />
+</ChangelogLayout>
