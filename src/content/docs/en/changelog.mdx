@@ -9,7 +9,7 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.33.1 — 2026-04-18
+## v0.33.1 — 2025-04-25
 
 **Bug fixes**
 - Fixed SSE connection leak on host detail page — connections are now reused instead of duplicated on navigation
@@ -18,7 +18,7 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.33.0
+## v0.33.0 — 2025-04-19
 
 **New features**
 - **Agent version via SSE** — the agent version is now broadcast on the first heartbeat and displayed live in the host detail header, no page refresh required
@@ -26,14 +26,14 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.32.1
+## v0.32.1 — 2025-04-19
 
 **Bug fixes**
 - `SMTP_ENCRYPTION_KEY` is now required at startup — the Hub exits with a clear error instead of silently failing when SMTP credentials cannot be decrypted
 
 ---
 
-## v0.32.0
+## v0.32.0 — 2025-04-19
 
 **New features**
 - **HTTPS auto-detection** — the `Secure` cookie flag is now set automatically based on the request context (direct TLS or `X-Forwarded-Proto: https` from a trusted proxy), replacing the old `ENV=production` heuristic
@@ -51,18 +51,18 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.31.0
+## v0.31.0 — 2025-04-11
 
 **New features**
 - **Command dispatch via heartbeat** — the Hub can dispatch commands to agents through `HeartbeatResponse`: force package collection, trigger agent update
 - **Add host modal** — the add host flow is now a modal on the hosts page instead of a separate page
 
 **Breaking changes**
-- Renamed `Server` → `Host` throughout the backend, frontend, and agent (API paths, SSE events, config keys). Existing agents must be re-registered or have their config updated if upgrading from v0.30.
+- Renamed `Server` → `Host` throughout the Hub, frontend, and agent (API paths, SSE events, config keys). Existing agents must be re-registered or have their config updated if upgrading from v0.30.
 
 ---
 
-## v0.30.0
+## v0.30.0 — 2025-04-10
 
 **New features**
 - **Alert system** — threshold-based alerts for CPU, memory, disk, load average, and temperature, plus host offline notifications
@@ -73,19 +73,45 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.29.0
+## v0.29.2 — 2025-03-31
 
-**Highlights**
-- Comprehensive security and code quality audit across the entire codebase (agent and backend)
-- Fixed agent UUID hijacking prevention during re-registration
-- Added `LimitReader` guards throughout the agent to bound memory usage
-- Exec timeout enforcement on all external command calls in the agent
-- Per-sensor temperature collection with multi-curve charts
-- User display preferences: time format (12h/24h), temperature unit (°C/°F), gauge thresholds
+**Bug fixes**
+- Fixed agent self-update on Linux systems with `noexec` `/tmp` mounts
+- Fixed UPlotChart ResizeObserver race conditions and memory leaks
 
 ---
 
-## v0.28.0
+## v0.29.1 — 2025-03-31
+
+**Bug fixes**
+- Added `COOKIE_SECURE` environment variable to decouple cookie security from the `ENV=production` heuristic
+
+---
+
+## v0.29.0 — 2025-03-31
+
+**New features**
+- Per-sensor temperature collection with multi-curve charts
+- User display preferences: time format (12h/24h), temperature unit (°C/°F), gauge thresholds
+
+**Security & bug fixes**
+- Comprehensive security and code quality audit across the entire codebase (agent and Hub)
+- Fixed agent UUID hijacking prevention during re-registration
+- Added `LimitReader` guards throughout the agent to bound memory usage
+- Exec timeout enforcement on all external command calls in the agent
+
+---
+
+## v0.28.1 — 2025-03-22
+
+**Bug fixes**
+- Fixed Linux agent install issues (ETXTBSY errors and silent service failures)
+- Fixed agent status shown as offline on initial registration
+- Fixed theme preference not applied consistently during registration
+
+---
+
+## v0.28.0 — 2025-03-21
 
 **New features**
 - **Homebrew distribution** — the agent is now available via `brew install watchflare-agent` (tap: `watchflare-io/watchflare`)
@@ -94,7 +120,51 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.27.0
+## v0.27.5 — 2025-03-21
+
+**New features**
+- Vulnerability detection for installed packages
+- Package inventory UI improvements
+- Mobile host card redesign
+- Dashboard search and filter
+
+---
+
+## v0.27.4 — 2025-03-19
+
+**New features**
+- Additional dashboard columns: Load Average, Network I/O, Temperature
+- Actions dropdown in host table replaced with inline controls
+
+**Bug fixes**
+- SSE broadcast optimization for metrics charts
+
+---
+
+## v0.27.3 — 2025-03-16
+
+**Bug fixes**
+- Host detail header redesign with improved mobile charts
+- Agent tick alignment corrections
+
+---
+
+## v0.27.2 — 2025-03-15
+
+**Bug fixes**
+- Agent metrics aligned to wall clock boundaries for consistency
+
+---
+
+## v0.27.1 — 2025-03-15
+
+**Bug fixes**
+- Comprehensive codebase audit (42 bugs addressed)
+- Chart gap detection threshold improvements
+
+---
+
+## v0.27.0 — 2025-03-14
 
 **New features**
 - **CI/CD with GoReleaser** — automated release pipeline producing signed binaries and archives for Linux (amd64/arm64) and macOS (amd64/arm64)
