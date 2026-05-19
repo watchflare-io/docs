@@ -1,0 +1,80 @@
+---
+import Icon from "@components/Icon.astro";
+---
+
+<button id="btt" class="btt" aria-label="Back to top">
+    <Icon name="chevronUp" size={16} />
+</button>
+
+<style>
+    .btt {
+        position: fixed;
+        bottom: 32px;
+        right: 28px;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: var(--background);
+        color: var(--foreground-muted);
+        cursor: pointer;
+        z-index: 40;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+            opacity 0.2s,
+            color 0.1s,
+            background 0.1s,
+            border-color 0.1s;
+    }
+
+    .btt:hover {
+        color: var(--foreground);
+        background: var(--surface);
+    }
+
+    .btt--visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    @media (max-width: 768px) {
+        .btt {
+            bottom: 20px;
+            right: 16px;
+        }
+    }
+</style>
+
+<script>
+    let _scrollHandler: (() => void) | null = null;
+
+    // Click — delegated once at module level, works across SPA navigations
+    document.addEventListener("click", (e) => {
+        if ((e.target as HTMLElement).closest("#btt")) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    });
+
+    function initBackToTop() {
+        const btn = document.getElementById("btt");
+        if (!btn) return;
+
+        // Reset visibility on navigation
+        btn.classList.remove("btt--visible");
+
+        if (_scrollHandler) window.removeEventListener("scroll", _scrollHandler);
+
+        _scrollHandler = () => {
+            btn.classList.toggle("btt--visible", window.scrollY > 400);
+        };
+
+        window.addEventListener("scroll", _scrollHandler, { passive: true });
+        _scrollHandler();
+    }
+
+    document.addEventListener("astro:page-load", initBackToTop);
+</script>

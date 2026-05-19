@@ -6,6 +6,7 @@ import Sidebar from "@components/Sidebar.astro";
 import TOC from "@components/TOC.astro";
 import MobileTOC from "@components/MobileTOC.astro";
 import Search from "@components/Search.astro";
+import BackToTop from "@components/BackToTop.astro";
 import "@styles/tokens.css";
 import "@styles/global.css";
 import "@styles/docs.css";
@@ -246,6 +247,8 @@ const hrefLangFr = SITE_URL + _frPath;
             </main>
             {headings.length > 0 && <TOC headings={headings} />}
         </div>
+
+        <BackToTop />
 
         <script>
             // Mobile sidebar — toggle data-sidebar-open on <body>, CSS does the rest

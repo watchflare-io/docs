@@ -4,6 +4,7 @@ import Header from "@components/Header.astro";
 import TOC from "@components/TOC.astro";
 import MobileTOC from "@components/MobileTOC.astro";
 import Search from "@components/Search.astro";
+import BackToTop from "@components/BackToTop.astro";
 import "@styles/tokens.css";
 import "@styles/global.css";
 import "@styles/docs.css";
@@ -107,6 +108,7 @@ const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
             </main>
             {headings.length > 0 && <TOC headings={headings} />}
         </div>
+        <BackToTop />
     </body>
 </html>
 
