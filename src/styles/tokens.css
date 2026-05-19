@@ -70,7 +70,7 @@
 
 :root,
 [data-theme="light"] {
-    --background: oklch(0.985 0.003 95);
+    --background: #ffffff;
     --surface: oklch(0.96 0.005 145);
     --surface-raised: #ffffff;
 
@@ -126,7 +126,7 @@
    ============================================================ */
 
 [data-theme="dark"] {
-    --background: oklch(0.14 0.012 145);
+    --background: #141916;
     --surface: oklch(0.20 0.015 145);
     --surface-raised: oklch(0.20 0.015 145);
 
