@@ -131,6 +131,15 @@ const hrefLangFr = SITE_URL + _frPath;
                         : intent;
                 document.documentElement.dataset.theme = resolved;
                 document.documentElement.dataset.themeIntent = intent;
+                // Preserve theme across SPA navigations — registered here so it
+                // is active before any module script loads, on every layout.
+                document.addEventListener("astro:before-swap", function (e) {
+                    var html = document.documentElement;
+                    var incoming = e.newDocument && e.newDocument.documentElement;
+                    if (!incoming) return;
+                    if (html.dataset.theme) incoming.dataset.theme = html.dataset.theme;
+                    if (html.dataset.themeIntent) incoming.dataset.themeIntent = html.dataset.themeIntent;
+                });
             })();
         </script>
     </head>
@@ -385,16 +394,9 @@ const hrefLangFr = SITE_URL + _frPath;
             }
 
             // Preserve sidebar scroll + close mobile drawer before each swap
-            // Also carry over data-theme / data-theme-intent so the new document
-            // inherits the resolved theme before the swap (server doesn't know localStorage)
+            // (data-theme is handled in Header.astro — present in all layouts)
             let _sidebarScroll = 0;
-            document.addEventListener("astro:before-swap", (e) => {
-                const html = document.documentElement;
-                const incoming = (e as any).newDocument?.documentElement;
-                if (incoming) {
-                    if (html.dataset.theme) incoming.dataset.theme = html.dataset.theme;
-                    if (html.dataset.themeIntent) incoming.dataset.themeIntent = html.dataset.themeIntent;
-                }
+            document.addEventListener("astro:before-swap", () => {
                 const sidebar = document.querySelector<HTMLElement>(".sidebar");
                 if (sidebar) _sidebarScroll = sidebar.scrollTop;
                 closeSidebar();
