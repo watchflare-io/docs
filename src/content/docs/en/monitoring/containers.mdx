@@ -1,0 +1,68 @@
+---
+title: "Container metrics"
+description: "Per-container CPU, memory, and network metrics for Docker hosts."
+---
+
+import Callout from "@components/Callout.astro";
+
+Watchflare can collect per-container metrics from Docker hosts: CPU usage, memory, and network I/O for each running container. This feature is opt-in.
+
+---
+
+## Enabling container metrics
+
+Container metrics must be enabled on the agent. See [Docker container metrics](/agent/docker-metrics/) for setup instructions.
+
+In short:
+- **At install time:** pass `--containers` to the install or register command.
+- **On an existing agent:** add `watchflare` to the `docker` group, set `container_metrics = true` in `agent.conf`, and restart the service.
+
+---
+
+## What is collected
+
+Metrics are collected per running container at the same interval as system metrics (every 30 seconds):
+
+| Metric | Description |
+|--------|-------------|
+| **CPU %** | Per-container CPU usage across all cores |
+| **Memory used** | Current memory consumption |
+| **Memory limit** | Container memory limit, if set |
+| **Network RX** | Inbound bytes/s |
+| **Network TX** | Outbound bytes/s |
+
+Each container is identified by its name and image. Stopped containers are not collected.
+
+<Callout type="info">
+  Container metrics are sent point-in-time and are **not buffered in the Write-Ahead Log**. If the Hub is unreachable, container metrics for that period are lost. System metrics (CPU, memory, disk, etc.) are unaffected — they accumulate in the WAL and are replayed on reconnect.
+</Callout>
+
+---
+
+## Viewing container metrics
+
+Container metrics appear in the **Containers** tab on the host detail page. The tab is only visible if the agent has `container_metrics = true` in its config and has sent at least one container metrics batch.
+
+The tab shows:
+- A table of all running containers with their current CPU and memory values
+- Per-container charts for CPU, memory, and network over the selected time range
+
+Time ranges and resolution are the same as system metrics — see [System metrics](/monitoring/metrics/#time-ranges-and-resolution).
+
+---
+
+## Requirements
+
+- Docker Engine 23.0+ (API v1.44+) or Podman with a compatible API socket
+- The `watchflare` user must be in the `docker` group (Linux)
+- Docker socket at `/var/run/docker.sock` or Podman socket at `/run/podman/podman.sock`
+
+<Callout type="info">
+  On macOS (Docker Desktop or Colima), the agent runs as the current user who already has Docker socket access. No group change is needed.
+</Callout>
+
+---
+
+## Containers vs. host metrics
+
+When the agent itself runs inside a Docker container (rather than on the host), container metrics are not available — the agent cannot reach the Docker socket from inside the container. Install the agent directly on the host OS to enable container metric collection.

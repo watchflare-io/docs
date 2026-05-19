@@ -1,0 +1,115 @@
+---
+title: "Agent config (TOML)"
+description: "Complete reference of all fields in the Watchflare agent configuration file."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+The agent is configured via a TOML file written by the `register` command. You rarely need to edit it manually.
+
+| Platform | Path |
+|----------|------|
+| Linux | `/etc/watchflare/agent.conf` |
+| macOS (Apple Silicon) | `/opt/homebrew/etc/watchflare/agent.conf` |
+| macOS (Intel) | `/usr/local/etc/watchflare/agent.conf` |
+
+For full explanations, see [Configuration reference](/agent/configuration/).
+
+---
+
+## All fields
+
+<CodeBlock filename="agent.conf" lang="toml">
+```toml
+# Hub connection
+server_host = "hub.example.com"   # required
+server_port = "50051"              # default: "50051"
+
+# Credentials — written at registration, do not edit
+agent_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+agent_key = "base64encodedkey..."
+
+# TLS
+ca_cert_file = "/etc/watchflare/ca.pem"  # written at registration
+server_name  = "watchflare"              # default: "watchflare"
+
+# Collection intervals (seconds)
+heartbeat_interval = 5    # default: 5
+metrics_interval   = 30   # default: 30
+
+# Write-Ahead Log
+wal_enabled     = true    # default: true
+wal_path        = "/var/lib/watchflare/metrics.wal"  # default: {data_dir}/metrics.wal
+wal_max_size_mb = 10      # default: 10
+
+# Logging
+log_file  = "/var/log/watchflare-agent.log"  # default: "" (stdout)
+log_level = "info"                            # default: "info"
+
+# Container metrics (opt-in)
+container_metrics = false  # default: false
+```
+</CodeBlock>
+
+---
+
+## Field reference
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `server_host` | string | — | Hub hostname or IP |
+| `server_port` | string | `"50051"` | Hub gRPC port |
+| `agent_id` | string | — | UUID assigned at registration |
+| `agent_key` | string | — | HMAC signing key |
+| `ca_cert_file` | string | — | Path to Hub CA certificate |
+| `server_name` | string | `"watchflare"` | TLS server name for certificate validation |
+| `heartbeat_interval` | int | `5` | Seconds between heartbeats |
+| `metrics_interval` | int | `30` | Seconds between metric collections |
+| `wal_enabled` | bool | `true` | Buffer metrics locally when Hub is unreachable |
+| `wal_path` | string | `{data_dir}/metrics.wal` | WAL file path |
+| `wal_max_size_mb` | int | `10` | Max WAL size — older records are dropped (FIFO) |
+| `log_file` | string | `""` | Log file path. Empty = stdout. |
+| `log_level` | string | `"info"` | `debug` / `info` / `warn` / `error` |
+| `container_metrics` | bool | `false` | Enable Docker container metrics |
+
+---
+
+## Environment variable overrides
+
+| Variable | Description |
+|----------|-------------|
+| `WATCHFLARE_CONFIG_DIR` | Override the config directory |
+| `WATCHFLARE_DATA_DIR` | Override the data directory |
+| `WATCHFLARE_LOG_FILE` | Override the log file path |
+| `WATCHFLARE_DEBUG` | Set to `1` to force debug log level |
+
+---
+
+## File locations
+
+### Linux
+
+| Path | Purpose | Owner | Mode |
+|------|---------|-------|------|
+| `/usr/local/bin/watchflare-agent` | Binary | root:root | 755 |
+| `/etc/watchflare/agent.conf` | Config | root:watchflare | 640 |
+| `/etc/watchflare/ca.pem` | CA certificate | root:watchflare | 640 |
+| `/var/lib/watchflare/` | Data directory | watchflare:watchflare | 750 |
+| `/var/lib/watchflare/metrics.wal` | WAL | watchflare:watchflare | — |
+| `/var/lib/watchflare/packages.state.json` | Package state | watchflare:watchflare | 640 |
+| `/var/log/watchflare-agent.log` | Logs | watchflare:watchflare | 644 |
+| `/etc/systemd/system/watchflare-agent.service` | Service | root:root | 644 |
+
+### macOS (Apple Silicon — `/opt/homebrew`)
+
+| Path | Purpose |
+|------|---------|
+| `/opt/homebrew/bin/watchflare-agent` | Binary |
+| `/opt/homebrew/etc/watchflare/agent.conf` | Config |
+| `/opt/homebrew/etc/watchflare/ca.pem` | CA certificate |
+| `/opt/homebrew/var/watchflare/` | Data directory |
+| `/opt/homebrew/var/watchflare/metrics.wal` | WAL |
+| `/opt/homebrew/var/log/watchflare-agent.log` | Logs |
+
+On Intel Mac, replace `/opt/homebrew` with `/usr/local`.

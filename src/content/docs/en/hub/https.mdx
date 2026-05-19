@@ -1,0 +1,78 @@
+---
+title: "HTTPS setup"
+description: "Expose the Watchflare dashboard over HTTPS and configure secure cookies."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+
+The Hub serves its dashboard over HTTP on port `8080`. To expose it over HTTPS, put it behind a reverse proxy that handles TLS termination. After doing so, two environment variables need to be updated so that session cookies are marked `Secure` correctly.
+
+<Callout type="info">
+  The gRPC port (`50051`) handles its own TLS 1.3 and must **not** be terminated by the proxy. See [Reverse proxy](/hub/reverse-proxy/) for the full setup including the gRPC passthrough.
+</Callout>
+
+---
+
+## How cookie security works
+
+The Hub auto-detects whether to set the `Secure` flag on the JWT session cookie:
+
+1. Direct HTTPS connection → `Secure` on
+2. `X-Forwarded-Proto: https` from a trusted proxy IP → `Secure` on
+3. Plain HTTP, no trusted proxy → `Secure` off
+
+For this to work correctly behind a reverse proxy, the Hub needs to know which IP addresses are allowed to set `X-Forwarded-Proto`, and the proxy must actually forward that header.
+
+---
+
+## Update your `.env`
+
+Add these variables after setting up HTTPS, then restart the Hub:
+
+<CodeBlock filename=".env" lang="bash">
+```bash
+COOKIE_DOMAIN=watchflare.example.com
+TRUSTED_PROXIES=127.0.0.1,::1
+```
+</CodeBlock>
+
+<CodeBlock lang="bash">
+```bash
+docker compose up -d
+```
+</CodeBlock>
+
+| Variable | When to set |
+|----------|-------------|
+| `COOKIE_DOMAIN` | Always, when serving the dashboard on a custom domain |
+| `TRUSTED_PROXIES` | When the reverse proxy runs on a **different host** than the Hub. Defaults to loopback only (`127.0.0.1,::1`), which covers same-host setups. |
+
+---
+
+## Proxy headers
+
+The Hub only reads one header explicitly:
+
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `X-Forwarded-Proto` | `https` | **Required.** Used to set the `Secure` flag on the session cookie. |
+| `Host` | `watchflare.example.com` | Recommended. Standard proxy practice. |
+| `X-Real-IP` | Client IP | Recommended. Used by the framework for client IP resolution. |
+| `X-Forwarded-For` | Client IP | Recommended. Used by the framework for client IP resolution. |
+
+For proxy-specific configuration (Caddy, Nginx, Traefik), see [Reverse proxy](/hub/reverse-proxy/).
+
+---
+
+## Verify it works
+
+After restarting the Hub, open the dashboard and log in. Inspect the session cookie in your browser's DevTools:
+
+- `Secure` should be `true`
+- `Domain` should match `COOKIE_DOMAIN`
+
+If `Secure` is not set, check that:
+1. `TRUSTED_PROXIES` includes the proxy IP (run `docker compose logs watchflare` to see which proxies are trusted at startup)
+2. The proxy is forwarding `X-Forwarded-Proto: https`

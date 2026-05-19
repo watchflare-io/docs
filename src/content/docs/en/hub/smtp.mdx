@@ -1,0 +1,87 @@
+---
+title: "Email notifications"
+description: "Configure SMTP to enable alert email delivery in Watchflare."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+Watchflare sends alert notifications by email. SMTP is configured from the **Settings** page in the dashboard — no environment variables are needed beyond `SMTP_ENCRYPTION_KEY`, which must be set before the Hub starts.
+
+---
+
+## Prerequisites
+
+You need an SMTP server or relay. Common options:
+
+- Your hosting provider's SMTP relay
+- A transactional email service (Postmark, Mailgun, Resend, SendGrid)
+- A self-hosted mail server
+- Gmail SMTP with an [App Password](https://support.google.com/accounts/answer/185833) (required if 2-Step Verification is enabled)
+
+Make sure `SMTP_ENCRYPTION_KEY` is set in your `.env` before proceeding — the password you enter in Settings is encrypted with this key before being stored:
+
+<CodeBlock filename=".env" lang="bash">
+```bash
+SMTP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+```
+</CodeBlock>
+
+---
+
+## Configuration
+
+Go to **Settings → Notifications** and fill in the following fields:
+
+| Field | Description |
+|-------|-------------|
+| **Host** | SMTP server hostname (e.g. `smtp.example.com`) |
+| **Port** | SMTP port — see encryption table below |
+| **Username** | SMTP username for authentication |
+| **Password** | SMTP password. Stored encrypted with AES-256-GCM. |
+| **From address** | Sender email (e.g. `watchflare@example.com`) |
+| **From name** | Sender display name (e.g. `Watchflare`) |
+| **Encryption** | `starttls`, `tls`, or `none` |
+| **Auth type** | `plain` or `login` — depends on your SMTP provider |
+| **HELO name** | Hostname sent in the SMTP HELO/EHLO command. Leave empty to use the system default. |
+
+### Encryption modes
+
+| Mode | Typical port | Description |
+|------|-------------|-------------|
+| `starttls` | `587` | Connects plain, upgrades to TLS via STARTTLS. Recommended default. |
+| `tls` | `465` | Connects directly over SSL/TLS. |
+| `none` | `25` | No encryption. Only for trusted internal networks. |
+
+### Auth types
+
+| Type | When to use |
+|------|-------------|
+| `plain` | Standard — username and password sent as-is over the encrypted connection. Works with most providers. |
+| `login` | Legacy AUTH LOGIN mechanism. Required by some older or corporate mail servers. |
+
+---
+
+## Testing
+
+Use the **Send test email** button in Settings before enabling alerts. A test message will be sent to your account's email address to confirm the connection and credentials work.
+
+<Callout type="tip">
+  If the test fails, check that the port matches the encryption mode and that your SMTP server allows connections from your Hub's IP address. Some providers require IP allowlisting.
+</Callout>
+
+---
+
+## Password storage
+
+SMTP passwords are encrypted at rest using **AES-256-GCM**. The key is `SMTP_ENCRYPTION_KEY` in your `.env`. The password is never returned via the API — the dashboard only indicates whether a password is currently stored.
+
+<Callout type="warn">
+  If you change `SMTP_ENCRYPTION_KEY` and restart the Hub, the stored password can no longer be decrypted. You will need to re-enter it in Settings.
+</Callout>
+
+---
+
+## Next step
+
+Once SMTP is configured, enable alerts on your hosts. See [Alerts](/hub/alerts/).

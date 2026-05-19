@@ -1,0 +1,115 @@
+---
+title: "System metrics"
+description: "What metrics Watchflare collects, how they are stored, and the available time ranges."
+---
+
+import Callout from "@components/Callout.astro";
+
+The agent collects system metrics every 30 seconds and sends them to the Hub. They are displayed in real time on host detail pages and stored in TimescaleDB for historical queries.
+
+<Callout type="info">
+  Some metrics show **0** on certain environments — this is expected. Temperature is unavailable on VMs and containers. IOWait is Linux-only. Disk and network are skipped when the agent runs inside a container. See the Notes column in each table.
+</Callout>
+
+---
+
+## Collected metrics
+
+### CPU
+
+| Metric | Unit | Notes |
+|--------|------|-------|
+| Usage | % | Percentage of all logical cores |
+| IOWait | % | Time waiting for I/O. Linux only — 0 on macOS and VMs. |
+| Steal | % | CPU time stolen by the hypervisor. Linux VMs only — 0 on physical hosts and macOS. |
+| Temperature | °C | Physical hosts only. Unavailable on VMs and containers. |
+
+### Memory
+
+| Metric | Unit | Notes |
+|--------|------|-------|
+| Used | bytes | Actively used memory |
+| Available | bytes | Memory available to applications without swapping |
+| Buffers | bytes | Kernel buffer cache. Linux only. |
+| Cached | bytes | Page cache. Linux only. |
+
+### Swap
+
+| Metric | Unit |
+|--------|------|
+| Total | bytes |
+| Used | bytes |
+
+Swap metrics are skipped on containers.
+
+### Disk
+
+| Metric | Unit | Notes |
+|--------|------|-------|
+| Total | bytes | Total capacity of the primary partition |
+| Used | bytes | Used space |
+| Read throughput | bytes/s | Disk read speed since last sample |
+| Write throughput | bytes/s | Disk write speed since last sample |
+
+Disk metrics are skipped on Docker containers (disk is shared with the host and would double-count).
+
+### Network
+
+| Metric | Unit |
+|--------|------|
+| Inbound (RX) | bytes/s |
+| Outbound (TX) | bytes/s |
+
+### System
+
+| Metric | Unit |
+|--------|------|
+| Uptime | seconds |
+| Load average 1 min | — |
+| Load average 5 min | — |
+| Load average 15 min | — |
+| Process count | count |
+
+### Temperature sensors
+
+On physical Linux hosts with hardware sensors, the agent collects all available temperature readings (CPU cores, NVMe drives, chassis fans, etc.) and stores them individually. These appear in the **Sensors** section of the host detail page.
+
+---
+
+## Time ranges and resolution
+
+Charts on the host detail page are available in five time ranges. Longer ranges use pre-computed aggregates for performance:
+
+| Range | Resolution | Source |
+|-------|------------|--------|
+| **1 hour** | Raw (30 s samples) | `metrics` table |
+| **12 hours** | 10-minute buckets | `metrics_10min` aggregate |
+| **24 hours** | 15-minute buckets | `metrics_15min` aggregate |
+| **7 days** | 2-hour buckets | `metrics_2h` aggregate |
+| **30 days** | 8-hour buckets | `metrics_8h` aggregate |
+
+Aggregates are computed automatically by TimescaleDB continuous aggregates. Switching to a longer range trades sample granularity for a broader view.
+
+Your default time range can be set in **Settings → Preferences**.
+
+---
+
+## Live updates
+
+The dashboard receives metric updates via a persistent Server-Sent Events (SSE) connection to the Hub. There is no polling — data appears within seconds of the agent sending it. Each 30-second collection cycle is immediately reflected on the chart and the live stat gauges.
+
+---
+
+## Data retention
+
+Each table has its own retention policy applied automatically by TimescaleDB:
+
+| Table | Retention |
+|-------|-----------|
+| `metrics` (raw, 30 s samples) | 24 hours |
+| `metrics_10min` | 14 days |
+| `metrics_15min` | 30 days |
+| `metrics_2h` | 90 days |
+| `metrics_8h` | 1 year |
+
+Raw data is compressed after 1 day. The dashboard selects the appropriate table automatically based on the chosen time range — no configuration needed.

@@ -1,0 +1,198 @@
+---
+title: "Install on Linux"
+description: "Install the Watchflare agent on a Linux host with systemd."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+
+**Prerequisites:** A Linux host with systemd, `curl` or `wget`, and `sudo` access. Tested on Ubuntu 18.04+, Debian 10+, RHEL/CentOS 7+, Fedora 30+, Amazon Linux 2+, Arch Linux.
+
+Before starting, create the host in the Watchflare dashboard (**Hosts → Add host**) and copy the registration token.
+
+---
+
+## One-command install (recommended)
+
+This installs the agent, registers it with the Hub, and starts the systemd service in one step:
+
+<CodeBlock lang="bash">
+```bash
+curl -sSL https://get.watchflare.io | sudo bash -s -- \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</CodeBlock>
+
+Replace `YOUR_HUB_IP` with the IP or hostname of your Hub and `wf_reg_YOUR_TOKEN` with the full token copied from the dashboard.
+
+The installer:
+1. Checks permissions (requires root)
+2. Creates the `watchflare` system user
+3. Creates data and config directories
+4. Copies the binary to `/usr/local/bin/`
+5. Installs the systemd service
+6. Registers the agent with the Hub
+7. Enables and starts the service
+
+<Shell title="bash" code={`=== Watchflare Agent Installation ===
+
+[1/7] Checking permissions...
+  → Running as root
+[2/7] Creating system user...
+  → Created user 'watchflare'
+[3/7] Creating directories...
+[4/7] Installing binary...
+[5/7] Installing service...
+[6/7] Agent registration...
+  → Registering agent with Hub...
+  → Registration successful
+[7/7] Starting service...
+  → Service started successfully
+
+=== Installation Complete ===`} />
+
+The host transitions from **pending** to **online** in the dashboard within 5 seconds.
+
+<Callout type="warn">
+  Registration tokens expire after 24 hours. Run the install command before the token expires.
+</Callout>
+
+<Callout type="tip">
+  Running Docker or Podman on this host? Add `--containers` to collect per-container CPU, memory, and network metrics. See [Docker/Podman container metrics](/agent/docker-metrics/).
+</Callout>
+
+---
+
+## Two-step install
+
+If you want to install the binary first and register later:
+
+**Step 1** — Install without registering:
+
+<CodeBlock lang="bash">
+```bash
+curl -sSL https://get.watchflare.io | sudo bash
+```
+</CodeBlock>
+
+**Step 2** — Register when ready:
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent register \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</CodeBlock>
+
+**Step 3** — Enable and start the service:
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl enable --now watchflare-agent
+```
+</CodeBlock>
+
+---
+
+## Service management
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl status watchflare-agent     # Status
+sudo systemctl start watchflare-agent      # Start
+sudo systemctl stop watchflare-agent       # Stop
+sudo systemctl restart watchflare-agent    # Restart
+sudo systemctl enable watchflare-agent     # Enable at boot
+sudo systemctl disable watchflare-agent    # Disable at boot
+journalctl -u watchflare-agent -f          # Follow logs
+```
+</CodeBlock>
+
+---
+
+## File locations
+
+| Path | Purpose | Owner | Mode |
+|------|---------|-------|------|
+| `/usr/local/bin/watchflare-agent` | Binary | root:root | 755 |
+| `/etc/watchflare/agent.conf` | Config (credentials) | root:watchflare | 640 |
+| `/etc/watchflare/ca.pem` | Hub CA certificate | root:watchflare | 640 |
+| `/var/lib/watchflare/` | Data directory | watchflare:watchflare | 750 |
+| `/var/lib/watchflare/metrics.wal` | Write-Ahead Log | watchflare:watchflare | — |
+| `/var/lib/watchflare/packages.state.json` | Package inventory state | watchflare:watchflare | 640 |
+| `/etc/systemd/system/watchflare-agent.service` | Service definition | root:root | 644 |
+| `/var/log/watchflare-agent.log` | Logs | watchflare:watchflare | 644 |
+
+---
+
+## Re-registering
+
+To connect the agent to a different Hub or after deleting and recreating a host:
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl stop watchflare-agent
+sudo rm /etc/watchflare/agent.conf /etc/watchflare/ca.pem
+sudo watchflare-agent register --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP
+sudo systemctl start watchflare-agent
+```
+</CodeBlock>
+
+---
+
+## SELinux
+
+On RHEL, CentOS, and Fedora, restore SELinux contexts after installation:
+
+<CodeBlock lang="bash">
+```bash
+sudo restorecon -Rv /usr/local/bin/watchflare-agent
+sudo restorecon -Rv /etc/watchflare
+sudo restorecon -Rv /var/lib/watchflare
+```
+</CodeBlock>
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `configuration error` (config file not found) | Not registered | Run `sudo watchflare-agent register ...` |
+| `permission denied` | Wrong file ownership | Check `ls -la /etc/watchflare/` |
+| `connection refused` | Wrong host/port or firewall | Verify port 50051 is reachable from this host |
+| `Invalid agent credentials` | Key mismatch | Re-register the agent |
+| Host stays offline after start | Clock desync | Ensure NTP is running — Hub rejects timestamps ±5 min off |
+
+Check the logs for details:
+
+<CodeBlock lang="bash">
+```bash
+journalctl -u watchflare-agent -n 50
+# or
+tail -50 /var/log/watchflare-agent.log
+```
+</CodeBlock>
+
+A healthy agent produces log lines like these on startup:
+
+```
+2026/01/02 15:04:05 INFO   Watchflare Agent starting  version=v0.33.1
+2026/01/02 15:04:05 INFO   environment detected  type="Physical Host"
+2026/01/02 15:04:05 INFO   heartbeat started  interval_sec=5
+2026/01/02 15:04:05 INFO   package collector started
+2026/01/02 15:04:05 INFO   waiting before initial package collection  delay_sec=60
+```
+
+Common error patterns:
+
+```
+2026/01/02 15:04:05 WARN   heartbeat failed  error="Heartbeat failed: dial tcp 1.2.3.4:50051: connect: connection refused"
+2026/01/02 15:04:05 WARN   heartbeat failed  error="Heartbeat failed: rpc error: code = Unauthenticated desc = Invalid agent credentials"
+2026/01/02 15:04:05 ERROR  send failed: clock out of sync with backend
+```

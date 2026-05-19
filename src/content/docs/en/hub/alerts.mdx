@@ -1,0 +1,83 @@
+---
+title: "Alerts"
+description: "Configure threshold-based alerts and host offline notifications in Watchflare."
+---
+
+import Callout from "@components/Callout.astro";
+
+Watchflare sends email notifications when a metric crosses a threshold or when a host goes offline. Alerts are evaluated every 30 seconds and configured per host. Notifications are sent to the first user created on the Hub (the admin account).
+
+For a conceptual overview of how alerts, incidents, and notifications work together, see [Alerts & notifications](/monitoring/alerts/).
+
+<Callout type="info">
+  Email delivery requires SMTP to be configured. See [Email notifications](/hub/smtp/).
+</Callout>
+
+---
+
+## Alert types
+
+| Type | Description | Unit |
+|------|-------------|------|
+| `host_down` | No heartbeat received for more than 15 seconds | — |
+| `cpu_usage` | CPU usage exceeds the threshold | % |
+| `memory_usage` | Memory usage exceeds the threshold | % |
+| `disk_usage` | Disk usage exceeds the threshold | % |
+| `load_avg` | 1-minute load average exceeds the threshold | — |
+| `load_avg_5` | 5-minute load average exceeds the threshold | — |
+| `load_avg_15` | 15-minute load average exceeds the threshold | — |
+| `temperature` | CPU temperature exceeds the threshold | °C |
+
+---
+
+## Configuring alerts
+
+### Global defaults
+
+Go to **Settings → Alerts** to set default thresholds that apply to all hosts. These are the baselines for every new host.
+
+### Per-host overrides
+
+1. Open a host's detail page.
+2. Click the **Alerts** tab.
+3. Toggle the alert types you want to enable and set the threshold for each host.
+4. Changes are saved immediately — no confirmation step.
+
+Per-host rules take precedence over global defaults. You can set a higher CPU threshold on a database server than on a lightly-loaded static host, for example.
+
+---
+
+## Duration window
+
+Each alert rule has a **duration** (default: 5 minutes). The threshold must be exceeded continuously for that duration before an incident opens and a notification is sent. This prevents spurious alerts from brief spikes.
+
+If the metric drops below the threshold before the duration elapses, no incident is opened and no email is sent.
+
+---
+
+## How incidents work
+
+When a metric breach is sustained for the configured duration, the Hub opens an **incident**:
+
+1. An email notification is sent when the incident **opens** (threshold breached).
+2. A second notification is sent when the incident **resolves** (metric returns below threshold, or host comes back online).
+
+Incidents are visible in the **Alerts** tab on each host's detail page, with start time, resolution time, threshold value, and the value that triggered the breach.
+
+---
+
+## Host offline detection
+
+The `host_down` alert fires when no heartbeat has been received for more than 15 seconds. The stale checker runs every 10 seconds — a host is marked offline after missing approximately 3 consecutive heartbeats (heartbeat interval: 5 seconds).
+
+The incident resolves automatically when the next heartbeat arrives.
+
+<Callout type="tip">
+  Brief network interruptions under 15 seconds will not trigger a `host_down` alert. One or two missed heartbeats are absorbed before the host transitions to offline.
+</Callout>
+
+---
+
+## Temperature alerts
+
+Temperature collection only runs on **physical hosts** — it is skipped on VMs and containers where hardware sensor access is unavailable. Enabling a temperature alert on a VM will never fire.

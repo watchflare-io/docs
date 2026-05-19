@@ -1,0 +1,102 @@
+---
+title: "Updating"
+description: "Update the Watchflare agent to the latest version on Linux and macOS."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+
+<CodeBlock tabs={["Linux", "macOS"]} lang="bash">
+<Fragment slot="Linux">
+```bash
+sudo watchflare-agent update
+```
+</Fragment>
+<Fragment slot="macOS">
+```bash
+brew upgrade watchflare-agent
+brew services restart watchflare-agent
+```
+</Fragment>
+</CodeBlock>
+
+---
+
+## Linux
+
+The agent has a built-in self-update command. It checks the latest release via the GitHub API, downloads the binary from `get.watchflare.io`, verifies the SHA-256 checksum, and hands off to a privileged systemd service to replace the binary and restart.
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent update
+```
+</CodeBlock>
+
+<Shell title="bash" code={`Watchflare Agent v0.33.0
+
+Checking for updates...
+Update available: v0.33.0 → v0.34.0
+
+Downloading v0.34.0...
+✓ Updated to v0.34.0
+✓ Service restarted`} />
+
+To check whether an update is available without installing it:
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent update --check
+```
+</CodeBlock>
+
+<Callout type="info">
+  The agent configuration (`agent.conf`, `ca.pem`) and data directory are never touched during an update — only the binary is replaced.
+</Callout>
+
+---
+
+## macOS
+
+On macOS, updates are managed through Homebrew:
+
+<CodeBlock lang="bash">
+```bash
+brew upgrade watchflare-agent
+brew services restart watchflare-agent
+```
+</CodeBlock>
+
+---
+
+## Automatic updates (Linux)
+
+The Linux agent supports automatic updates via a systemd path unit. When an update is triggered from the Hub dashboard (host detail page → **Update agent**), the Hub sends a command to the agent on the next heartbeat. The agent downloads and installs the update automatically, then restarts the service — no manual intervention needed.
+
+The Hub dashboard shows the current agent version on each host detail page and highlights hosts running outdated versions.
+
+---
+
+## Check the installed version
+
+<CodeBlock lang="bash">
+```bash
+watchflare-agent version
+```
+</CodeBlock>
+
+Output:
+
+```
+Watchflare Agent v0.33.1
+```
+
+The current version is also visible on the host detail page in the Hub dashboard.
+
+---
+
+## Version compatibility
+
+The agent and Hub are independently versioned. Minor version differences (e.g. Hub v0.34 with agent v0.33) are generally compatible. When a newer Hub version introduces a new metric or RPC, older agents simply do not send that data — they continue to work.
+
+Keep agents reasonably up to date to benefit from bug fixes and new collectors.

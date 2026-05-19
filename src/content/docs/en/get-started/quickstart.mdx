@@ -1,0 +1,201 @@
+---
+title: "Quickstart"
+description: "Deploy Watchflare Hub and monitor your first host in under 5 minutes."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+
+This guide walks you through deploying the Hub, creating your admin account, and connecting your first agent.
+
+**Prerequisites:** Docker and Docker Compose v2+ (Linux, macOS, or Windows).
+
+---
+
+## 1. Deploy the Hub
+
+Create a directory and enter it:
+
+<CodeBlock lang="bash">
+```bash
+mkdir watchflare && cd watchflare
+```
+</CodeBlock>
+
+Save the following as `docker-compose.yml`:
+
+<CodeBlock filename="docker-compose.yml" lang="yaml">
+```yaml
+services:
+  watchflare:
+    image: ghcr.io/watchflare-io/watchflare:latest
+    container_name: watchflare
+    ports:
+      - "${HUB_PORT:-8080}:8080"
+      - "${GRPC_PORT:-50051}:50051"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-watchflare}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      - POSTGRES_DB=${POSTGRES_DB:-watchflare}
+      - POSTGRES_SSLMODE=disable
+      - GRPC_PORT=${GRPC_PORT:-50051}
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env}
+      - SMTP_ENCRYPTION_KEY=${SMTP_ENCRYPTION_KEY:?Set SMTP_ENCRYPTION_KEY in .env}
+      - TLS_MODE=${TLS_MODE:-auto}
+      - TLS_PKI_DIR=/var/lib/watchflare/pki
+      - GRPC_TIMESTAMP_WINDOW=${GRPC_TIMESTAMP_WINDOW:-300}
+      - ENV=production
+      - COOKIE_SECURE=${COOKIE_SECURE:-}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES:-127.0.0.1,::1}
+    volumes:
+      - pki_data:/var/lib/watchflare/pki
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - watchflare_net
+    restart: unless-stopped
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: watchflare-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-watchflare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-watchflare}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-watchflare}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - watchflare_net
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+  pki_data:
+    driver: local
+
+networks:
+  watchflare_net:
+    driver: bridge
+```
+</CodeBlock>
+
+Create a `.env` file in the same directory with the three required secrets:
+
+<CodeBlock tabs={["Linux", "Windows"]} lang="bash">
+<Fragment slot="Linux">
+```bash
+printf "POSTGRES_PASSWORD=%s\nJWT_SECRET=%s\nSMTP_ENCRYPTION_KEY=%s\n" \
+  "$(openssl rand -hex 32)" \
+  "$(openssl rand -hex 32)" \
+  "$(openssl rand -hex 32)" > .env
+```
+</Fragment>
+<Fragment slot="Windows">
+```powershell
+$r = [System.Security.Cryptography.RandomNumberGenerator]
+$h = { -join ($r::GetBytes(32) | % { '{0:x2}' -f $_ }) }
+"POSTGRES_PASSWORD=$(& $h)", "JWT_SECRET=$(& $h)", "SMTP_ENCRYPTION_KEY=$(& $h)" | Set-Content .env
+```
+</Fragment>
+</CodeBlock>
+
+<Callout type="info">
+  On macOS, use the Linux tab — `openssl` is available by default.
+</Callout>
+
+Start the stack:
+
+<Shell title="bash" code={`$ docker compose up -d
+[+] Running 3/3
+ ✔ Network watchflare_watchflare_net  Created
+ ✔ Container watchflare-postgres      Started
+ ✔ Container watchflare               Started`} />
+
+<Callout type="info">
+  The Hub auto-generates a self-signed TLS CA on first startup. This CA secures
+  gRPC communication with agents — no manual certificate setup needed.
+</Callout>
+
+The Hub will be available at `http://your-host:8080` within a few seconds.
+
+---
+
+## 2. Create your admin account
+
+Open `http://your-host:8080` in your browser. On a fresh install, you are automatically redirected to the account setup page. Enter your email and a strong password.
+
+---
+
+## 3. Add a host
+
+1. In the sidebar, click **Hosts**, then **Add host**.
+2. Enter a name (e.g. `web-01`). Optionally enter the host's IP address — the Hub will warn you if the agent connects from a different IP. Leave the IP blank or check **Allow registration from any IP** to skip this check entirely.
+3. Click **Create Host**.
+4. Copy the registration token shown:
+
+<Shell title="watchflare · enrollment token" pairs={[
+  ["token",  "wf_reg_7f2a9c3e8b4d1a6c5e09f3b2a178e4d9"],
+]} />
+
+<Callout type="warn">
+  The token expires after 24 hours. Install the agent before it does.
+</Callout>
+
+---
+
+## 4. Install the agent
+
+Run the one-line installer on the host you want to monitor. Replace the placeholders with your Hub's IP and the token from the previous step.
+
+<CodeBlock tabs={["Linux", "macOS"]} lang="bash">
+<Fragment slot="Linux">
+```bash
+curl -sSL https://get.watchflare.io | sudo bash -s -- \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</Fragment>
+<Fragment slot="macOS">
+```bash
+curl -sSL https://get.watchflare.io/brew | bash -s -- \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</Fragment>
+</CodeBlock>
+
+<Callout type="warn">
+  Replace `wf_reg_YOUR_TOKEN` with the token from the previous step and `YOUR_HUB_IP` with your Hub's IP address or hostname.
+</Callout>
+
+The installer registers the agent, writes the config, and starts the service automatically.
+
+---
+
+## 5. See your host go live
+
+Switch back to the Hosts list in your browser. The host status changes from **pending** to **online** within 5 seconds of the agent starting.
+
+From there you can explore real-time metrics and historical charts. The package inventory runs its first scan 60 seconds after the agent starts, then daily at 03:00.
+
+---
+
+## Next steps
+
+- [Install the agent on additional hosts](/agent/install/linux/) — Linux or macOS
+- [Set up HTTPS with a reverse proxy](/hub/reverse-proxy/) — Caddy or Nginx
+- [Configure alerts](/hub/alerts/) — CPU, memory, disk thresholds, and host offline notifications
+- [Understand the Hub environment variables](/hub/configuration/) — ports, TLS modes, cookie security

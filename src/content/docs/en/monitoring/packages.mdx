@@ -1,0 +1,122 @@
+---
+title: "Package inventory"
+description: "How Watchflare tracks installed packages, detects changes, and identifies outdated packages."
+---
+
+import Callout from "@components/Callout.astro";
+
+The agent builds a package inventory of every host and sends it to the Hub. The inventory is updated daily, and any change — package added, removed, or upgraded — is recorded in the history.
+
+---
+
+## How it works
+
+**First run:** the agent collects a full inventory of all installed packages and sends it to the Hub. The Hub stores the complete list as the baseline.
+
+**Subsequent runs:** the agent compares the current state to the previous snapshot on disk and sends only the delta — packages added, removed, or with a changed version. This keeps daily payloads small regardless of how many packages are installed.
+
+**Schedule:** the inventory runs once at agent startup (with a 60-second delay) and then daily at **03:00** on the monitored host.
+
+**Manual collection:** open the host's detail page, click the **Packages** tab, and click **Collect now**. The Hub dispatches a collection command to the agent on its next heartbeat (within 5 seconds). The inventory updates within a few seconds of the agent completing the scan. Use this after installing packages on a host when you don't want to wait until 03:00.
+
+<Callout type="info">
+  The **Packages** tab shows "No packages found" for the first 60 seconds after agent startup — this is normal. The first scan has not completed yet.
+</Callout>
+
+---
+
+## Supported package managers
+
+### Linux
+
+| Package manager | Distribution |
+|-----------------|-------------|
+| `dpkg` / apt | Debian, Ubuntu |
+| `rpm` / dnf / yum | RHEL, CentOS, Rocky, Fedora, Amazon Linux |
+| `pacman` | Arch Linux, Manjaro |
+| `apk` | Alpine Linux |
+| `zypper` | openSUSE |
+| Snap | Ubuntu and other distributions |
+| Flatpak | Cross-distribution |
+| AppImage | Portable applications |
+| Homebrew | Homebrew on Linux |
+
+### macOS
+
+| Package manager | Notes |
+|-----------------|-------|
+| Homebrew formulae | CLI packages installed via `brew` |
+| Homebrew casks | macOS applications installed via `brew install --cask` |
+| MacPorts | Packages installed via `port` |
+| macOS applications | All `.app` bundles in `/Applications` |
+| macOS pkgutil | System packages installed via `.pkg` installers |
+
+### Cross-platform (language package managers)
+
+| Package manager | Language / ecosystem |
+|-----------------|---------------------|
+| npm | Node.js global packages |
+| Yarn | Yarn global packages |
+| pnpm | pnpm global packages |
+| pip | Python packages |
+| pipx | Isolated Python applications |
+| Poetry | Poetry virtualenvs |
+| uv | uv Python package manager |
+| conda / mamba | Data science environments |
+| gem | Ruby gems |
+| Cargo | Rust crates |
+| Composer | PHP packages |
+| NuGet | .NET global tools |
+| Maven | Maven local repository |
+| Nix | Nix packages |
+| CLI tools | Docker, kubectl, terraform, and other important CLI tools |
+
+Each collector self-disables if its tool is not installed on the host — only collectors with something to report are active.
+
+---
+
+## Outdated package detection
+
+Watchflare identifies packages with available updates and flags packages with known security fixes. The **outdated** count and **security** count are shown in the package list summary.
+
+Update checking is supported for the following package managers:
+
+| Manager | How updates are detected |
+|---------|--------------------------|
+| apt (dpkg) | `apt-get -s upgrade` |
+| dnf / yum (rpm) | `dnf check-update` |
+| pacman | `checkupdates` (pacman-contrib) |
+| apk | `apk list -u` |
+| Homebrew | `brew outdated` |
+| npm | `npm outdated -g` |
+| pnpm | `pnpm outdated -g` |
+| pip | `pip list --outdated` |
+| gem | `gem outdated` |
+| Composer | `composer outdated -g` |
+
+For package managers not listed above (including `uv`, `pipx`, `Poetry`, `Yarn`, `Cargo`, `NuGet`, `Maven`, `Nix`, `conda/mamba`, Snap, Flatpak, AppImage, MacPorts, and macOS system packages), the `available_version` field remains empty — inventory is collected but update detection is not supported. The `update_checked` flag on each package indicates whether its manager supports update detection.
+
+<Callout type="info">
+  Arch Linux update checking requires `pacman-contrib` to be installed (`pacman -S pacman-contrib`). Without it, pacman packages will show as installed but not checked for updates.
+</Callout>
+
+---
+
+## Change history
+
+Every package change is recorded in the history with a timestamp and change type:
+
+| Change type | Meaning |
+|-------------|---------|
+| `initial` | Package present in the first full inventory |
+| `added` | Package installed since the last inventory |
+| `removed` | Package uninstalled since the last inventory |
+| `updated` | Package version changed |
+
+The **History** tab on the host's Packages page shows a chronological log of all changes, filterable by change type and package manager.
+
+---
+
+## Global packages view
+
+The **/packages** page in the sidebar shows a deduplicated view of packages across all hosts — useful for spotting which hosts are missing a package, running an old version, or have outdated security packages.

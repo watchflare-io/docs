@@ -1,0 +1,95 @@
+---
+title: "Hub environment variables"
+description: "Complete reference of all environment variables accepted by the Watchflare Hub."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+All Hub configuration is done through environment variables. When using Docker Compose, place them in a `.env` file next to `docker-compose.yml`.
+
+For full explanations and usage guidance, see [Configuration](/hub/configuration/).
+
+---
+
+## Required
+
+| Variable | Min length | Description |
+|----------|-----------|-------------|
+| `JWT_SECRET` | 32 chars | Signs user session cookies. **Hub exits at startup if missing or too short.** |
+| `SMTP_ENCRYPTION_KEY` | 32 chars | Encrypts SMTP passwords at rest. Optional for the Hub binary — if not set, SMTP password storage is disabled. **Required by the Docker Compose file** (set via `:?` syntax) so it is always generated upfront, even if you don't plan to use email notifications. If set, must be at least 32 characters (Hub exits otherwise). |
+
+---
+
+## Database
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `POSTGRES_HOST` | `localhost` | PostgreSQL hostname. Docker Compose sets this to `postgres`. |
+| `POSTGRES_PORT` | `5432` | PostgreSQL port |
+| `POSTGRES_USER` | `watchflare` | Database user |
+| `POSTGRES_PASSWORD` | `watchflare_dev` | Database password |
+| `POSTGRES_DB` | `watchflare` | Database name |
+| `POSTGRES_SSLMODE` | `disable` | PostgreSQL SSL mode |
+
+---
+
+## Ports
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HUB_PORT` | `8080` | Docker only. External port for the HTTP server. The internal container port is always `8080`. |
+| `GRPC_PORT` | `50051` | gRPC port for agent connections |
+
+---
+
+## TLS
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TLS_MODE` | `auto` | `auto` — Hub generates its own CA and server certificate. `custom` — provide your own files. |
+| `TLS_PKI_DIR` | `/var/lib/watchflare/pki` | Directory for auto-generated certificates (`auto` mode only) |
+| `TLS_CERT_FILE` | — | Server certificate path (`custom` mode only) |
+| `TLS_KEY_FILE` | — | Server private key path (`custom` mode only) |
+| `TLS_CA_FILE` | — | CA certificate path, sent to agents at registration (`custom` mode only) |
+
+---
+
+## Cookie security
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `COOKIE_SECURE` | *(auto)* | Force `Secure` flag: `true` or `false`. Omit to use auto-detection (recommended). |
+| `COOKIE_DOMAIN` | *(empty)* | Cookie domain — set to your domain when using a reverse proxy |
+| `TRUSTED_PROXIES` | `127.0.0.1,::1` | Comma-separated IPs allowed to set `X-Forwarded-Proto` |
+
+---
+
+## gRPC security
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GRPC_TIMESTAMP_WINDOW` | `300` | HMAC timestamp window in seconds (±window). Requests outside this range are rejected. |
+
+---
+
+## Environment
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENV` | `development` | Set to `production` in deployed instances. Switches Gin to release mode. Docker Compose sets this automatically. |
+| `CORS_ORIGINS` | `http://localhost:5173` | Comma-separated allowed CORS origins. Not needed for Docker or binary installs. |
+
+---
+
+## Quick-start `.env`
+
+<CodeBlock filename=".env" lang="bash">
+```bash
+POSTGRES_PASSWORD=$(openssl rand -hex 32)
+JWT_SECRET=$(openssl rand -hex 32)
+SMTP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+```
+</CodeBlock>
+
+All other variables have sensible defaults for a standard Docker Compose deployment.

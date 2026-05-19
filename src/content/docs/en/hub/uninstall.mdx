@@ -1,0 +1,55 @@
+---
+title: "Uninstalling"
+description: "Remove the Watchflare Hub and optionally delete all data."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+## Stop and remove containers
+
+This stops and removes the containers and network, but **keeps all data** intact (database and TLS certificates stay in their Docker volumes):
+
+<CodeBlock lang="bash">
+```bash
+docker compose down
+```
+</CodeBlock>
+
+You can bring the Hub back up at any time with `docker compose up -d` — all hosts, metrics, and configuration will still be there.
+
+---
+
+## Remove everything including data
+
+This removes containers, network, and all Docker volumes:
+
+<CodeBlock lang="bash">
+```bash
+docker compose down -v
+```
+</CodeBlock>
+
+<Callout type="danger">
+  This permanently and irrecoverably deletes all metrics history, host registrations, users, package inventory, alert rules, and TLS certificates. Agents registered against this Hub will no longer be able to connect — they must be re-registered against a new installation.
+</Callout>
+
+---
+
+## Remove the Docker image
+
+<CodeBlock lang="bash">
+```bash
+docker rmi ghcr.io/watchflare-io/watchflare:latest
+docker rmi timescale/timescaledb:latest-pg16
+```
+</CodeBlock>
+
+---
+
+## Uninstall agents
+
+Removing the Hub does not uninstall agents running on monitored hosts. Their service will keep trying to reconnect until stopped. To remove agents:
+
+- [Uninstall on Linux](/agent/uninstall/)
+- [Uninstall on macOS](/agent/uninstall/)

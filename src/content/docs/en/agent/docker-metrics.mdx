@@ -1,0 +1,135 @@
+---
+title: "Docker container metrics"
+description: "Enable per-container CPU, memory, and network metrics on Docker hosts."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+The agent can collect per-container metrics from Docker and Podman: CPU usage, memory usage, and network I/O. This is opt-in and requires access to the container runtime socket.
+
+**Requirements:** Docker Engine 23.0+ (API v1.44+) or Podman with a compatible API socket (`/run/podman/podman.sock`).
+
+---
+
+## Enable at install time
+
+Pass `--containers` to the install or register command:
+
+<CodeBlock lang="bash">
+```bash
+curl -sSL https://get.watchflare.io | sudo bash -s -- \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --containers
+```
+</CodeBlock>
+
+Or when registering manually:
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent register \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --containers
+```
+</CodeBlock>
+
+The `--containers` flag sets `container_metrics = true` in `agent.conf` and adds the `watchflare` user to the `docker` group automatically.
+
+---
+
+## Enable on an existing installation
+
+If the agent is already installed and registered, enable container metrics in two steps:
+
+**Step 1** — Add `watchflare` to the `docker` group:
+
+<CodeBlock lang="bash">
+```bash
+sudo usermod -aG docker watchflare
+```
+</CodeBlock>
+
+**Step 2** — Set `container_metrics = true` in `/etc/watchflare/agent.conf`:
+
+<CodeBlock filename="/etc/watchflare/agent.conf" lang="toml">
+```toml
+container_metrics = true
+```
+</CodeBlock>
+
+**Step 3** — Restart the agent:
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl restart watchflare-agent
+```
+</CodeBlock>
+
+<Callout type="info">
+  Group membership changes take effect on the next service start. The restart in Step 3 picks up both the group change and the config change.
+</Callout>
+
+---
+
+## macOS
+
+On macOS (Docker Desktop or Colima), the agent runs as the user who started the Homebrew service. That user already has access to the Docker socket — no group change is needed.
+
+Pass `--containers` at registration:
+
+<CodeBlock lang="bash">
+```bash
+watchflare-agent register \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --containers
+```
+</CodeBlock>
+
+Then restart the service:
+
+<CodeBlock lang="bash">
+```bash
+brew services restart watchflare-agent
+```
+</CodeBlock>
+
+---
+
+## What is collected
+
+| Metric | Description |
+|--------|-------------|
+| CPU % | Per-container CPU usage relative to all cores |
+| Memory used | Current memory consumption |
+| Memory limit | Container memory limit (if set) |
+| Network RX | Inbound throughput (bytes/s) |
+| Network TX | Outbound throughput (bytes/s) |
+
+Metrics are collected at the same interval as system metrics (default: 30 seconds) and displayed in the **Containers** tab on the host detail page.
+
+<Callout type="info">
+  Container metrics are sent point-in-time and are **not buffered in the Write-Ahead Log**. If the Hub is unreachable, container metrics for that period are lost — system metrics (CPU, memory, disk, etc.) are preserved and replayed from the WAL on reconnect.
+</Callout>
+
+---
+
+## Verify it works
+
+After restarting the agent, check the logs for container collection:
+
+<CodeBlock lang="bash">
+```bash
+journalctl -u watchflare-agent -n 30
+```
+</CodeBlock>
+
+Container metrics appear in the **Containers** tab of the host detail page within the first 30 seconds. To see detailed collection logs, enable debug logging by setting `WATCHFLARE_DEBUG=1`.
+
+If no containers appear, check that:
+1. The `watchflare` user is in the `docker` group: `groups watchflare`
+2. Docker is running: `docker ps`
+3. `container_metrics = true` is set in `agent.conf`

@@ -1,0 +1,158 @@
+---
+title: "Install on macOS"
+description: "Install the Watchflare agent on macOS via Homebrew."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+
+**Prerequisites:** macOS 11 (Big Sur) or later, Intel or Apple Silicon, and [Homebrew](https://brew.sh) installed.
+
+Before starting, create the host in the Watchflare dashboard (**Hosts → Add host**) and copy the registration token.
+
+---
+
+## One-command install (recommended)
+
+This installs the agent via Homebrew, registers it with the Hub, and starts the service in one step:
+
+<CodeBlock lang="bash">
+```bash
+curl -sSL https://get.watchflare.io/brew | bash -s -- \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</CodeBlock>
+
+The host transitions from **pending** to **online** in the dashboard within 5 seconds.
+
+<Callout type="warn">
+  Registration tokens expire after 24 hours. Run the install command before the token expires.
+</Callout>
+
+<Callout type="tip">
+  Running Docker Desktop or Colima on this Mac? Add `--containers` to collect per-container CPU, memory, and network metrics. See [Docker/Podman container metrics](/agent/docker-metrics/).
+</Callout>
+
+---
+
+## Manual install
+
+**Step 1** — Add the tap and install:
+
+<CodeBlock lang="bash">
+```bash
+brew tap watchflare-io/watchflare
+brew install watchflare-agent
+```
+</CodeBlock>
+
+**Step 2** — Register:
+
+<CodeBlock lang="bash">
+```bash
+watchflare-agent register \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</CodeBlock>
+
+**Step 3** — Start the service:
+
+<CodeBlock lang="bash">
+```bash
+brew services start watchflare-agent
+```
+</CodeBlock>
+
+---
+
+## Service management
+
+<CodeBlock lang="bash">
+```bash
+brew services info watchflare-agent        # Status
+brew services start watchflare-agent       # Start
+brew services stop watchflare-agent        # Stop
+brew services restart watchflare-agent     # Restart
+```
+</CodeBlock>
+
+Follow logs:
+
+<CodeBlock lang="bash">
+```bash
+tail -f $(brew --prefix)/var/log/watchflare-agent.log
+```
+</CodeBlock>
+
+---
+
+## File locations
+
+`$(brew --prefix)` is `/opt/homebrew` on Apple Silicon and `/usr/local` on Intel.
+
+| Path | Purpose |
+|------|---------|
+| `$(brew --prefix)/bin/watchflare-agent` | Binary |
+| `$(brew --prefix)/etc/watchflare/agent.conf` | Config (credentials) |
+| `$(brew --prefix)/etc/watchflare/ca.pem` | Hub CA certificate |
+| `$(brew --prefix)/var/watchflare/` | Data directory |
+| `$(brew --prefix)/var/watchflare/metrics.wal` | Write-Ahead Log |
+| `$(brew --prefix)/var/log/watchflare-agent.log` | Logs |
+
+---
+
+## Re-registering
+
+To connect the agent to a different Hub or after deleting and recreating a host:
+
+<CodeBlock lang="bash">
+```bash
+brew services stop watchflare-agent
+rm $(brew --prefix)/etc/watchflare/agent.conf
+rm $(brew --prefix)/etc/watchflare/ca.pem
+watchflare-agent register --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP
+brew services start watchflare-agent
+```
+</CodeBlock>
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `configuration error` (config file not found) | Not registered | Run `watchflare-agent register ...` |
+| `connection refused` | Wrong host/port | Verify port 50051 is reachable |
+| `Invalid agent credentials` | Key mismatch | Re-register the agent |
+| Host stays offline after start | Clock desync | Check system clock — Hub rejects timestamps ±5 min off |
+
+Check recent logs:
+
+<CodeBlock lang="bash">
+```bash
+tail -50 $(brew --prefix)/var/log/watchflare-agent.log
+```
+</CodeBlock>
+
+Check service status:
+
+<CodeBlock lang="bash">
+```bash
+brew services list | grep watchflare
+```
+</CodeBlock>
+
+---
+
+## Installing without Homebrew
+
+If you cannot use Homebrew, the agent can be built from source — Go 1.22+ is required. Refer to the [source repository](https://github.com/watchflare-io/watchflare) for build instructions. Use the `WATCHFLARE_CONFIG_DIR` and `WATCHFLARE_DATA_DIR` environment variables to point the agent at custom paths, and start it manually or with your own service manager.
+
+<Callout type="info">
+  A standalone macOS installer (no Homebrew dependency) is planned for a future release.
+</Callout>

@@ -1,0 +1,72 @@
+---
+title: "Updating"
+description: "Update the Watchflare Hub to the latest version."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+
+## Update the Hub
+
+Pull the latest image and recreate the container:
+
+<CodeBlock lang="bash">
+```bash
+docker compose pull
+docker compose up -d
+```
+</CodeBlock>
+
+<Shell title="bash" code={`$ docker compose pull
+[+] Pulling 2/2
+ ✔ watchflare Pulled
+ ✔ postgres   Pulled
+
+$ docker compose up -d
+[+] Running 2/2
+ ✔ Container watchflare-postgres  Started
+ ✔ Container watchflare           Started`} />
+
+The Hub runs database migrations automatically on startup. No manual steps are needed.
+
+<Callout type="info">
+  All data lives in Docker named volumes (`pgdata`, `pki_data`). Image updates never touch volumes.
+</Callout>
+
+---
+
+## Pinning a version
+
+By default, `docker-compose.yml` uses the `latest` tag. To pin to a specific release, edit the image tag:
+
+<CodeBlock filename="docker-compose.yml" lang="yaml">
+```yaml
+services:
+  watchflare:
+    image: ghcr.io/watchflare-io/watchflare:0.33.0
+```
+</CodeBlock>
+
+Then pull and restart:
+
+<CodeBlock lang="bash">
+```bash
+docker compose pull
+docker compose up -d
+```
+</CodeBlock>
+
+---
+
+## Downgrading
+
+Downgrading is generally **not supported**. Migrations are additive and forward-only — running an older image against a migrated database may fail or produce unexpected behavior.
+
+If you need to roll back, restore from a database backup taken before the upgrade.
+
+---
+
+## Updating agents
+
+Agents update independently from the Hub. See [Updating the agent](/agent/update/).

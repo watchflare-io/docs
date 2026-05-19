@@ -1,0 +1,123 @@
+---
+title: "Configuration reference"
+description: "All fields in the Watchflare agent TOML configuration file."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+The agent is configured via a TOML file written at registration. You rarely need to edit it manually — most fields are set by the `register` command. The file is reloaded on service restart.
+
+| Platform | Path |
+|----------|------|
+| Linux | `/etc/watchflare/agent.conf` |
+| macOS (Apple Silicon) | `/opt/homebrew/etc/watchflare/agent.conf` |
+| macOS (Intel) | `/usr/local/etc/watchflare/agent.conf` |
+
+<Callout type="warn">
+  `agent.conf` contains `agent_key` — treat it like a password. The file is mode `0640` (root:watchflare on Linux). Never expose its contents.
+</Callout>
+
+---
+
+## Full example
+
+<CodeBlock filename="agent.conf" lang="toml">
+```toml
+# Hub connection
+server_host = "hub.example.com"
+server_port = "50051"
+
+# Credentials (written at registration — do not edit manually)
+agent_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+agent_key = "base64encodedkey..."
+
+# TLS
+ca_cert_file = "/etc/watchflare/ca.pem"
+server_name  = "watchflare"
+
+# Collection intervals
+heartbeat_interval = 5    # seconds
+metrics_interval   = 30   # seconds
+
+# Write-Ahead Log
+wal_enabled    = true
+wal_path       = "/var/lib/watchflare/metrics.wal"
+wal_max_size_mb = 10
+
+# Logging
+log_file  = "/var/log/watchflare-agent.log"
+log_level = "info"
+
+# Container metrics (opt-in)
+container_metrics = false
+```
+</CodeBlock>
+
+---
+
+## Fields
+
+### Connection
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `server_host` | string | — | Hub hostname or IP address |
+| `server_port` | string | `"50051"` | Hub gRPC port |
+
+### Credentials
+
+These fields are written automatically by `register`. Do not edit them.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `agent_id` | string | UUID assigned by the Hub at registration |
+| `agent_key` | string | HMAC key used to sign gRPC requests |
+
+### TLS
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `ca_cert_file` | string | — | Path to the Hub's CA certificate, written at registration |
+| `server_name` | string | — | Server name for TLS certificate validation. Written at registration from the Hub response. Must match the certificate CN. |
+
+### Collection intervals
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `heartbeat_interval` | int | `5` | Seconds between heartbeat pings |
+| `metrics_interval` | int | `30` | Seconds between metrics collection and send |
+
+### Write-Ahead Log
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `wal_enabled` | bool | `true` | Enable local buffering of metrics when the Hub is unreachable |
+| `wal_path` | string | `{data_dir}/metrics.wal` | WAL file path |
+| `wal_max_size_mb` | int | `10` | Maximum WAL size in MB. Older records are dropped (FIFO) when the limit is reached. |
+
+### Logging
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `log_file` | string | `""` | Log file path. Empty means stdout (captured by the service manager). |
+| `log_level` | string | `"info"` | Log verbosity: `debug`, `info`, `warn`, `error`. Override at runtime with `WATCHFLARE_DEBUG=1`. |
+
+### Container metrics
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `container_metrics` | bool | `false` | Enable Docker container metrics. Requires the `watchflare` user to be in the `docker` group. See [Docker container metrics](/agent/docker-metrics/). |
+
+---
+
+## Environment variables
+
+Four environment variables can override default paths and behavior. They are used internally by the Homebrew service wrapper on macOS and generally do not need to be set manually.
+
+| Variable | Description |
+|----------|-------------|
+| `WATCHFLARE_CONFIG_DIR` | Override the config directory (`/etc/watchflare` on Linux) |
+| `WATCHFLARE_DATA_DIR` | Override the data directory (`/var/lib/watchflare` on Linux) |
+| `WATCHFLARE_LOG_FILE` | Override the log file path |
+| `WATCHFLARE_DEBUG` | Set to `1` to force debug log level, regardless of `log_level` |

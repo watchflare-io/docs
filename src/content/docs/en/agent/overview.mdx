@@ -1,0 +1,75 @@
+---
+title: "Agent overview"
+description: "What the Watchflare agent does, how it works, and what it requires."
+---
+
+import Callout from "@components/Callout.astro";
+
+The agent is a lightweight Go daemon installed on each host you want to monitor. It runs as an unprivileged system user and communicates outbound only — no inbound ports are opened on the monitored host.
+
+---
+
+## What it does
+
+The agent runs three independent loops:
+
+| Loop | Interval | What it does |
+|------|----------|--------------|
+| Heartbeat | 5 s | Sends a presence ping with current IP addresses |
+| Metrics | 30 s | Collects system metrics and sends them to the Hub |
+| Package inventory | 60 s after start, then daily at 03:00 | Scans installed packages, sends delta to the Hub |
+
+---
+
+## What it collects
+
+| Category | Metrics |
+|----------|---------|
+| **CPU** | Usage %, iowait, steal (VMs), temperature (physical hosts only) |
+| **Memory** | Used, available, buffers, cached, swap |
+| **Disk** | Total, used, read/write throughput |
+| **Network** | Inbound/outbound bandwidth |
+| **System** | Uptime, load average (1/5/15 min), process count |
+| **Containers** | Per-container CPU, memory, network (Docker/Podman — opt-in) |
+| **Packages** | Installed packages, versions, outdated detection — [~30 supported package managers](/monitoring/packages/#supported-package-managers) |
+
+The agent adapts automatically to its environment:
+
+| Environment | Skips |
+|-------------|-------|
+| Docker container | Disk, disk I/O, network, swap, temperature |
+| Virtual machine | Temperature sensors |
+| Physical host | Nothing — full collection |
+
+---
+
+## How it works
+
+**WAL (Write-Ahead Log):** Metrics are appended to a local file before being sent. If the Hub is unreachable, metrics accumulate in the WAL and are replayed in order on the next successful connection. Metrics are not lost during brief outages — by default the WAL stores up to 10 MB of data; once full, the oldest records are dropped. This limit is adjustable via [`wal_max_size_mb`](/agent/configuration/#write-ahead-log) in `agent.conf`.
+
+**Security:** Every gRPC request is signed with HMAC-SHA256 (agent ID + timestamp + payload). The Hub rejects requests outside a ±5 minute timestamp window. All communication is TLS 1.3 — the agent pins the Hub's CA certificate at registration.
+
+**Minimal footprint:** The agent runs as the unprivileged `watchflare` system user (Linux) or the invoking user (macOS via Homebrew). It has no shell, a non-writable home directory (`/var/empty`), and write access only to its own data directory.
+
+---
+
+## System requirements
+
+### Linux
+
+- systemd (Ubuntu 18.04+, Debian 10+, RHEL/CentOS 7+, Fedora 30+, Amazon Linux 2+, Arch Linux)
+- `curl` or `wget`
+- `sudo` access for installation
+
+### macOS
+
+- macOS 11 (Big Sur) or later
+- Intel or Apple Silicon (M1/M2/M3/M4)
+- [Homebrew](https://brew.sh)
+
+---
+
+## Installation
+
+- [Install on Linux](/agent/install/linux/)
+- [Install on macOS](/agent/install/macos/)

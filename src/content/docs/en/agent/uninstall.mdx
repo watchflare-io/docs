@@ -1,0 +1,89 @@
+---
+title: "Uninstalling"
+description: "Remove the Watchflare agent from a Linux or macOS host."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+<CodeBlock tabs={["Linux", "macOS"]} lang="bash">
+<Fragment slot="Linux">
+```bash
+sudo watchflare-agent uninstall
+```
+</Fragment>
+<Fragment slot="macOS">
+```bash
+brew services stop watchflare-agent
+brew uninstall watchflare-agent
+```
+</Fragment>
+</CodeBlock>
+
+---
+
+## Linux
+
+The `uninstall` command is interactive. It stops and removes the service, deletes the binary, and asks separately whether to remove the data directory, config directory, log file, and system user:
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent uninstall
+```
+</CodeBlock>
+
+```
+=== Watchflare Agent Uninstallation ===
+
+[1/6] Checking permissions...
+  → Running as root
+[2/6] Removing service...
+[3/6] Removing binary...
+[4/6] Data and configuration...
+Remove data directory (/var/lib/watchflare)? (y/N):
+Remove configuration directory (/etc/watchflare)? (y/N):
+[5/6] Log files...
+Remove log file (/var/log/watchflare-agent.log)? (y/N):
+[6/6] System user...
+Remove system user 'watchflare'? (y/N):
+```
+
+Answering **N** to data/config preserves registration credentials, so the host can be reinstalled later without re-registering.
+
+<Callout type="info">
+  The host is not automatically removed from the Hub dashboard after uninstalling the agent. It will appear as offline. Delete it manually from the dashboard if you no longer need it.
+</Callout>
+
+---
+
+## macOS
+
+Stop the service and uninstall via Homebrew:
+
+<CodeBlock lang="bash">
+```bash
+brew services stop watchflare-agent
+brew uninstall watchflare-agent
+```
+</CodeBlock>
+
+To also remove config and data files:
+
+<CodeBlock lang="bash">
+```bash
+rm -rf $(brew --prefix)/etc/watchflare
+rm -rf $(brew --prefix)/var/watchflare
+rm -f  $(brew --prefix)/var/log/watchflare-agent.log
+```
+</CodeBlock>
+
+---
+
+## Remove the host from the dashboard
+
+Uninstalling the agent does not remove the host from the Hub. To delete it:
+
+1. Open the host's detail page in the dashboard.
+2. Click the **⋯** menu → **Delete host**.
+
+Deleting the host removes all its metrics history, package inventory, and alert rules from the database.

@@ -1,0 +1,259 @@
+---
+title: "Troubleshooting"
+description: "Solutions to the most common issues with the Watchflare Hub and agent."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+---
+
+## Hub
+
+### Hub exits immediately at startup
+
+Check the container logs first:
+
+<CodeBlock lang="bash">
+```bash
+docker compose logs watchflare
+```
+</CodeBlock>
+
+| Log message | Cause | Fix |
+|-------------|-------|-----|
+| `JWT_SECRET is required in environment variables` | `JWT_SECRET` not set in `.env` | Add `JWT_SECRET=$(openssl rand -hex 32)` to `.env` |
+| `JWT_SECRET too short current_length=X required=32` | `JWT_SECRET` is less than 32 characters | Regenerate with `openssl rand -hex 32` |
+| `SMTP_ENCRYPTION_KEY too short` | Key is set but less than 32 characters | Regenerate or remove it (`SMTP_ENCRYPTION_KEY` is optional) |
+| `failed to connect to database` | PostgreSQL not reachable | Check that `POSTGRES_HOST=postgres` in the Compose env block (not just `.env`) |
+
+### Can't reach the dashboard
+
+- Verify the container is running: `docker compose ps`
+- Check the exposed port: by default `8080`. Set `HUB_PORT=80` in `.env` to use port 80.
+- If behind a firewall, ensure port `8080` (or your `HUB_PORT`) is open.
+
+### Session cookie not set as Secure after HTTPS setup
+
+See the [HTTPS setup guide](/hub/https/) — the most common cause is that `TRUSTED_PROXIES` does not include the reverse proxy IP.
+
+---
+
+## Agent
+
+### Host stays `pending` after agent install
+
+The registration token expired. Tokens are valid for **24 hours** from creation.
+
+Fix: open the host's detail page → **⋯ menu → Regenerate token**, then re-run the install command with the new token.
+
+### Host stays `offline` after agent starts
+
+Check the agent logs:
+
+<CodeBlock lang="bash">
+```bash
+# Linux
+journalctl -u watchflare-agent -n 30
+
+# macOS
+tail -30 $(brew --prefix)/var/log/watchflare-agent.log
+```
+</CodeBlock>
+
+| Log message | Cause | Fix |
+|-------------|-------|-----|
+| `connect: connection refused` | Wrong Hub IP or port, or port `50051` is firewalled | Verify `server_host` and `server_port` in `agent.conf`; check firewall rules |
+| `configuration error` (error: "config file not found...") | Agent not registered | Run `sudo watchflare-agent register --token ... --host ...` |
+| `Invalid agent credentials` | HMAC key mismatch | Re-register the agent |
+| `context deadline exceeded` | Hub unreachable or slow | Check network connectivity to Hub |
+| `send failed: clock out of sync with backend` | Agent clock differs from Hub clock by more than 5 minutes | Sync with NTP — see [Clock desync](#clock-desync-banner-on-host-detail-page) |
+| `certificate signed by unknown authority` | CA mismatch — Hub may have regenerated its CA | Re-register the agent (see [TLS](#agents-refuse-to-connect-after-hub-restart)) |
+
+### Clock desync banner on host detail page
+
+The agent's clock differs from the Hub's clock by more than 5 minutes. The Hub rejects all gRPC requests from that agent.
+
+Fix: sync the agent's clock with NTP.
+
+<CodeBlock lang="bash">
+```bash
+# Linux — check status
+timedatectl status
+
+# Linux — sync immediately
+sudo systemctl restart systemd-timesyncd
+```
+</CodeBlock>
+
+The banner clears automatically once a valid heartbeat is received.
+
+### `configuration error` on start
+
+The agent binary is installed but not registered. The log shows `configuration error` with `error="config file not found..."`. Register it:
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent register \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</CodeBlock>
+
+---
+
+## Metrics
+
+### Metrics not appearing on a newly installed host
+
+The first metrics batch arrives within 30 seconds of the agent starting. If nothing appears after 60 seconds, check the agent logs for connection errors (see [Host stays offline](#host-stays-offline-after-agent-starts)).
+
+### Gaps in metric charts (dropped metrics)
+
+Gaps in the charts indicate that the agent was unable to send metrics during that period. Two distinct causes:
+
+**Hub unreachable — WAL full:**
+
+If the Hub was unreachable for an extended time, the agent's Write-Ahead Log may have filled up. By default the WAL holds 10 MB of data (~3 000 metric samples). Once full, the oldest records are silently dropped as new ones are written.
+
+The agent logs a warning when this happens:
+
+```
+WARN   WAL exceeds max size, truncating  max_mb=10
+WARN   WAL exceeds max size on startup, truncating  max_mb=10
+```
+
+To reduce the risk of data loss during long outages, increase `wal_max_size_mb` in `agent.conf` and restart the agent. See [`wal_max_size_mb`](/agent/configuration/#write-ahead-log).
+
+**WAL disabled:**
+
+If `wal_enabled = false` in `agent.conf`, metrics are sent directly and not buffered. Any failed send is permanently lost:
+
+```
+ERROR  send failed, metrics lost (WAL disabled)  error="..."
+```
+
+Re-enable the WAL (`wal_enabled = true`) and restart the agent.
+
+### Temperature always shows 0
+
+Temperature collection only runs on **physical hosts**. It is skipped on:
+- Virtual machines (no physical sensor access)
+- Docker containers
+
+This is expected behavior — see [System metrics](/monitoring/metrics/#cpu).
+
+### Disk or network metrics missing
+
+These metrics are skipped when the agent runs **inside a Docker container** (not on the host). Install the agent directly on the host OS to collect disk and network metrics.
+
+If the agent runs on the host but disk metrics are missing, verify the agent is not miscategorized as a container:
+
+<CodeBlock lang="bash">
+```bash
+journalctl -u watchflare-agent -n 5
+# Look for: environment detected  type="Physical Host"
+```
+</CodeBlock>
+
+### Container metrics tab not visible
+
+The **Containers** tab only appears after container metrics are enabled and at least one batch has been received.
+
+Check:
+1. `container_metrics = true` is set in `agent.conf`
+2. The `watchflare` user is in the `docker` group: `groups watchflare`
+3. Docker is running: `docker ps`
+4. The agent was restarted after the group change: `sudo systemctl restart watchflare-agent`
+
+See [Docker container metrics](/agent/docker-metrics/) for the full setup.
+
+---
+
+## Package inventory
+
+### Packages not showing after agent install
+
+The first package scan runs **60 seconds after the agent starts**, not immediately. Wait at least 90 seconds after installation, then check the **Packages** tab.
+
+To trigger a scan immediately: host detail page → **Packages** tab → **Collect now**.
+
+### Daily inventory not updating
+
+The scheduled scan runs at **03:00 on the monitored host's local time**. If the host was offline at 03:00, the scan is skipped until the next day.
+
+To force an immediate scan: host detail page → **Packages** tab → **Collect now**.
+
+Check the agent logs for collection errors:
+
+<CodeBlock lang="bash">
+```bash
+journalctl -u watchflare-agent -n 50 | grep -i package
+```
+</CodeBlock>
+
+### Some packages are missing from the inventory
+
+Each collector only activates if its tool is installed. If `npm` is not in `PATH` for the `watchflare` service user, the npm collector is silently skipped.
+
+Enable debug logging to see which collectors ran:
+
+<CodeBlock lang="bash">
+```bash
+WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
+```
+</CodeBlock>
+
+---
+
+## Alerts & email
+
+### No alert emails received
+
+1. Check that SMTP is configured and enabled: **Settings → Notifications**
+2. Use **Send test email** to verify the connection works
+3. Check the alert duration window — a metric must exceed the threshold **continuously** for the configured duration (default: 5 minutes) before an email is sent
+4. Notifications go to the email of the first registered user (the admin account) — verify that address is correct
+
+### Test email fails
+
+| Error | Likely cause | Fix |
+|-------|-------------|-----|
+| `connection refused` | Wrong host or port | Check SMTP hostname and port (587 for STARTTLS, 465 for TLS) |
+| `authentication failed` | Wrong username/password | Re-enter SMTP credentials |
+| `TLS handshake error` | Encryption mode mismatch | Try `starttls` instead of `tls`, or vice versa |
+
+<Callout type="info">
+  Some providers (e.g. Gmail) require an **App Password** instead of your account password when using SMTP. Standard passwords are rejected even if correct.
+</Callout>
+
+---
+
+## TLS & certificates
+
+### Agents refuse to connect after Hub restart
+
+If you removed `server.pem` to force certificate renewal, the Hub regenerated **both** the CA and the server certificate. Agents pinned the old CA and now reject the new one.
+
+Fix: re-register every affected agent.
+
+<CodeBlock lang="bash">
+```bash
+# Linux
+sudo systemctl stop watchflare-agent
+sudo rm /etc/watchflare/agent.conf /etc/watchflare/ca.pem
+sudo watchflare-agent register --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP
+sudo systemctl start watchflare-agent
+```
+</CodeBlock>
+
+<Callout type="warn">
+  In auto TLS mode, there is no way to renew only the server certificate. Removing either `ca.pem` or `server.pem` from the PKI directory causes both to be regenerated, requiring all agents to be re-registered. See [TLS certificates](/hub/tls/).
+</Callout>
+
+### gRPC port unreachable through reverse proxy
+
+The gRPC port (`50051`) must be proxied at the **TCP level** — no TLS termination. Agents pin the Hub's CA. If a proxy presents a different certificate, every agent will refuse to connect.
+
+See the [Reverse proxy guide](/hub/reverse-proxy/) for Traefik, Nginx, and Caddy TCP passthrough configuration.

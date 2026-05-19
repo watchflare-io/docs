@@ -1,0 +1,149 @@
+---
+title: "Architecture"
+description: "How the Hub, agents, database, and dashboard fit together."
+---
+
+import Callout from "@components/Callout.astro";
+
+Watchflare is built around four components: agents, the Hub, a time-series database, and a browser dashboard connected via Server-Sent Events.
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   Monitored Hosts                    │
+│   [ Agent ]      [ Agent ]      [ Agent ]            │
+└──────────┬───────────┬──────────────┬───────────────┘
+           │           │              │
+           │    gRPC / TLS 1.3        │
+           ▼           ▼              ▼
+┌──────────────────────────────────────────────────────┐
+│                       Hub (Go)                       │
+│                                                      │
+│   gRPC server   ──▶   HeartbeatCache                 │
+│   HTTP server   ──▶   TimescaleDB                    │
+│   SSE broker    ──▶   Browser                        │
+└──────────────────────────────────────────────────────┘
+```
+
+---
+
+## Components
+
+### Hub
+
+The Hub is a single Go binary that embeds the frontend and exposes two ports:
+
+- **`:8080`** — HTTP server: REST API, web dashboard, SSE stream
+- **`:50051`** — gRPC server: receives heartbeats, metrics, and package inventory from agents
+
+The Hub runs alongside a **TimescaleDB** instance (PostgreSQL with time-series extensions) for persistent storage. Both are deployed as Docker containers.
+
+### Agent
+
+The agent is a lightweight Go daemon installed on each monitored host. It communicates outbound only — no inbound ports are opened. On Linux it runs as a dedicated system user (`watchflare`); on macOS it is managed by Homebrew as the current user.
+
+The agent runs three loops independently:
+
+| Loop | Interval | What it does |
+|------|----------|--------------|
+| Heartbeat | 5 s | Sends a presence ping with current IP addresses |
+| Metrics | 30 s | Collects and sends system metrics |
+| Package inventory | 60s after start, then daily at 03:00 | Scans installed packages, sends delta |
+
+### Database
+
+TimescaleDB stores metrics in a hypertable automatically partitioned by time. Continuous aggregates pre-compute 10-minute, 15-minute, 2-hour, and 8-hour buckets — the dashboard queries these instead of raw rows for longer time ranges.
+
+### Browser dashboard
+
+The frontend (SvelteKit) receives all live updates via a persistent SSE connection to the Hub. Host status, metrics, and aggregates are pushed as events — the page never polls.
+
+---
+
+## Data flows
+
+### Heartbeat & online/offline detection
+
+```
+Agent (every 5s)  ──▶  Hub  ──▶  HeartbeatCache (memory)
+                         │
+                         └──▶  SSE → browser (status: online)
+
+StaleChecker (every 10s):
+  no heartbeat > 15s  ──▶  mark offline in cache
+                      └──▶  SSE → browser (status: offline)
+
+SyncWorker (every 5min):
+  flush cache (status, last_seen, IPs) ──▶  database
+```
+
+On each heartbeat, the Hub updates the in-memory cache and immediately broadcasts an SSE event to the dashboard. No database write occurs — credentials are verified with a single read. The SyncWorker flushes status, timestamps, and IP addresses to the database every 5 minutes. When the StaleChecker detects a missed heartbeat, it marks the agent offline in the cache and broadcasts the offline event directly.
+
+### Metrics collection
+
+```
+Agent:
+  1. Collect metrics
+  2. Append to WAL (local file)
+  3. Send to Hub via gRPC
+  4. Clear WAL only if send succeeds
+
+Hub:
+  → INSERT into TimescaleDB
+  → SSE metrics_update → browser
+```
+
+If the Hub is unreachable, metrics accumulate in the agent's Write-Ahead Log. On the next successful connection, all pending records are replayed in order before new metrics are sent.
+
+### Package inventory
+
+```
+Agent (60s after start, then daily at 03:00):
+  First run  → full inventory   → Hub upserts all packages
+  Next runs  → delta only       → Hub processes added/removed/updated
+```
+
+The delta approach keeps daily payloads small regardless of how many packages are installed.
+
+### Agent registration
+
+Registration is a one-time bootstrap that establishes trust between an agent and the Hub:
+
+```
+1. Admin creates a host in the dashboard
+   → Hub generates a registration token (wf_reg_...) valid for 24 hours
+
+2. Token is pasted into the install command on the target host
+   → Agent calls RegisterHost gRPC (TLS without cert verification — the agent has no CA cert yet;
+     authentication relies on the registration token)
+   → Hub validates token, returns: agent_id, agent_key, CA certificate
+
+3. Agent saves credentials + CA cert to disk
+   → CA is pinned immediately — the agent will reject any certificate not signed by this CA
+   → All future gRPC calls use mutual auth (HMAC-SHA256 + pinned CA)
+```
+
+---
+
+## Security model
+
+- **TLS 1.3** on all agent↔Hub communication
+- **HMAC-SHA256** signs every gRPC request (agent_id + timestamp + payload). Requests outside a ±5 minute window are rejected.
+- **CA pinning** — the agent pins the Hub's CA certificate at registration. It will reject any certificate not signed by that CA.
+- **Unprivileged agent** — on Linux, runs as system user `watchflare` with no shell, no home directory, and write access only to its own data directory. On macOS, managed by Homebrew as the current user.
+- **One-time tokens** — registration tokens are stored as SHA-256 hashes. The plaintext is shown once and never persisted.
+
+<Callout type="info">
+  The Hub auto-generates its own TLS CA and server certificate on first startup. You can bring your own certificates by setting `TLS_MODE=custom`. See [TLS certificates](/hub/tls/).
+</Callout>
+
+---
+
+## Environment detection
+
+The agent adapts what it collects based on where it runs:
+
+| Environment | Skips |
+|-------------|-------|
+| Container | Disk, disk I/O, network, swap, temperature |
+| Virtual machine | Temperature sensors (no physical hardware access) |
+| Physical host | Nothing — full collection |
