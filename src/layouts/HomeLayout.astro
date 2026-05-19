@@ -18,7 +18,7 @@ const {
     description = "Guides, reference and concepts to deploy Watchflare, enroll agents and read your metrics.",
 } = Astro.props;
 
-const canonicalURL = SITE_URL + Astro.url.pathname.replace(/\/$/, "");
+const canonicalURL = SITE_URL + Astro.url.pathname;
 const lang = Astro.currentLocale === "fr" ? "fr" : "en";
 const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 const hrefLangEn = `${SITE_URL}/`;
@@ -49,6 +49,18 @@ const hrefLangFr = `${SITE_URL}/fr/`;
         <meta property="og:image:alt" content={SITE_NAME} />
         <meta property="og:locale" content={lang === 'fr' ? 'fr_FR' : 'en_US'} />
         <meta name="twitter:card" content="summary_large_image" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#2e6442" />
+        <script type="application/ld+json" set:html={JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": SITE_NAME,
+            "url": `${SITE_URL}/`,
+            "description": description,
+            "inLanguage": lang === "fr" ? "fr" : "en",
+        })} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link

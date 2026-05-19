@@ -24,7 +24,7 @@ interface Props {
 
 const { title, description, headings = [] } = Astro.props;
 
-const canonicalURL = SITE_URL + Astro.url.pathname.replace(/\/$/, "");
+const canonicalURL = SITE_URL + Astro.url.pathname;
 const ogTitle = `${title} — ${SITE_NAME}`;
 const lang = Astro.currentLocale === "fr" ? "fr" : "en";
 const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
@@ -38,15 +38,30 @@ const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
         <title>{ogTitle}</title>
         {description && <meta name="description" content={description} />}
         <link rel="canonical" href={canonicalURL} />
+        <link rel="alternate" hreflang="en" href={`${SITE_URL}/changelog/`} />
+        <link rel="alternate" hreflang="fr" href={`${SITE_URL}/fr/changelog/`} />
+        <link rel="alternate" hreflang="x-default" href={`${SITE_URL}/changelog/`} />
         <meta property="og:title" content={ogTitle} />
         {description && <meta property="og:description" content={description} />}
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalURL} />
         <meta property="og:site_name" content={SITE_NAME} />
         <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
         <meta property="og:image:alt" content={SITE_NAME} />
         <meta property="og:locale" content={lang === "fr" ? "fr_FR" : "en_US"} />
         <meta name="twitter:card" content="summary_large_image" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#2e6442" />
+        <script type="application/ld+json" set:html={JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": ogTitle,
+            ...(description ? { "description": description } : {}),
+            "url": canonicalURL,
+            "inLanguage": lang,
+        })} />
         <link rel="prefetch" href="/pagefind/pagefind.js" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

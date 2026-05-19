@@ -25,6 +25,7 @@ interface Props {
     next?: NavLink;
     editUrl?: string;
     lastUpdated?: string;
+    lastUpdatedISO?: string;
     isFallback?: boolean;
 }
 
@@ -36,16 +37,17 @@ const {
     next,
     editUrl,
     lastUpdated,
+    lastUpdatedISO,
     isFallback = false,
 } = Astro.props;
 
 const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 const lang = Astro.currentLocale === 'fr' ? 'fr' : 'en';
 
-const canonicalURL = SITE_URL + Astro.url.pathname.replace(/\/$/, "");
+const canonicalURL = SITE_URL + Astro.url.pathname;
 const ogTitle = `${title} — ${SITE_NAME}`;
 
-const _path = Astro.url.pathname.replace(/\/$/, "");
+const _path = Astro.url.pathname;
 const _enPath = _path.startsWith("/fr") ? _path.replace(/^\/fr/, "") || "/" : _path;
 const _frPath = _path.startsWith("/fr") ? _path : "/fr" + _path;
 const hrefLangEn = SITE_URL + _enPath;
@@ -69,13 +71,38 @@ const hrefLangFr = SITE_URL + _frPath;
                 <meta property="og:description" content={description} />
             )
         }
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalURL} />
         <meta property="og:site_name" content={SITE_NAME} />
         <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
         <meta property="og:image:alt" content={SITE_NAME} />
         <meta property="og:locale" content={lang === 'fr' ? 'fr_FR' : 'en_US'} />
         <meta name="twitter:card" content="summary_large_image" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#2e6442" />
+        {isFallback && <meta name="robots" content="noindex, follow" />}
+        <script type="application/ld+json" set:html={JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "TechArticle",
+                    "headline": title,
+                    ...(description ? { "description": description } : {}),
+                    "url": canonicalURL,
+                    "inLanguage": isFallback ? "en" : lang,
+                    ...(lastUpdatedISO ? { "dateModified": lastUpdatedISO } : {}),
+                },
+                {
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                        { "@type": "ListItem", "position": 1, "name": SITE_NAME, "item": `${SITE_URL}/` },
+                        { "@type": "ListItem", "position": 2, "name": title, "item": canonicalURL },
+                    ],
+                },
+            ],
+        })} />
         <link rel="prefetch" href="/pagefind/pagefind.js" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -183,6 +210,7 @@ const hrefLangFr = SITE_URL + _frPath;
                                 {prev ? (
                                     <a
                                         href={prev.href}
+                                        rel="prev"
                                         class="doc__page-nav-link doc__page-nav-link--prev"
                                     >
                                         <span class="doc__page-nav-dir">
@@ -198,6 +226,7 @@ const hrefLangFr = SITE_URL + _frPath;
                                 {next ? (
                                     <a
                                         href={next.href}
+                                        rel="next"
                                         class="doc__page-nav-link doc__page-nav-link--next"
                                     >
                                         <span class="doc__page-nav-dir">
