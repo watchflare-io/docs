@@ -204,8 +204,8 @@ Caddy handles HTTPS and certificate renewal automatically. For the gRPC TCP pass
 
 **HTTP (dashboard)** — standard Caddyfile, no plugin needed:
 
-<CodeBlock filename="Caddyfile" lang="caddy">
-```caddy
+<CodeBlock filename="Caddyfile" lang="plaintext">
+```plaintext
 watchflare.example.com {
     reverse_proxy HUB_IP:8080
 }
