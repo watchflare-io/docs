@@ -1,43 +1,69 @@
-# Astro Starter Kit: Minimal
+# Watchflare Docs
 
-```sh
-pnpm create astro@latest -- --template minimal
+Documentation site for [Watchflare](https://github.com/watchflare-io/watchflare) — a self-hosted host monitoring solution.
+
+**Live site:** [docs.watchflare.io](https://docs.watchflare.io)
+
+## What's in here
+
+Guides, reference pages, and architecture concepts covering:
+
+- Deploying the Hub with Docker Compose
+- Enrolling agents on Linux and macOS
+- Configuring alerts and notification channels
+- Package inventory and vulnerability tracking
+- PKI, TLS 1.3, and HMAC-SHA256 security model
+- Configuration reference for all environment variables
+
+Content is available in **English** and **French**.
+
+## Stack
+
+| Tool | Role |
+|---|---|
+| [Astro 6](https://astro.build) | Static site generator |
+| MDX | Markdown with component support |
+| [Pagefind](https://pagefind.app) | Full-text search |
+| Native CSS | No framework, design tokens only |
+
+## Local development
+
+Requires Node >= 22.12.0 and [pnpm](https://pnpm.io).
+
+```bash
+pnpm install
+pnpm dev        # http://localhost:4321
+pnpm build      # Production build → ./dist/
+pnpm preview    # Preview production build
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+> Search (`⌘K`) only works after a build. Run `pnpm dev:search` to develop with search enabled.
 
-## 🚀 Project Structure
+## Deployment
 
-Inside of your Astro project, you'll see the following folders and files:
+Deployed automatically to GitHub Pages on push to `main` via `.github/workflows/deploy.yml`.
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+## Contributing
+
+Content lives in `src/content/docs/`. Each MDX file maps directly to a URL:
+
+```
+src/content/docs/en/hub/configuration.mdx  →  /hub/configuration/
+src/content/docs/fr/hub/configuration.mdx  →  /fr/hub/configuration/
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Frontmatter schema:
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+```yaml
+---
+title: "Page Title"
+description: "One-line description for SEO and search."
+---
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+See [`CLAUDE.md`](.claude/CLAUDE.md) for full architecture notes.
 
-## 🧞 Commands
+## License
 
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+[MIT](LICENSE) — documentation and site source code only.
+The Watchflare application itself is licensed under [AGPL-3.0](https://github.com/watchflare-io/watchflare/blob/main/LICENSE).
