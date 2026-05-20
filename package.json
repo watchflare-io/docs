@@ -2,6 +2,7 @@
   "name": "watchflare-docs",
   "description": "Documentation site for Watchflare — self-hosted host monitoring",
   "private": true,
+  "packageManager": "pnpm@10.29.3",
   "type": "module",
   "version": "0.33.1",
   "engines": {
