@@ -9,8 +9,8 @@
     --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
     /* --- Brand --- */
-    --primary: oklch(0.38 0.09 145);
-    --primary-hover: oklch(0.33 0.09 145);
+    --primary: oklch(0.35 0.09 145);
+    --primary-hover: oklch(0.41 0.09 145);
     --white: #ffffff;
 
     /* --- Radius --- */
@@ -54,7 +54,7 @@
     --code-dark-fg-muted: oklch(0.65 0.01 145);
     --code-dark-green: #86efac;
     --code-dark-dot: oklch(0.42 0.02 145);
-    --code-dark-prompt: oklch(0.68 0.14 150);
+    --code-dark-prompt: oklch(0.62 0.14 145);
 
     /* --- Breakpoints (for reference — use in media queries) ---
      --bp-sm:  640px   search icon-only, nav links hidden
@@ -118,7 +118,7 @@
     --code-dark-fg-muted: oklch(0.50 0.01 145);
     --code-dark-green: oklch(0.40 0.10 145);
     --code-dark-dot: oklch(0.80 0.005 145);
-    --code-dark-prompt: oklch(0.38 0.09 145);
+    --code-dark-prompt: oklch(0.35 0.09 145);
 }
 
 /* ============================================================
@@ -143,8 +143,8 @@
     --muted: oklch(0.20 0.01 145);
     --muted-foreground: oklch(0.62 0.01 145);
 
-    --primary: oklch(0.68 0.14 150);
-    --primary-hover: oklch(0.74 0.14 150);
+    --primary: oklch(0.62 0.14 145);
+    --primary-hover: oklch(0.68 0.14 145);
 
     --code-bg: oklch(0.20 0.015 145);
     --code-border: oklch(0.28 0.015 145);
@@ -157,7 +157,7 @@
     --callout-warn-fg: oklch(0.80 0.14 80);
     --callout-tip-bg: oklch(0.20 0.04 145);
     --callout-tip-border: oklch(0.32 0.08 145);
-    --callout-tip-fg: oklch(0.75 0.14 150);
+    --callout-tip-fg: oklch(0.75 0.14 145);
     --callout-danger-bg: oklch(0.22 0.05 20);
     --callout-danger-border: oklch(0.34 0.10 20);
     --callout-danger-fg: oklch(0.78 0.14 20);
