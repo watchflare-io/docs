@@ -5,6 +5,7 @@ import { getLocalizedNav } from "@utils/nav";
 
 const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 const prefix = localePrefix(Astro.currentLocale, Astro.url.pathname);
+const locale = Astro.currentLocale === 'fr' ? 'fr' : 'en';
 
 const navItems = getLocalizedNav(Astro.currentLocale).flatMap((g) => g.items);
 const quickLinkSlugs = [
@@ -26,7 +27,7 @@ const quickLinks = quickLinkSlugs.map((slug) => {
     role="dialog"
     aria-modal="true"
     aria-label={t('search.aria')}
-    data-pagefind-ignore
+    data-locale={locale}
     data-str-empty={t('search.empty')}
     data-str-result={t('search.result')}
     data-str-results={t('search.results')}
@@ -96,10 +97,14 @@ const quickLinks = quickLinkSlugs.map((slug) => {
 </div>
 
 <script>
+        import MiniSearch from 'minisearch';
+
         // Module-level state — persists across navigations
-        let pagefind: any = null;
+        let miniSearch: MiniSearch | null = null;
+        let loadedLocale: string | null = null;
+        let indexLoading = false;
         let selectedIdx = -1;
-        let currentItems: { url: string; title: string; pageTitle: string; excerpt: string }[] = [];
+        let currentItems: { url: string; title: string; excerpt: string }[] = [];
         let previousFocus: Element | null = null;
         let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -118,14 +123,29 @@ const quickLinks = quickLinkSlugs.map((slug) => {
         let strResults = "results";
         let strOf = "of";
 
-        // ── Pagefind ────────────────────────────────────────────────────────────
+        // ── MiniSearch ──────────────────────────────────────────────────────────
 
-        async function loadPagefind() {
-            if (pagefind) return;
+        async function loadIndex() {
+            const palette = document.getElementById('search-palette');
+            const locale = palette?.dataset.locale ?? 'en';
+            if ((miniSearch && loadedLocale === locale) || indexLoading) return;
+            indexLoading = true;
+            miniSearch = null;
             try {
-                pagefind = await new Function('p', 'return import(p)')("/pagefind/pagefind.js");
-                pagefind.init();
+                const res = await fetch(`/search-index-${locale}.json`);
+                if (!res.ok) return;
+                const docs: Array<{ id: string; title: string; description: string; content: string; url: string }> = await res.json();
+                const ms = new MiniSearch({
+                    fields: ['title', 'description', 'content'],
+                    storeFields: ['title', 'description', 'url', 'content'],
+                    processTerm: (term) =>
+                        term.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''),
+                });
+                ms.addAll(docs);
+                miniSearch = ms;
+                loadedLocale = locale;
             } catch (_) {}
+            finally { indexLoading = false; }
         }
 
         // ── Scroll lock ──────────────────────────────────────────────────────────
@@ -168,10 +188,6 @@ const quickLinks = quickLinkSlugs.map((slug) => {
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        function escExcerpt(str: string) {
-            return esc(str).replace(/&lt;mark&gt;/g, "<mark>").replace(/&lt;\/mark&gt;/g, "</mark>");
-        }
-
         // ── Open / Close ─────────────────────────────────────────────────────────
 
         function open() {
@@ -182,7 +198,7 @@ const quickLinks = quickLinkSlugs.map((slug) => {
             lockScroll();
             input?.focus();
             showSuggestions();
-            loadPagefind();
+            loadIndex();
         }
 
         function close() {
@@ -220,39 +236,71 @@ const quickLinks = quickLinkSlugs.map((slug) => {
 
         // ── Search ───────────────────────────────────────────────────────────────
 
-        async function runSearch(query: string) {
-            if (!pagefind) return;
-            selectedIdx = -1;
-            const result = await pagefind.search(query);
-            const total = result.results.length;
-            const data = await Promise.all(result.results.slice(0, 10).map((r: any) => r.data()));
-            renderResults(data, query, total);
+        function applyHighlight(text: string, terms: string[]): string {
+            if (!text || !terms.length) return esc(text || '');
+            const pattern = new RegExp(
+                `\\b(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+                'gi'
+            );
+            return text.split(pattern).map((part, i) =>
+                i % 2 === 1 ? `<mark>${esc(part)}</mark>` : esc(part)
+            ).join('');
         }
 
-        function renderResults(results: any[], query: string, total: number) {
+        function generateExcerpt(content: string, description: string, query: string): string {
+            const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+            let sourceText = content || '';
+            let pos = -1;
+
+            const findPos = (text: string) => {
+                const norm = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+                for (const term of terms) {
+                    const safeT = term.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const m = norm.match(new RegExp(`\\b${safeT}`, 'i'));
+                    if (m?.index !== undefined) return m.index;
+                }
+                return -1;
+            };
+
+            pos = findPos(content || '');
+            if (pos === -1 && description) {
+                const descPos = findPos(description);
+                if (descPos !== -1) { sourceText = description; pos = descPos; }
+            }
+
+            if (!sourceText) return '';
+            const start = pos >= 0 ? Math.max(0, pos - 60) : 0;
+            const end = Math.min(sourceText.length, start + 180);
+            let slice = sourceText.slice(start, end).trim();
+            if (start > 0) slice = '…' + slice;
+            if (end < sourceText.length) slice += '…';
+            return applyHighlight(slice, terms);
+        }
+
+        function runSearch(query: string) {
+            if (!miniSearch) return;
+            selectedIdx = -1;
+            const results = miniSearch.search(query, { fuzzy: (term: string) => term.length > 3 ? 0.2 : false, prefix: true, boost: { title: 3, description: 2, content: 1 } });
+            const total = results.length;
+            const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+            currentItems = results.slice(0, 10).map(r => ({
+                url: r.url as string,
+                title: applyHighlight(r.title as string, terms),
+                excerpt: generateExcerpt(r.content as string, r.description as string, query),
+            }));
+            renderResults(query, total);
+        }
+
+        function renderResults(query: string, total: number) {
             if (!resultsEl || !countEl) return;
-            if (!results.length) {
+            if (!currentItems.length) {
                 resultsEl.innerHTML = `<div class="sp__empty">${strEmpty} "<strong>${esc(query)}</strong>"</div>`;
-                currentItems = [];
                 countEl.textContent = "";
                 return;
             }
-            currentItems = [];
-            results.forEach((r) => {
-                const pageTitle = r.meta?.title ?? "";
-                if (r.sub_results?.length) {
-                    r.sub_results.forEach((sub: any) => {
-                        currentItems.push({ url: sub.url, title: sub.title, pageTitle: pageTitle !== sub.title ? pageTitle : "", excerpt: sub.excerpt });
-                    });
-                } else {
-                    currentItems.push({ url: r.url, title: pageTitle || r.url, pageTitle: "", excerpt: r.excerpt });
-                }
-            });
-            currentItems = currentItems.slice(0, 10);
             resultsEl.innerHTML = currentItems.map((item, i) => {
-                const breadcrumb = item.pageTitle ? `<span class="sp__result-page">${esc(item.pageTitle)}</span><span class="sp__result-sep"> › </span>` : "";
-                const excerpt = item.excerpt ? `<div class="sp__result-excerpt">${escExcerpt(item.excerpt)}</div>` : "";
-                return `<a href="${esc(item.url)}" class="sp__result" data-idx="${i}" role="option" tabindex="-1"><div class="sp__result-title">${breadcrumb}${esc(item.title)}</div>${excerpt}</a>`;
+                const excerpt = item.excerpt ? `<div class="sp__result-excerpt">${item.excerpt}</div>` : "";
+                return `<a href="${esc(item.url)}" class="sp__result" data-idx="${i}" role="option" tabindex="-1"><div class="sp__result-title">${item.title}</div>${excerpt}</a>`;
             }).join("");
             const shown = currentItems.length;
             countEl.textContent = shown < total
@@ -317,6 +365,8 @@ const quickLinks = quickLinkSlugs.map((slug) => {
             if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
             selectedIdx = -1;
             currentItems = [];
+            // Pre-load index in background so search is ready when palette opens
+            loadIndex();
 
             const palette = document.getElementById("search-palette");
             if (!palette) return;
@@ -610,6 +660,7 @@ const quickLinks = quickLinkSlugs.map((slug) => {
         word-break: break-word;
     }
 
+    .sp__result-title mark,
     .sp__result-excerpt mark {
         background: color-mix(in oklch, var(--primary) 18%, transparent);
         color: var(--foreground);

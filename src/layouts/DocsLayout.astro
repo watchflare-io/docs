@@ -104,7 +104,6 @@ const hrefLangFr = SITE_URL + _frPath;
                 },
             ],
         })} />
-        <link rel="prefetch" href="/pagefind/pagefind.js" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -174,13 +173,13 @@ const hrefLangFr = SITE_URL + _frPath;
             ]}
         >
             <Sidebar />
-            <main class="doc-main" id="main-content" data-pagefind-body>
+            <main class="doc-main" id="main-content">
                 {isFallback && (
                     <div class="doc__fallback-notice" role="note">
                         {t('doc.fallbackNotice')}
                     </div>
                 )}
-                <h1 class="doc__title" data-pagefind-meta="title">{title}</h1>
+                <h1 class="doc__title">{title}</h1>
                 {description && <p class="doc__lede">{description}</p>}
 
                 <div class="doc__prose">

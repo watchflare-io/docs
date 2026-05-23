@@ -63,7 +63,6 @@ const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
             "url": canonicalURL,
             "inLanguage": lang,
         })} />
-        <link rel="prefetch" href="/pagefind/pagefind.js" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -106,8 +105,8 @@ const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
         )}
 
         <div class:list={["cl-layout", { "cl-layout--no-toc": headings.length === 0 }]}>
-            <main class="cl-main" id="main-content" data-pagefind-body>
-                <h1 class="cl-title" data-pagefind-meta="title">{title}</h1>
+            <main class="cl-main" id="main-content">
+                <h1 class="cl-title">{title}</h1>
                 {description && <p class="cl-lede">{description}</p>}
                 <div class="doc__prose">
                     <slot />
