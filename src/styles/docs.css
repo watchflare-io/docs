@@ -424,6 +424,10 @@
 
 /* ── Mobile TOC full-width (changelog — no burger button) ── */
 
+.cl-mobile-bar {
+    left: 0;
+}
+
 .cl-mobile-bar .doc__mobile-toc-summary {
     justify-content: flex-end;
 }
@@ -441,11 +445,19 @@
 
 .doc__mobile-toc-summary {
     display: flex;
+    align-items: center;
     justify-content: flex-start;
-    padding: 0;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px;
+    color: var(--foreground-muted);
+    border-radius: var(--radius-md);
+    transition:
+        background 0.1s,
+        color 0.1s;
+    cursor: pointer;
     list-style: none;
     user-select: none;
-    pointer-events: none;
 }
 
 @media (max-width: 768px) {
@@ -458,28 +470,13 @@
     display: none;
 }
 
-.doc__mobile-toc-summary-content {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 30px;
-    padding: 0 10px;
-    color: var(--foreground-muted);
-    border-radius: var(--radius-md);
-    transition:
-        background 0.1s,
-        color 0.1s;
-    pointer-events: auto;
-    cursor: pointer;
-}
-
-.doc__mobile-toc-summary-content:hover,
-.doc__mobile-toc-summary-content:focus-visible {
+.doc__mobile-toc-summary:hover,
+.doc__mobile-toc-summary:focus-visible {
     background: var(--surface);
     color: var(--foreground);
 }
 
-.doc__mobile-toc[open] .doc__mobile-toc-summary-content {
+.doc__mobile-toc[open] .doc__mobile-toc-summary {
     background: var(--surface);
     color: var(--foreground);
 }
@@ -703,7 +700,7 @@ html:has(body[data-sidebar-open]) {
 
 @media (prefers-reduced-motion: reduce) {
     .doc__mobile-sidebar-btn,
-    .doc__mobile-toc-summary-content,
+    .doc__mobile-toc-summary,
     .doc__mobile-toc-chevron,
     .doc__mobile-toc-link,
     .doc__page-nav-link,

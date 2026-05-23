@@ -7,6 +7,7 @@ import TOC from "@components/TOC.astro";
 import MobileTOC from "@components/MobileTOC.astro";
 import Search from "@components/Search.astro";
 import BackToTop from "@components/BackToTop.astro";
+import ThemeInit from "@components/ThemeInit.astro";
 import "@styles/tokens.css";
 import "@styles/global.css";
 import "@styles/docs.css";
@@ -48,6 +49,27 @@ const lang = Astro.currentLocale === 'fr' ? 'fr' : 'en';
 const canonicalURL = SITE_URL + Astro.url.pathname;
 const ogTitle = `${title} — ${SITE_NAME}`;
 
+const ldJson = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "TechArticle",
+            "headline": title,
+            ...(description ? { "description": description } : {}),
+            "url": canonicalURL,
+            "inLanguage": isFallback ? "en" : lang,
+            ...(lastUpdatedISO ? { "dateModified": lastUpdatedISO } : {}),
+        },
+        {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                { "@type": "ListItem", "position": 1, "name": SITE_NAME, "item": `${SITE_URL}/` },
+                { "@type": "ListItem", "position": 2, "name": title, "item": canonicalURL },
+            ],
+        },
+    ],
+}).replace(/</g, '\\u003C').replace(/>/g, '\\u003E');
+
 const _path = Astro.url.pathname;
 const _enPath = _path.startsWith("/fr") ? _path.replace(/^\/fr/, "") || "/" : _path;
 const _frPath = _path.startsWith("/fr") ? _path : "/fr" + _path;
@@ -60,7 +82,7 @@ const hrefLangFr = SITE_URL + _frPath;
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{title} — Watchflare Docs</title>
+        <title>{title} — {SITE_NAME}</title>
         {description && <meta name="description" content={description} />}
         <link rel="canonical" href={canonicalURL} />
         <link rel="alternate" hreflang="en" href={hrefLangEn} />
@@ -84,26 +106,7 @@ const hrefLangFr = SITE_URL + _frPath;
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#2e6442" />
         {isFallback && <meta name="robots" content="noindex, follow" />}
-        <script type="application/ld+json" set:html={JSON.stringify({
-            "@context": "https://schema.org",
-            "@graph": [
-                {
-                    "@type": "TechArticle",
-                    "headline": title,
-                    ...(description ? { "description": description } : {}),
-                    "url": canonicalURL,
-                    "inLanguage": isFallback ? "en" : lang,
-                    ...(lastUpdatedISO ? { "dateModified": lastUpdatedISO } : {}),
-                },
-                {
-                    "@type": "BreadcrumbList",
-                    "itemListElement": [
-                        { "@type": "ListItem", "position": 1, "name": SITE_NAME, "item": `${SITE_URL}/` },
-                        { "@type": "ListItem", "position": 2, "name": title, "item": canonicalURL },
-                    ],
-                },
-            ],
-        })} />
+        <script type="application/ld+json" set:html={ldJson} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -111,36 +114,7 @@ const hrefLangFr = SITE_URL + _frPath;
             rel="stylesheet"
         />
         <ClientRouter />
-        <!-- Theme init — must run before first paint to avoid flash -->
-        <script is:inline>
-            (function () {
-                var intent = localStorage.getItem("wf-theme-intent") || "auto";
-                if (
-                    intent !== "auto" &&
-                    intent !== "light" &&
-                    intent !== "dark"
-                )
-                    intent = "auto";
-                var resolved =
-                    intent === "auto"
-                        ? window.matchMedia("(prefers-color-scheme: dark)")
-                              .matches
-                            ? "dark"
-                            : "light"
-                        : intent;
-                document.documentElement.dataset.theme = resolved;
-                document.documentElement.dataset.themeIntent = intent;
-                // Preserve theme across SPA navigations — registered here so it
-                // is active before any module script loads, on every layout.
-                document.addEventListener("astro:before-swap", function (e) {
-                    var html = document.documentElement;
-                    var incoming = e.newDocument && e.newDocument.documentElement;
-                    if (!incoming) return;
-                    if (html.dataset.theme) incoming.dataset.theme = html.dataset.theme;
-                    if (html.dataset.themeIntent) incoming.dataset.themeIntent = html.dataset.themeIntent;
-                });
-            })();
-        </script>
+        <ThemeInit />
     </head>
     <body>
         <a href="#main-content" class="skip-link">{t("doc.skipToMain")}</a>
@@ -296,6 +270,11 @@ const hrefLangFr = SITE_URL + _frPath;
                 '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 
             function injectProseCopyButtons() {
+                const lang = document.documentElement.lang;
+                const labelCopy   = lang === 'fr' ? 'Copier'  : 'Copy';
+                const labelCopied = lang === 'fr' ? 'Copié !' : 'Copied!';
+                const labelFailed = lang === 'fr' ? 'Erreur'  : 'Failed';
+
                 document
                     .querySelectorAll<HTMLElement>(".doc__prose pre")
                     .forEach((pre) => {
@@ -310,7 +289,7 @@ const hrefLangFr = SITE_URL + _frPath;
                         const btn = document.createElement("button");
                         btn.className = "prose-copy";
                         btn.type = "button";
-                        btn.setAttribute("aria-label", "Copy code");
+                        btn.setAttribute("aria-label", labelCopy);
                         btn.innerHTML =
                             '<span class="prose-copy-icon">' +
                             COPY_SVG +
@@ -318,7 +297,7 @@ const hrefLangFr = SITE_URL + _frPath;
                             '<span class="prose-copy-icon-done">' +
                             CHECK_SVG +
                             "</span>" +
-                            '<span class="prose-copy-label" aria-live="polite">Copy</span>';
+                            '<span class="prose-copy-label" aria-live="polite">' + labelCopy + '</span>';
                         wrapper.appendChild(btn);
 
                         let copyTimer: ReturnType<typeof setTimeout> | null =
@@ -335,13 +314,13 @@ const hrefLangFr = SITE_URL + _frPath;
                                 );
                                 copied = true;
                                 btn.classList.add("prose-copy--copied");
-                                if (label) label.textContent = "Copied!";
+                                if (label) label.textContent = labelCopied;
                             } catch {
-                                if (label) label.textContent = "Failed";
+                                if (label) label.textContent = labelFailed;
                             }
                             copyTimer = setTimeout(() => {
                                 if (copied) btn.classList.remove("prose-copy--copied");
-                                if (label) label.textContent = "Copy";
+                                if (label) label.textContent = labelCopy;
                                 copyTimer = null;
                             }, 2000);
                         });

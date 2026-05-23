@@ -76,6 +76,11 @@ if (hasTabs) {
         if (cb.dataset.init) return;
         cb.dataset.init = "1";
 
+        const lang = document.documentElement.lang;
+        const labelCopy   = lang === 'fr' ? 'Copier'  : 'Copy';
+        const labelCopied = lang === 'fr' ? 'Copié !' : 'Copied!';
+        const labelFailed = lang === 'fr' ? 'Erreur'  : 'Failed';
+
         const tabBtns = cb.querySelectorAll<HTMLElement>(".cb__tab");
         const panes = cb.querySelectorAll<HTMLElement>(".cb__pane");
         const copyBtn = cb.querySelector<HTMLElement>(".cb__copy");
@@ -110,13 +115,13 @@ if (hasTabs) {
                 await navigator.clipboard.writeText(pre.textContent ?? "");
                 copied = true;
                 copyBtn.classList.add("cb__copy--copied");
-                if (copyLabel) copyLabel.textContent = "Copied!";
+                if (copyLabel) copyLabel.textContent = labelCopied;
             } catch {
-                if (copyLabel) copyLabel.textContent = "Failed";
+                if (copyLabel) copyLabel.textContent = labelFailed;
             }
             copyTimer = setTimeout(() => {
                 if (copied) copyBtn.classList.remove("cb__copy--copied");
-                if (copyLabel) copyLabel.textContent = "Copy";
+                if (copyLabel) copyLabel.textContent = labelCopy;
                 copyTimer = null;
             }, 2000);
         });

@@ -16,7 +16,7 @@ const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 </button>
 <script is:inline>
   (function () {
-    var isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
+    var isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
     if (!isMac) {
       var el = document.querySelector('.search-bar__kbd');
       if (el) el.textContent = 'Ctrl K';

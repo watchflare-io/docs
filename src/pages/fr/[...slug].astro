@@ -7,7 +7,6 @@ import { getNavFlat } from '@utils/nav';
 export async function getStaticPaths() {
   const enEntries = await getCollection('docs', (e) => e.id.startsWith('en/') && e.id !== 'en/changelog');
   const frEntries = await getCollection('docs', (e) => e.id.startsWith('fr/') && e.id !== 'fr/changelog');
-  const frIds = new Set(frEntries.map((e) => e.id.slice(3)));
 
   return enEntries.map((enEntry) => {
     const slug = enEntry.id.slice(3); // strip 'en/'

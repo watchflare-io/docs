@@ -2,6 +2,7 @@
 import { ClientRouter } from "astro:transitions";
 import Header from "@components/Header.astro";
 import Search from "@components/Search.astro";
+import ThemeInit from "@components/ThemeInit.astro";
 import "@styles/tokens.css";
 import "@styles/global.css";
 import "@styles/home.css";
@@ -23,6 +24,15 @@ const lang = Astro.currentLocale === "fr" ? "fr" : "en";
 const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 const hrefLangEn = `${SITE_URL}/`;
 const hrefLangFr = `${SITE_URL}/fr/`;
+
+const ldJson = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": SITE_NAME,
+    "url": `${SITE_URL}/`,
+    "description": description,
+    "inLanguage": lang === "fr" ? "fr" : "en",
+}).replace(/</g, '\\u003C').replace(/>/g, '\\u003E');
 ---
 
 <!doctype html>
@@ -53,49 +63,15 @@ const hrefLangFr = `${SITE_URL}/fr/`;
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#2e6442" />
-        <script type="application/ld+json" set:html={JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "name": SITE_NAME,
-            "url": `${SITE_URL}/`,
-            "description": description,
-            "inLanguage": lang === "fr" ? "fr" : "en",
-        })} />
+        <script type="application/ld+json" set:html={ldJson} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
             rel="stylesheet"
         />
-        <!-- Theme init — must run before first paint to avoid flash -->
         <ClientRouter />
-        <script is:inline>
-            (function () {
-                var intent = localStorage.getItem("wf-theme-intent") || "auto";
-                if (
-                    intent !== "auto" &&
-                    intent !== "light" &&
-                    intent !== "dark"
-                )
-                    intent = "auto";
-                var resolved =
-                    intent === "auto"
-                        ? window.matchMedia("(prefers-color-scheme: dark)")
-                              .matches
-                            ? "dark"
-                            : "light"
-                        : intent;
-                document.documentElement.dataset.theme = resolved;
-                document.documentElement.dataset.themeIntent = intent;
-                document.addEventListener("astro:before-swap", function (e) {
-                    var html = document.documentElement;
-                    var incoming = e.newDocument && e.newDocument.documentElement;
-                    if (!incoming) return;
-                    if (html.dataset.theme) incoming.dataset.theme = html.dataset.theme;
-                    if (html.dataset.themeIntent) incoming.dataset.themeIntent = html.dataset.themeIntent;
-                });
-            })();
-        </script>
+        <ThemeInit />
     </head>
     <body>
         <a href="#main-content" class="skip-link">{t("doc.skipToMain")}</a>

@@ -387,7 +387,7 @@ const quickLinks = quickLinkSlugs.map((slug) => {
             input?.addEventListener("input", () => {
                 const query = input!.value.trim();
                 if (debounceTimer) clearTimeout(debounceTimer);
-                if (!query) { showSuggestions(); if (resultsEl) resultsEl.innerHTML = ""; currentItems = []; selectedIdx = -1; return; }
+                if (!query || query.length < 2) { showSuggestions(); if (resultsEl) resultsEl.innerHTML = ""; currentItems = []; selectedIdx = -1; return; }
                 showResults();
                 debounceTimer = setTimeout(() => runSearch(query), 200);
             });

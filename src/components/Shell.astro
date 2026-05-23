@@ -28,6 +28,7 @@ function processCode(raw: string): string {
 }
 
 function processPairs(rows: [string, string][]): string {
+    if (!rows.length) return '';
     const maxLen = Math.max(...rows.map(([k]) => k.length));
     return rows
         .map(([key, val]) => {
@@ -66,6 +67,11 @@ const renderedHtml =
         const label = sh.querySelector<HTMLElement>(".sh__copy-label");
         if (!btn || !pre) return;
 
+        const lang = document.documentElement.lang;
+        const labelCopy   = lang === 'fr' ? 'Copier'  : 'Copy';
+        const labelCopied = lang === 'fr' ? 'Copié !' : 'Copied!';
+        const labelFailed = lang === 'fr' ? 'Erreur'  : 'Failed';
+
         // Collect only command text — text nodes immediately after a "$ " prompt span
         const commands: string[] = [];
         const nodes = Array.from(pre.childNodes);
@@ -100,13 +106,13 @@ const renderedHtml =
                 await navigator.clipboard.writeText(text);
                 copied = true;
                 btn.classList.add("sh__copy--copied");
-                if (label) label.textContent = "Copied!";
+                if (label) label.textContent = labelCopied;
             } catch {
-                if (label) label.textContent = "Failed";
+                if (label) label.textContent = labelFailed;
             }
             copyTimer = setTimeout(() => {
                 if (copied) btn.classList.remove("sh__copy--copied");
-                if (label) label.textContent = "Copy";
+                if (label) label.textContent = labelCopy;
                 copyTimer = null;
             }, 2000);
         });

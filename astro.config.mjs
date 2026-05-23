@@ -4,6 +4,10 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SITE = 'https://docs.watchflare.io';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
@@ -16,8 +20,8 @@ function urlToSrcPath(url) {
   if (path === 'fr/changelog') return 'src/content/docs/en/changelog.mdx';
   if (path.startsWith('fr/')) {
     const slug = path.slice(3);
-    const frPath = `src/content/docs/fr/${slug}.mdx`;
-    return existsSync(frPath) ? frPath : `src/content/docs/en/${slug}.mdx`;
+    const frPath = resolve(__dirname, `src/content/docs/fr/${slug}.mdx`);
+    return existsSync(frPath) ? `src/content/docs/fr/${slug}.mdx` : `src/content/docs/en/${slug}.mdx`;
   }
   return `src/content/docs/en/${path}.mdx`;
 }

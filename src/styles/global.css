@@ -70,9 +70,6 @@ pre {
     border: 1px solid transparent;
     border-radius: var(--radius-control);
     background: var(--muted);
-}
-
-[data-theme="dark"] .search-bar {
     color: var(--foreground-muted);
     font-size: 13px;
     cursor: pointer;
