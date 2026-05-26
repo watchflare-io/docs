@@ -1,5 +1,6 @@
 ---
 import Icon from "@components/Icon.astro";
+import Logo from "@components/Logo.astro";
 import SearchBar from "@components/SearchBar.astro";
 import ThemeToggle from "@components/ThemeToggle.astro";
 import LanguageSelect from "@components/LanguageSelect.astro";
@@ -20,7 +21,7 @@ function isActive(path: string) {
     <div class="dx-nav__inner">
         <!-- Brand -->
         <a href={`${prefix}/`} class="dx-nav__brand">
-            <span class="dx-nav__mark">W</span>
+            <Logo size={22} class="dx-nav__logo" />
             <span class="dx-nav__name">Watchflare</span>
             <span class="dx-nav__docs-tag">docs</span>
         </a>
@@ -107,18 +108,8 @@ function isActive(path: string) {
         margin-inline-end: 16px;
     }
 
-    .dx-nav__mark {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 26px;
-        height: 26px;
-        background: var(--primary);
-        color: var(--white);
-        font-family: var(--font-mono);
-        font-size: 14px;
-        font-weight: 700;
-        border-radius: var(--radius-control);
+    .dx-nav__logo {
+        color: var(--primary);
         flex-shrink: 0;
     }
 
