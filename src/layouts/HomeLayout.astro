@@ -24,6 +24,8 @@ const lang = Astro.currentLocale === "fr" ? "fr" : "en";
 const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 const hrefLangEn = `${SITE_URL}/`;
 const hrefLangFr = `${SITE_URL}/fr/`;
+const ogSlug = lang === 'fr' ? 'fr/home' : 'home';
+const ogImage = `${SITE_URL}/og/${ogSlug}.png`;
 
 const ldJson = JSON.stringify({
     "@context": "https://schema.org",
@@ -55,14 +57,21 @@ const ldJson = JSON.stringify({
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalURL} />
         <meta property="og:site_name" content={SITE_NAME} />
-        <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content={SITE_NAME} />
         <meta property="og:locale" content={lang === 'fr' ? 'fr_FR' : 'en_US'} />
         <meta name="twitter:card" content="summary_large_image" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta name="theme-color" content="#2e6442" />
+        <meta name="twitter:image" content={ogImage} />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#2d5a24" />
         <script type="application/ld+json" set:html={ldJson} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
