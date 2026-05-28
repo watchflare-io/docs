@@ -3,6 +3,13 @@ import { ClientRouter } from "astro:transitions";
 import Header from "@components/Header.astro";
 import Search from "@components/Search.astro";
 import ThemeInit from "@components/ThemeInit.astro";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/600.css";
 import "@styles/tokens.css";
 import "@styles/global.css";
 import "@styles/home.css";
@@ -15,7 +22,7 @@ interface Props {
 }
 
 const {
-    title = "Watchflare — Documentation",
+    title = "Watchflare Docs — Self-Hosted Monitoring Setup & Reference",
     description = "Guides, reference and concepts to deploy Watchflare, enroll agents and read your metrics.",
 } = Astro.props;
 
@@ -33,6 +40,14 @@ const ldJson = JSON.stringify({
     "url": `${SITE_URL}/`,
     "description": description,
     "inLanguage": lang === "fr" ? "fr" : "en",
+    "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": `${SITE_URL}/?q={search_term_string}`
+        },
+        "query-input": "required name=search_term_string"
+    }
 }).replace(/</g, '\\u003C').replace(/>/g, '\\u003E');
 ---
 
@@ -72,12 +87,6 @@ const ldJson = JSON.stringify({
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#2d5a24" />
         <script type="application/ld+json" set:html={ldJson} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-            rel="stylesheet"
-        />
         <ClientRouter />
         <ThemeInit />
     </head>

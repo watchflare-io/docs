@@ -6,6 +6,13 @@ import MobileTOC from "@components/MobileTOC.astro";
 import Search from "@components/Search.astro";
 import BackToTop from "@components/BackToTop.astro";
 import ThemeInit from "@components/ThemeInit.astro";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/600.css";
 import "@styles/tokens.css";
 import "@styles/global.css";
 import "@styles/docs.css";
@@ -23,9 +30,11 @@ interface Props {
     description?: string;
     headings?: Heading[];
     isFallback?: boolean;
+    datePublishedISO?: string;
+    lastUpdatedISO?: string;
 }
 
-const { title, description, headings = [], isFallback = false } = Astro.props;
+const { title, description, headings = [], isFallback = false, datePublishedISO, lastUpdatedISO } = Astro.props;
 
 const canonicalURL = SITE_URL + Astro.url.pathname;
 const ogTitle = `${title} — ${SITE_NAME}`;
@@ -41,6 +50,8 @@ const ldJson = JSON.stringify({
     ...(description ? { "description": description } : {}),
     "url": canonicalURL,
     "inLanguage": isFallback ? "en" : lang,
+    ...(datePublishedISO ? { "datePublished": datePublishedISO } : {}),
+    ...(lastUpdatedISO ? { "dateModified": lastUpdatedISO } : {}),
 }).replace(/</g, '\\u003C').replace(/>/g, '\\u003E');
 ---
 
@@ -77,12 +88,6 @@ const ldJson = JSON.stringify({
         <meta name="theme-color" content="#2d5a24" />
         {isFallback && <meta name="robots" content="noindex, follow" />}
         <script type="application/ld+json" set:html={ldJson} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-            rel="stylesheet"
-        />
         <ClientRouter />
         <ThemeInit />
     </head>

@@ -1,11 +1,25 @@
 ---
-title: "Updating"
-description: "Update the Watchflare Hub to the latest version."
+title: "Update the Hub"
+description: "Update the Watchflare Hub to the latest version — pull the new Docker image, recreate the container, and verify the upgrade with zero-downtime rollback steps."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 import Shell from "@components/Shell.astro";
+
+## Before you update
+
+Take a database backup before every upgrade. Schema migrations run automatically on startup and are not reversible without a backup:
+
+<CodeBlock lang="bash">
+```bash
+docker exec watchflare-postgres pg_dump -U watchflare watchflare > watchflare-pre-update.sql
+```
+</CodeBlock>
+
+Check the [changelog](/changelog/) to review what changed in the new version before pulling.
+
+---
 
 ## Update the Hub
 
@@ -36,6 +50,23 @@ The Hub runs database migrations automatically on startup. No manual steps are n
 
 ---
 
+## Verify the update
+
+Check that the new container started cleanly:
+
+<CodeBlock lang="bash">
+```bash
+docker compose ps
+docker compose logs watchflare --tail 30
+```
+</CodeBlock>
+
+Look for a line like `Hub started` in the logs. If migrations ran, they will appear before this line. A successful startup also means the database schema is fully up to date.
+
+Open the dashboard in a browser to confirm the Hub is reachable and your hosts and metrics are intact.
+
+---
+
 ## Pinning a version
 
 By default, `docker-compose.yml` uses the `latest` tag. To pin to a specific release, edit the image tag:
@@ -57,16 +88,34 @@ docker compose up -d
 ```
 </CodeBlock>
 
+Pinning is recommended in production so that automated image pulls do not trigger unexpected updates.
+
 ---
 
 ## Downgrading
 
-Downgrading is generally **not supported**. Migrations are additive and forward-only — running an older image against a migrated database may fail or produce unexpected behavior.
+Downgrading is **not supported**. Migrations are additive and forward-only — running an older image against a migrated database may fail or produce unexpected behavior.
 
-If you need to roll back, restore from a database backup taken before the upgrade.
+If you need to roll back, restore from a database backup taken before the upgrade:
+
+<CodeBlock lang="bash">
+```bash
+# Stop the Hub
+docker compose down
+
+# Restore the database from backup
+docker compose up -d watchflare-postgres
+docker exec -i watchflare-postgres psql -U watchflare watchflare < watchflare-pre-update.sql
+
+# Pin to the previous image version in docker-compose.yml, then start
+docker compose up -d
+```
+</CodeBlock>
 
 ---
 
-## Updating agents
+## Agent compatibility
 
-Agents update independently from the Hub. See [Updating the agent](/agent/update/).
+Agents do not need to be updated at the same time as the Hub. The Hub maintains backwards compatibility with older agents across minor versions. Check the [changelog](/changelog/) for any breaking changes that affect the agent protocol.
+
+Agents update independently. See [Update the Agent](/agent/update/).

@@ -1,4 +1,18 @@
 User-agent: *
 Allow: /
 
+# Allow AI retrieval crawlers (real-time answers, not training)
+# Training is blocked via Content-Signal: ai-train=no in response headers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
 Sitemap: https://docs.watchflare.io/sitemap-index.xml

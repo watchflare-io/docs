@@ -1,10 +1,35 @@
 ---
-title: "Uninstalling"
-description: "Remove the Watchflare Hub and optionally delete all data."
+title: "Uninstall the Hub"
+description: "Remove the Watchflare Hub and optionally delete all data. Covers backup, container removal, volume cleanup, and agent clean-up steps."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
+
+Before removing the Hub, decide whether you want to preserve your data. The Hub stores everything — metrics history, host registrations, users, alert rules, TLS certificates, and package inventory — in two Docker named volumes: `pgdata` (TimescaleDB) and `pki_data` (PKI certificates).
+
+## Back up your data first
+
+If there is any chance you will reinstall later, export a database dump before proceeding:
+
+<CodeBlock lang="bash">
+```bash
+docker exec watchflare-postgres pg_dump -U watchflare watchflare > watchflare-backup.sql
+```
+</CodeBlock>
+
+Store the dump somewhere outside the Docker host. The `pki_data` volume is equally important — agents are registered against the CA it contains. Without the original CA, re-registered agents must be re-enrolled from scratch.
+
+To back up the PKI volume:
+
+<CodeBlock lang="bash">
+```bash
+docker run --rm -v pki_data:/data -v $(pwd):/backup alpine \
+  tar czf /backup/pki-backup.tar.gz -C /data .
+```
+</CodeBlock>
+
+---
 
 ## Stop and remove containers
 
@@ -34,6 +59,13 @@ docker compose down -v
   This permanently and irrecoverably deletes all metrics history, host registrations, users, package inventory, alert rules, and TLS certificates. Agents registered against this Hub will no longer be able to connect — they must be re-registered against a new installation.
 </Callout>
 
+What each volume contains:
+
+| Volume | Contents |
+|--------|---------|
+| `pgdata` | TimescaleDB data — all metrics, hosts, users, alert rules, package inventory |
+| `pki_data` | Hub CA private key, CA certificate, server certificate and key |
+
 ---
 
 ## Remove the Docker image
@@ -47,9 +79,45 @@ docker rmi timescale/timescaledb:latest-pg16
 
 ---
 
+## Clean up config files
+
+Remove the `.env` and `docker-compose.yml` from the server:
+
+<CodeBlock lang="bash">
+```bash
+rm docker-compose.yml .env
+```
+</CodeBlock>
+
+If you opened ports in a firewall for the Hub (`8080`, `50051`), close them:
+
+<CodeBlock lang="bash">
+```bash
+# ufw example
+sudo ufw delete allow 8080/tcp
+sudo ufw delete allow 50051/tcp
+```
+</CodeBlock>
+
+---
+
+## Verify removal
+
+Confirm no Hub containers or volumes remain:
+
+<CodeBlock lang="bash">
+```bash
+docker ps -a | grep watchflare
+docker volume ls | grep -E 'pgdata|pki_data'
+```
+</CodeBlock>
+
+Both commands should return no output.
+
+---
+
 ## Uninstall agents
 
 Removing the Hub does not uninstall agents running on monitored hosts. Their service will keep trying to reconnect until stopped. To remove agents:
 
-- [Uninstall on Linux](/agent/uninstall/)
-- [Uninstall on macOS](/agent/uninstall/)
+- [Uninstall on Linux or macOS](/agent/uninstall/)

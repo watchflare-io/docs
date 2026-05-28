@@ -8,6 +8,13 @@ import MobileTOC from "@components/MobileTOC.astro";
 import Search from "@components/Search.astro";
 import BackToTop from "@components/BackToTop.astro";
 import ThemeInit from "@components/ThemeInit.astro";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/600.css";
 import "@styles/tokens.css";
 import "@styles/global.css";
 import "@styles/docs.css";
@@ -28,6 +35,7 @@ interface Props {
     editUrl?: string;
     lastUpdated?: string;
     lastUpdatedISO?: string;
+    datePublishedISO?: string;
     isFallback?: boolean;
 }
 
@@ -40,6 +48,7 @@ const {
     editUrl,
     lastUpdated,
     lastUpdatedISO,
+    datePublishedISO,
     isFallback = false,
 } = Astro.props;
 
@@ -60,6 +69,7 @@ const ldJson = JSON.stringify({
             ...(description ? { "description": description } : {}),
             "url": canonicalURL,
             "inLanguage": isFallback ? "en" : lang,
+            ...(datePublishedISO ? { "datePublished": datePublishedISO } : {}),
             ...(lastUpdatedISO ? { "dateModified": lastUpdatedISO } : {}),
         },
         {
@@ -116,12 +126,6 @@ const hrefLangFr = SITE_URL + _frPath;
         <meta name="theme-color" content="#2d5a24" />
         {isFallback && <meta name="robots" content="noindex, follow" />}
         <script type="application/ld+json" set:html={ldJson} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-            rel="stylesheet"
-        />
         <ClientRouter />
         <ThemeInit />
     </head>

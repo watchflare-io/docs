@@ -1,0 +1,45 @@
+# Watchflare Documentation
+
+> Self-hosted host monitoring with lightweight agents, gRPC/TLS transport, and an embedded dashboard. Agents report metrics to a single Go binary (Hub) with an embedded SvelteKit frontend and TimescaleDB storage.
+
+Full text of all pages: https://docs.watchflare.io/llms-full.txt
+
+## Getting Started
+- [Introduction](https://docs.watchflare.io/get-started/introduction/)
+- [Quickstart](https://docs.watchflare.io/get-started/quickstart/)
+- [Architecture](https://docs.watchflare.io/get-started/architecture/)
+
+## Hub
+- [Deploy with Docker](https://docs.watchflare.io/hub/deploy-docker/)
+- [Configuration](https://docs.watchflare.io/hub/configuration/)
+- [TLS Certificates](https://docs.watchflare.io/hub/tls/)
+- [HTTPS Setup](https://docs.watchflare.io/hub/https/)
+- [Reverse Proxy](https://docs.watchflare.io/hub/reverse-proxy/)
+- [Email Notifications](https://docs.watchflare.io/hub/smtp/)
+- [Alerts](https://docs.watchflare.io/hub/alerts/)
+- [Update the Hub](https://docs.watchflare.io/hub/update/)
+- [Uninstall the Hub](https://docs.watchflare.io/hub/uninstall/)
+
+## Agent
+- [Overview](https://docs.watchflare.io/agent/overview/)
+- [Install on Linux](https://docs.watchflare.io/agent/install/linux/)
+- [Install on macOS](https://docs.watchflare.io/agent/install/macos/)
+- [Configuration](https://docs.watchflare.io/agent/configuration/)
+- [Docker Container Metrics](https://docs.watchflare.io/agent/docker-metrics/)
+- [Update the Agent](https://docs.watchflare.io/agent/update/)
+- [Uninstall the Agent](https://docs.watchflare.io/agent/uninstall/)
+
+## Monitoring
+- [Hosts & Status](https://docs.watchflare.io/monitoring/hosts/)
+- [System Metrics](https://docs.watchflare.io/monitoring/metrics/)
+- [Container Metrics](https://docs.watchflare.io/monitoring/containers/)
+- [Alerts & Notifications](https://docs.watchflare.io/monitoring/alerts/)
+- [Package Inventory](https://docs.watchflare.io/monitoring/packages/)
+
+## Reference
+- [Agent Config (TOML)](https://docs.watchflare.io/reference/agent-config/)
+- [Hub Environment Variables](https://docs.watchflare.io/reference/hub-env/)
+- [Troubleshooting](https://docs.watchflare.io/reference/troubleshooting/)
+
+## Changelog
+- [Release History](https://docs.watchflare.io/changelog/)

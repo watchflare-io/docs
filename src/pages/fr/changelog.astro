@@ -1,5 +1,6 @@
 ---
 import { getEntry, render } from 'astro:content';
+import { spawnSync } from 'node:child_process';
 import ChangelogLayout from '@layouts/ChangelogLayout.astro';
 
 const frEntry = await getEntry('docs', 'fr/changelog');
@@ -8,8 +9,29 @@ const entry = frEntry ?? enEntry;
 if (!entry) throw new Error('Changelog entry not found');
 const isFallback = !frEntry;
 const { Content, headings } = await render(entry);
+
+const srcPath = `src/content/docs/${entry.id}.mdx`;
+let datePublishedISO = '';
+let lastUpdatedISO = '';
+const gitFirst = spawnSync('git', ['log', '--follow', '--reverse', '--format=%ct', '--', srcPath], { encoding: 'utf8' });
+if (!gitFirst.error) {
+  const firstTs = gitFirst.stdout.trim().split('\n')[0];
+  if (firstTs) datePublishedISO = new Date(Number(firstTs) * 1000).toISOString().split('T')[0];
+}
+const gitLast = spawnSync('git', ['log', '-1', '--format=%ct', '--', srcPath], { encoding: 'utf8' });
+if (!gitLast.error) {
+  const ts = gitLast.stdout.trim();
+  if (ts) lastUpdatedISO = new Date(Number(ts) * 1000).toISOString().split('T')[0];
+}
 ---
 
-<ChangelogLayout title={entry.data.title} description={entry.data.description} headings={headings} isFallback={isFallback}>
+<ChangelogLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  headings={headings}
+  isFallback={isFallback}
+  datePublishedISO={datePublishedISO || undefined}
+  lastUpdatedISO={lastUpdatedISO || undefined}
+>
     <Content />
 </ChangelogLayout>

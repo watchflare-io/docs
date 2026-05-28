@@ -1,6 +1,6 @@
 ---
-title: "Uninstalling"
-description: "Remove the Watchflare agent from a Linux or macOS host."
+title: "Uninstall the Agent"
+description: "Fully remove the Watchflare agent from a Linux or macOS host — stops the service, removes the binary, and cleans up configuration files."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -48,11 +48,33 @@ Remove log file (/var/log/watchflare-agent.log)? (y/N):
 Remove system user 'watchflare'? (y/N):
 ```
 
-Answering **N** to data/config preserves registration credentials, so the host can be reinstalled later without re-registering.
+**What each prompt controls:**
+
+| Prompt | What it removes | Answer N to… |
+|--------|----------------|--------------|
+| Data directory | WAL file, package state | Keep metrics buffer intact |
+| Config directory | `agent.conf`, `ca.pem` | Preserve registration credentials |
+| Log file | `/var/log/watchflare-agent.log` | Keep logs for troubleshooting |
+| System user | `watchflare` system user | Keep if reinstalling soon |
+
+Answering **N** to the config directory preserves `agent.conf` and `ca.pem`. If you reinstall the agent on this host later with the same `agent_id` and `agent_key`, it will reconnect to the Hub without a new registration.
 
 <Callout type="info">
   The host is not automatically removed from the Hub dashboard after uninstalling the agent. It will appear as offline. Delete it manually from the dashboard if you no longer need it.
 </Callout>
+
+### Verify removal on Linux
+
+Check that no files remain:
+
+<CodeBlock lang="bash">
+```bash
+which watchflare-agent           # should return nothing
+ls /etc/watchflare 2>/dev/null   # should not exist (if you answered Y)
+ls /var/lib/watchflare 2>/dev/null
+systemctl status watchflare-agent 2>/dev/null
+```
+</CodeBlock>
 
 ---
 
@@ -77,6 +99,16 @@ rm -f  $(brew --prefix)/var/log/watchflare-agent.log
 ```
 </CodeBlock>
 
+### Verify removal on macOS
+
+<CodeBlock lang="bash">
+```bash
+which watchflare-agent                              # should return nothing
+ls $(brew --prefix)/etc/watchflare 2>/dev/null     # should not exist
+brew services list | grep watchflare               # should return nothing
+```
+</CodeBlock>
+
 ---
 
 ## Remove the host from the dashboard
@@ -87,3 +119,15 @@ Uninstalling the agent does not remove the host from the Hub. To delete it:
 2. Click the **⋯** menu → **Delete host**.
 
 Deleting the host removes all its metrics history, package inventory, and alert rules from the database.
+
+---
+
+## Re-enroll the same host
+
+If you want to reinstall the agent on this host without going through a new registration:
+
+1. Answer **N** to all data/config removal prompts during uninstall (Linux), or skip the `rm -rf` commands (macOS).
+2. Reinstall the agent binary.
+3. The agent will reconnect using the saved `agent_id`, `agent_key`, and `ca.pem` — no new registration token needed.
+
+If you removed the config directory, you will need to create a new host in the dashboard and run the `register` command with a fresh token.
