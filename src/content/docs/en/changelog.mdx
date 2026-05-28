@@ -9,6 +9,48 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
+## v0.36.0 — 2026-05-27
+
+**New features**
+- **Logo and favicon** — logo, full favicon set, and minimal meta tags added to the Hub frontend
+- **Persistent update spinner** — agent update dispatched from the Hub now shows a persistent spinner on the host detail page instead of a disappearing confirmation message
+
+---
+
+## v0.35.0 — 2026-05-23
+
+**New features**
+- **Containers table** — new "Containers" tab on the host detail page listing all running containers with status, health check result, exposed ports, and sortable columns; includes an inline search filter
+- **Configurable notification recipient** — alert notification email address can now be set independently in Settings → Notifications, separate from the Hub admin account
+- Renamed "Load" to "Load Avg" in dashboard columns and alert rule labels for clarity
+
+**Bug fixes**
+- Sort button styling harmonized across the Hosts, Packages, and Containers tables
+- Per-host SSE connection badge now displays correctly in the sidebar on host detail pages
+
+---
+
+## v0.34.0 — 2026-05-20
+
+**New features**
+- **Container metrics** — agent collects per-container CPU usage, memory, and network I/O for Docker, Podman, and Colima via the API socket; opt-in with `--containers`
+- **IP address reporting** — agent sends all current network interface addresses on every heartbeat; addresses are displayed in the host detail header
+- **Dashboard redesign** — full bento grid layout with new stat cards (CPU, memory, disk, load avg), per-metric sparklines with 1h/24h delta trends; Sparkline chart rewritten from SVG to Canvas for performance
+- **Global incidents page** — new `/incidents` route listing all active and resolved alert incidents across every host, with start/end timestamps and triggering values
+- **Settings tab bar** — Settings reorganized into tabs; collapsed sidebar now opens as a popover flyout instead of requiring full expansion
+- **Reworked command palette** — rebuilt with native keyboard navigation; fixes iOS Safari focus trap and scroll-lock issues
+- Current installed version shown in the "Latest Version" column on the Packages page for packages that are already up to date
+
+**Bug fixes**
+- Hardened agent binary install: atomic replacement with `os.Rename`, stdlib `user.Lookup` instead of shell calls, correct Homebrew registration order (register → start service)
+- Widened valid temperature range; CPU thermal sensor now uses a bool sentinel to distinguish "no reading" from zero
+- Login error handling sanitized — database failures are logged server-side; clients receive a generic 503 to prevent information leakage
+- SSE stream cleanup: removed unused per-host batch machinery and redundant `host_id` guards; per-host stream now correctly filters the global broadcast
+- Load average (1m/5m/15m) included in aggregated metrics snapshots and dashboard sparklines
+- Upgraded Go to 1.26.3 and `golang.org/x/net` to patch HTTP/2 and network-layer vulnerabilities
+
+---
+
 ## v0.33.1 — 2025-04-25
 
 **Bug fixes**
