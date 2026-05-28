@@ -26,3 +26,6 @@ pnpm-debug.log*
 
 # Claude AI settings folder
 .claude/
+
+# local design docs
+docs/

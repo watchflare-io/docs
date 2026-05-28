@@ -219,3 +219,8 @@ pre {
     border-radius: var(--radius-sm);
     line-height: 1.6;
 }
+
+.dx-nav__logo {
+    color: var(--primary);
+    flex-shrink: 0;
+}

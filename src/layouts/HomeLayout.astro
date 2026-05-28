@@ -24,8 +24,7 @@ const lang = Astro.currentLocale === "fr" ? "fr" : "en";
 const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
 const hrefLangEn = `${SITE_URL}/`;
 const hrefLangFr = `${SITE_URL}/fr/`;
-const ogSlug = lang === 'fr' ? 'fr/home' : 'home';
-const ogImage = `${SITE_URL}/og/${ogSlug}.png`;
+const ogImage = `${SITE_URL}/og-home-docs.png`;
 
 const ldJson = JSON.stringify({
     "@context": "https://schema.org",
