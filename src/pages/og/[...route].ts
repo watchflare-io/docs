@@ -62,15 +62,16 @@ export const { getStaticPaths, GET } = await OGImageRoute({
     },
     bgImage: {
       path: (() => {
+        const lang = path.startsWith("fr/") ? "fr" : "en";
         const section = path.replace(/^fr\//, "").split("/")[0];
         const map: Record<string, string> = {
-          "get-started": "./src/images/og-bg-get-started.png",
-          "hub": "./src/images/og-bg-hub.png",
-          "agent": "./src/images/og-bg-agent.png",
-          "monitoring": "./src/images/og-bg-monitoring.png",
-          "reference": "./src/images/og-bg-reference.png",
+          "get-started": `./src/images/og-docs-bg-get-started-${lang}.png`,
+          "hub": `./src/images/og-docs-bg-hub-${lang}.png`,
+          "agent": `./src/images/og-docs-bg-agent-${lang}.png`,
+          "monitoring": `./src/images/og-docs-bg-monitoring-${lang}.png`,
+          "reference": `./src/images/og-docs-bg-reference-${lang}.png`,
         };
-        return map[section] ?? "./src/images/og-docs.png";
+        return map[section] ?? `./public/og-docs-${lang}.png`;
       })(),
       fit: "contain",
     },
