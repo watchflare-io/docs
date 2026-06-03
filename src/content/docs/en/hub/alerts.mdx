@@ -1,11 +1,11 @@
 ---
-title: "Alerts"
-description: "Configure threshold-based alerts and host offline notifications in Watchflare."
+title: "Alert Rules & Notification Setup"
+description: "Configure per-host alert rules for CPU, memory, disk, load average, and temperature. Set global defaults and duration windows to prevent spurious alerts."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Watchflare sends email notifications when a metric crosses a threshold or when a host goes offline. Alerts are evaluated every 30 seconds and configured per host. Notifications are sent to the first user created on the Hub (the admin account).
+Watchflare sends email notifications when a metric crosses a threshold or when a host goes offline. Alerts are evaluated every 30 seconds and configured per host. Notifications are sent to the address configured in **Settings → Notifications** (defaults to the admin account email).
 
 For a conceptual overview of how alerts, incidents, and notifications work together, see [Alerts & notifications](/monitoring/alerts/).
 

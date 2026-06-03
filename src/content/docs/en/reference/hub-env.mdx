@@ -1,6 +1,6 @@
 ---
 title: "Hub environment variables"
-description: "Complete reference of all environment variables accepted by the Watchflare Hub."
+description: "Quick-reference table of all Watchflare Hub environment variables with types and defaults. For full explanations and usage context, see the Configuration guide."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -16,6 +16,7 @@ For full explanations and usage guidance, see [Configuration](/hub/configuration
 
 | Variable | Min length | Description |
 |----------|-----------|-------------|
+| `POSTGRES_PASSWORD` | — | Database password. The binary falls back to `watchflare_dev` if unset — always set this in production. Docker Compose enforces it via `:?`. |
 | `JWT_SECRET` | 32 chars | Signs user session cookies. **Hub exits at startup if missing or too short.** |
 | `SMTP_ENCRYPTION_KEY` | 32 chars | Encrypts SMTP passwords at rest. Optional for the Hub binary — if not set, SMTP password storage is disabled. **Required by the Docker Compose file** (set via `:?` syntax) so it is always generated upfront, even if you don't plan to use email notifications. If set, must be at least 32 characters (Hub exits otherwise). |
 

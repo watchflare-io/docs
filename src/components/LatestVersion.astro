@@ -1,0 +1,18 @@
+---
+import { fetchLatestVersion } from "@utils/github";
+
+const version = await fetchLatestVersion();
+---
+
+{version && <code class="lv">{version}</code>}
+
+<style>
+    .lv {
+        font-family: var(--font-mono);
+        font-size: 0.875em;
+        background: var(--code-inline-bg);
+        color: var(--code-inline-fg);
+        border-radius: var(--radius-sm);
+        padding: 1px 5px;
+    }
+</style>

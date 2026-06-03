@@ -1,11 +1,39 @@
 ---
-title: "Install on Linux"
-description: "Install the Watchflare agent on a Linux host with systemd."
+title: "Install Watchflare Agent on Linux"
+description: "Install the Watchflare agent on a Linux host with systemd. One-command installer for Ubuntu, Debian, RHEL, Fedora, Amazon Linux, and Arch Linux."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 import Shell from "@components/Shell.astro";
+import PageSchema from "@components/PageSchema.astro";
+
+<PageSchema schema={{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Install Watchflare Agent on Linux",
+  "description": "Install the Watchflare agent on a Linux host with systemd using the one-command installer.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Create a host in the dashboard",
+      "text": "Open the Watchflare dashboard, go to Hosts → Add host, and copy the registration token. The token expires after 24 hours."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Run the one-command installer",
+      "text": "Run: curl -sSL https://get.watchflare.io | sudo bash -s -- --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP --port 50051. The installer creates the watchflare system user, installs the binary to /usr/local/bin/, installs the systemd service, registers the agent, and starts it automatically."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Verify the installation",
+      "text": "The host transitions from pending to online in the Watchflare dashboard within 5 seconds of the service starting."
+    }
+  ]
+}} />
 
 **Prerequisites:** A Linux host with systemd, `curl` or `wget`, and `sudo` access. Tested on Ubuntu 18.04+, Debian 10+, RHEL/CentOS 7+, Fedora 30+, Amazon Linux 2+, Arch Linux.
 
@@ -182,7 +210,7 @@ tail -50 /var/log/watchflare-agent.log
 A healthy agent produces log lines like these on startup:
 
 ```
-2026/01/02 15:04:05 INFO   Watchflare Agent starting  version=v0.33.1
+2026/01/02 15:04:05 INFO   Watchflare Agent starting  version=v0.36.0
 2026/01/02 15:04:05 INFO   environment detected  type="Physical Host"
 2026/01/02 15:04:05 INFO   heartbeat started  interval_sec=5
 2026/01/02 15:04:05 INFO   package collector started

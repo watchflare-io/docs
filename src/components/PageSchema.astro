@@ -1,0 +1,10 @@
+---
+interface Props {
+    schema: Record<string, unknown>;
+}
+
+const { schema } = Astro.props;
+const json = JSON.stringify(schema).replace(/</g, '\\u003C').replace(/>/g, '\\u003E');
+---
+
+<script type="application/ld+json" set:html={json} />

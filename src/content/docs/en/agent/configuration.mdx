@@ -1,6 +1,6 @@
 ---
-title: "Configure the Agent"
-description: "Agent TOML configuration explained field by field — connection, TLS, collection intervals, write-ahead log, logging, and environment variable overrides."
+title: "Configure the Watchflare Agent"
+description: "All agent.conf fields explained: Hub connection, TLS, heartbeat and metrics intervals, Write-Ahead Log, logging, and environment variable overrides."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -79,7 +79,7 @@ These fields are written automatically by `register`. Do not edit them.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `ca_cert_file` | string | — | Path to the Hub's CA certificate, written at registration |
-| `server_name` | string | — | Server name for TLS certificate validation. Written at registration from the Hub response. Must match the certificate CN. |
+| `server_name` | string | `"watchflare"` | Server name for TLS certificate validation. Written at registration from the Hub response. Must match the certificate CN. |
 
 ### Collection intervals
 
@@ -107,7 +107,7 @@ These fields are written automatically by `register`. Do not edit them.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `container_metrics` | bool | `false` | Enable Docker container metrics. Requires the `watchflare` user to be in the `docker` group. See [Docker container metrics](/agent/docker-metrics/). |
+| `container_metrics` | bool | `false` | Enable per-container metrics (Docker and Podman). On Linux, requires the `watchflare` user to be in the `docker` group. See [Docker container metrics](/agent/docker-metrics/). |
 
 ---
 
@@ -121,3 +121,34 @@ Four environment variables can override default paths and behavior. They are use
 | `WATCHFLARE_DATA_DIR` | Override the data directory (`/var/lib/watchflare` on Linux) |
 | `WATCHFLARE_LOG_FILE` | Override the log file path |
 | `WATCHFLARE_DEBUG` | Set to `1` to force debug log level, regardless of `log_level` |
+
+---
+
+## File locations
+
+### Linux
+
+| Path | Purpose | Owner | Mode |
+|------|---------|-------|------|
+| `/usr/local/bin/watchflare-agent` | Binary | root:root | 755 |
+| `/etc/watchflare/agent.conf` | Config | root:watchflare | 640 |
+| `/etc/watchflare/ca.pem` | CA certificate | root:watchflare | 640 |
+| `/var/lib/watchflare/` | Data directory | watchflare:watchflare | 750 |
+| `/var/lib/watchflare/metrics.wal` | WAL | watchflare:watchflare | — |
+| `/var/lib/watchflare/packages.state.json` | Package state | watchflare:watchflare | 640 |
+| `/var/log/watchflare-agent.log` | Logs | watchflare:watchflare | 644 |
+| `/etc/systemd/system/watchflare-agent.service` | Service | root:root | 644 |
+
+### macOS
+
+`$(brew --prefix)` is `/opt/homebrew` on Apple Silicon and `/usr/local` on Intel.
+
+| Path | Purpose |
+|------|---------|
+| `$(brew --prefix)/bin/watchflare-agent` | Binary |
+| `$(brew --prefix)/etc/watchflare/agent.conf` | Config |
+| `$(brew --prefix)/etc/watchflare/ca.pem` | CA certificate |
+| `$(brew --prefix)/var/watchflare/` | Data directory |
+| `$(brew --prefix)/var/watchflare/metrics.wal` | WAL |
+| `$(brew --prefix)/var/watchflare/packages.state.json` | Package state |
+| `$(brew --prefix)/var/log/watchflare-agent.log` | Logs |

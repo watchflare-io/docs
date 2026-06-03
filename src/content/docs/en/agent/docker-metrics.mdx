@@ -1,6 +1,6 @@
 ---
-title: "Docker container metrics"
-description: "Enable per-container CPU, memory, and network metrics on Docker hosts."
+title: "Docker & Podman Container Metrics"
+description: "Collect per-container CPU, memory, and network metrics from Docker and Podman. Opt-in via --containers flag or by editing agent.conf directly."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -52,7 +52,7 @@ sudo usermod -aG docker watchflare
 ```
 </CodeBlock>
 
-**Step 2** — Set `container_metrics = true` in `/etc/watchflare/agent.conf`:
+**Step 2** — Set `container_metrics = true` in [`/etc/watchflare/agent.conf`](/agent/configuration/):
 
 <CodeBlock filename="/etc/watchflare/agent.conf" lang="toml">
 ```toml

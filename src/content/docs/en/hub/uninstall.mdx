@@ -1,6 +1,6 @@
 ---
-title: "Uninstall the Hub"
-description: "Remove the Watchflare Hub and optionally delete all data. Covers backup, container removal, volume cleanup, and agent clean-up steps."
+title: "Uninstall the Watchflare Hub"
+description: "Remove the Watchflare Hub from Docker or a systemd binary install. Includes database backup, volume deletion, agent cleanup, and firewall port removal."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -113,6 +113,71 @@ docker volume ls | grep -E 'pgdata|pki_data'
 </CodeBlock>
 
 Both commands should return no output.
+
+---
+
+---
+
+## Binary install (Linux — systemd)
+
+### Back up your data
+
+<CodeBlock lang="bash">
+```bash
+pg_dump -h localhost -U watchflare watchflare > watchflare-backup.sql
+```
+</CodeBlock>
+
+If TimescaleDB runs in Docker:
+
+<CodeBlock lang="bash">
+```bash
+docker exec watchflare-postgres pg_dump -U watchflare watchflare > watchflare-backup.sql
+```
+</CodeBlock>
+
+### Stop and remove the service
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl stop watchflare-hub
+sudo systemctl disable watchflare-hub
+sudo rm /etc/systemd/system/watchflare-hub.service
+sudo systemctl daemon-reload
+```
+</CodeBlock>
+
+### Remove the binary and config
+
+<CodeBlock lang="bash">
+```bash
+sudo rm /usr/local/bin/watchflare-app
+sudo rm -rf /etc/watchflare
+sudo rm -rf /var/lib/watchflare
+```
+</CodeBlock>
+
+<Callout type="warn">
+  `/var/lib/watchflare` contains the auto-generated TLS CA and certificates. Agents registered against this CA will no longer be able to connect after removal.
+</Callout>
+
+### Remove the system user (optional)
+
+<CodeBlock lang="bash">
+```bash
+sudo userdel watchflare
+```
+</CodeBlock>
+
+### Close firewall ports
+
+<CodeBlock lang="bash">
+```bash
+# ufw example
+sudo ufw delete allow 8080/tcp
+sudo ufw delete allow 50051/tcp
+```
+</CodeBlock>
 
 ---
 

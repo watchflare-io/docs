@@ -1,16 +1,52 @@
 ---
-title: "Deploy with Docker"
-description: "Deploy the Watchflare Hub using Docker Compose — covers the compose file, environment variables, port configuration, and first-run setup."
+title: "Deploy Watchflare Hub with Docker"
+description: "Deploy the Watchflare Hub with Docker Compose. Includes the full compose file, secret generation, TimescaleDB setup, data volumes, and bind mount options."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 import Shell from "@components/Shell.astro";
+import PageSchema from "@components/PageSchema.astro";
+
+<PageSchema schema={{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Deploy Watchflare Hub with Docker Compose",
+  "description": "Deploy the Watchflare Hub using Docker Compose with TimescaleDB for metrics storage.",
+  "tool": [
+    { "@type": "HowToTool", "name": "Docker Engine 20.10+" },
+    { "@type": "HowToTool", "name": "Docker Compose v2+" }
+  ],
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Create docker-compose.yml",
+      "text": "Save the docker-compose.yml in a dedicated directory. It defines the Watchflare Hub container and a TimescaleDB container with named volumes for persistent storage."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Generate secrets and create .env",
+      "text": "Generate the three required secrets (POSTGRES_PASSWORD, JWT_SECRET, SMTP_ENCRYPTION_KEY) using openssl rand -hex 32 and save them to a .env file in the same directory."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Start the stack",
+      "text": "Run 'docker compose up -d' to start both containers. The Hub will be available at http://your-host:8080. Verify with 'docker compose ps'."
+    }
+  ]
+}} />
 
 The Hub is distributed as a single Docker image that embeds the web dashboard. It runs alongside a TimescaleDB container for persistent storage.
 
 <Callout type="tip">
   First time? The [Quickstart](/get-started/quickstart/) gets you running in under 5 minutes.
+</Callout>
+
+<Callout type="info">
+  Prefer running without Docker? See [Binary install (Linux)](/hub/binary-install/) for a native systemd service setup.
 </Callout>
 
 ---

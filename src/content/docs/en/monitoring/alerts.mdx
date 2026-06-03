@@ -1,6 +1,6 @@
 ---
-title: "Alerts & notifications"
-description: "How alerts work in Watchflare — thresholds, incidents, and email notifications."
+title: "Alerts & Notifications"
+description: "View and manage active alerts in the Incidents page. Understand how threshold rules, duration windows, and alert states work in Watchflare."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -62,6 +62,8 @@ When a threshold is breached for the configured duration, the Hub opens an **inc
 
 Incidents are visible in the **Alerts** tab and the **Incidents** section on each host's detail page, with the start time, resolution time, and the value that triggered the breach.
 
+The **/incidents** page in the sidebar shows all active and resolved incidents across every host in a single view.
+
 ---
 
 ## Host offline alerts
@@ -84,7 +86,7 @@ Temperature collection only runs on **physical hosts** — it is skipped on VMs 
 
 ## Notification delivery
 
-Notifications are sent to the email address of the first registered user (the admin account). Each notification includes:
+Notifications are sent to the address configured in **Settings → Notifications** (defaults to the admin account email). Each notification includes:
 
 - The host name and alert type
 - The value that triggered the breach and the configured threshold

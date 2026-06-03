@@ -1,11 +1,42 @@
 ---
-title: "Install on macOS"
-description: "Install the Watchflare agent on macOS with Homebrew or the binary tarball. Includes launchd service setup and enrollment steps."
+title: "Install Watchflare Agent on macOS"
+description: "Install the Watchflare agent on macOS via Homebrew. Covers one-command install, manual setup, launchd service management, and re-registration."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 import Shell from "@components/Shell.astro";
+import PageSchema from "@components/PageSchema.astro";
+
+<PageSchema schema={{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Install Watchflare Agent on macOS",
+  "description": "Install the Watchflare agent on macOS via Homebrew and register it with the Hub.",
+  "tool": [
+    { "@type": "HowToTool", "name": "Homebrew" }
+  ],
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Create a host in the dashboard",
+      "text": "Open the Watchflare dashboard, go to Hosts → Add host, and copy the registration token. The token expires after 24 hours."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Run the one-command installer",
+      "text": "Run: curl -sSL https://get.watchflare.io/brew | bash -s -- --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP --port 50051. This installs the agent via Homebrew, registers it with the Hub, and starts the launchd service in one step."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Verify the installation",
+      "text": "The host transitions from pending to online in the Watchflare dashboard within 5 seconds of the service starting."
+    }
+  ]
+}} />
 
 **Prerequisites:** macOS 11 (Big Sur) or later, Intel or Apple Silicon, and [Homebrew](https://brew.sh) installed.
 
@@ -102,6 +133,7 @@ tail -f $(brew --prefix)/var/log/watchflare-agent.log
 | `$(brew --prefix)/etc/watchflare/ca.pem` | Hub CA certificate |
 | `$(brew --prefix)/var/watchflare/` | Data directory |
 | `$(brew --prefix)/var/watchflare/metrics.wal` | Write-Ahead Log |
+| `$(brew --prefix)/var/watchflare/packages.state.json` | Package inventory state |
 | `$(brew --prefix)/var/log/watchflare-agent.log` | Logs |
 
 ---

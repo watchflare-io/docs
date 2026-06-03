@@ -1,0 +1,176 @@
+---
+title: "Install Watchflare Hub on Linux"
+description: "Install Watchflare Hub as a systemd service on Linux. Covers TimescaleDB via Docker, binary download for amd64 and arm64, and service hardening."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+
+The Hub is distributed as a pre-built binary for Linux (x86_64 and arm64). This guide walks through installing it as a systemd service with TimescaleDB running in Docker.
+
+<Callout type="tip">
+  Prefer containers? [Deploy with Docker Compose](/hub/deploy-docker/) gets you running in under 5 minutes with no manual setup.
+</Callout>
+
+---
+
+## Prerequisites
+
+- Linux x86_64 (`amd64`) or arm64
+- systemd
+- Docker (for TimescaleDB) — or an existing TimescaleDB instance
+- Two open ports: **8080** (dashboard) and **50051** (agent gRPC)
+
+---
+
+## 1. Start TimescaleDB
+
+The Hub requires TimescaleDB for storage. The simplest way is to use the provided Compose file:
+
+```bash
+curl -O https://raw.githubusercontent.com/watchflare-io/watchflare/main/docker-compose-postgres.yml
+```
+
+Generate a database password and start the container:
+
+```bash
+echo "POSTGRES_PASSWORD=$(openssl rand -hex 32)" > .env
+docker compose -f docker-compose-postgres.yml up -d
+```
+
+<Callout type="info">
+  Already running TimescaleDB? Skip this step and point `POSTGRES_HOST` at your existing instance.
+  For other setup options, see the [TimescaleDB documentation](https://docs.timescale.com).
+</Callout>
+
+---
+
+## 2. Download the binary
+
+Download and install the latest release:
+
+<CodeBlock lang="bash">
+```bash
+TAG=$(curl -s https://api.github.com/repos/watchflare-io/watchflare/releases/latest \
+  | grep '"tag_name"' | cut -d'"' -f4)
+VERSION=${TAG#v}  # strip leading 'v' for the filename
+ARCH=amd64  # or arm64
+
+curl -L "https://github.com/watchflare-io/watchflare/releases/download/${TAG}/watchflare-app_${VERSION}_linux_${ARCH}.tar.gz" \
+  | tar xz
+sudo mv watchflare-app /usr/local/bin/
+sudo chmod +x /usr/local/bin/watchflare-app
+```
+</CodeBlock>
+
+---
+
+## 3. Create a dedicated user (recommended)
+
+Running the Hub as a system user limits its access to the rest of the server.
+
+```bash
+sudo useradd --system --no-create-home --shell /sbin/nologin watchflare
+sudo mkdir -p /var/lib/watchflare
+sudo chown watchflare:watchflare /var/lib/watchflare
+```
+
+If you skip this step, remove `User=watchflare` from the service file in step 5.
+
+---
+
+## 4. Configure
+
+Create the environment file. The Hub reads it at startup.
+
+```bash
+sudo mkdir -p /etc/watchflare
+```
+
+<CodeBlock filename="/etc/watchflare/hub.env" lang="bash">
+```bash
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=watchflare
+POSTGRES_PASSWORD=your-db-password
+POSTGRES_DB=watchflare
+
+JWT_SECRET=your-32-char-secret
+SMTP_ENCRYPTION_KEY=your-32-char-secret
+
+ENV=production
+TRUSTED_PROXIES=127.0.0.1,::1
+
+# TLS_MODE=auto         # default — auto-generates a self-signed CA for gRPC
+# COOKIE_SECURE=true    # enable if the Hub is behind an HTTPS reverse proxy
+# COOKIE_DOMAIN=watchflare.example.com
+```
+</CodeBlock>
+
+Generate secrets with `openssl rand -hex 32`.
+
+Lock down the file:
+
+```bash
+sudo chown root:watchflare /etc/watchflare/hub.env
+sudo chmod 640 /etc/watchflare/hub.env
+```
+
+---
+
+## 5. Install the systemd service
+
+Create the service file:
+
+<CodeBlock filename="/etc/systemd/system/watchflare-hub.service" lang="ini">
+```ini
+[Unit]
+Description=Watchflare Hub
+Documentation=https://docs.watchflare.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=watchflare
+EnvironmentFile=/etc/watchflare/hub.env
+ExecStart=/usr/local/bin/watchflare-app
+Restart=always
+RestartSec=5s
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/watchflare
+
+[Install]
+WantedBy=multi-user.target
+```
+</CodeBlock>
+
+Enable and start:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now watchflare-hub
+```
+
+---
+
+## 6. Verify
+
+```bash
+sudo systemctl status watchflare-hub
+```
+
+Then open `http://your-host:8080`. The first visit redirects to account creation.
+
+---
+
+## Updating
+
+See [Update the Hub](/hub/update/#binary-linux--systemd) for the full update procedure with backup steps and rollback instructions.
+
+---
+
+The Hub binary is also available for macOS (arm64/amd64) but a dedicated macOS service install is not documented. For local development, run the binary directly or use [Docker Compose](/hub/deploy-docker/).

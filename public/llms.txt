@@ -11,6 +11,7 @@ Full text of all pages: https://docs.watchflare.io/llms-full.txt
 
 ## Hub
 - [Deploy with Docker](https://docs.watchflare.io/hub/deploy-docker/)
+- [Binary Install (Linux)](https://docs.watchflare.io/hub/binary-install/)
 - [Configuration](https://docs.watchflare.io/hub/configuration/)
 - [TLS Certificates](https://docs.watchflare.io/hub/tls/)
 - [HTTPS Setup](https://docs.watchflare.io/hub/https/)

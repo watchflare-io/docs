@@ -1,6 +1,6 @@
 ---
-title: "Uninstall the Agent"
-description: "Fully remove the Watchflare agent from a Linux or macOS host — stops the service, removes the binary, and cleans up configuration files."
+title: "Uninstall the Watchflare Agent"
+description: "Fully remove the Watchflare agent from Linux or macOS — stops the service, removes binary and config files, with optional data and user cleanup."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -60,7 +60,7 @@ Remove system user 'watchflare'? (y/N):
 Answering **N** to the config directory preserves `agent.conf` and `ca.pem`. If you reinstall the agent on this host later with the same `agent_id` and `agent_key`, it will reconnect to the Hub without a new registration.
 
 <Callout type="info">
-  The host is not automatically removed from the Hub dashboard after uninstalling the agent. It will appear as offline. Delete it manually from the dashboard if you no longer need it.
+  The host is not automatically removed from the Hub after uninstalling the agent. It will appear as offline on the [Hosts page](/monitoring/hosts/). Delete it manually if you no longer need it.
 </Callout>
 
 ### Verify removal on Linux

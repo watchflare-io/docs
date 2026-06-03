@@ -1,22 +1,40 @@
 ---
 import Icon from "@components/Icon.astro";
+import { fetchLatestVersion } from "@utils/github";
 
 interface Props {
     tabs?: string[];
     filename?: string;
     lang?: string;
+    autoVersion?: boolean;
 }
 
-const { tabs, filename, lang } = Astro.props;
+const { tabs, filename, lang, autoVersion } = Astro.props;
 const hasTabs = tabs && tabs.length > 0;
 const cbId = `cb-${Math.random().toString(36).slice(2, 7)}`;
+
+let versionTag: string | null = null;
+if (autoVersion) {
+    versionTag = await fetchLatestVersion();
+}
+
+function injectVersion(html: string): string {
+    if (!versionTag) return html;
+    const ver = versionTag.replace(/^v/, "");
+    return html.replace(/LATEST_TAG/g, versionTag).replace(/LATEST_VERSION/g, ver);
+}
 
 const tabContents: Record<string, string> = {};
 if (hasTabs) {
     for (const tab of tabs) {
-        tabContents[tab] = Astro.slots.has(tab) ? await Astro.slots.render(tab) : '';
+        const raw = Astro.slots.has(tab) ? await Astro.slots.render(tab) : '';
+        tabContents[tab] = autoVersion ? injectVersion(raw) : raw;
     }
 }
+
+const defaultHtml = !hasTabs && autoVersion
+    ? injectVersion(await Astro.slots.render("default"))
+    : null;
 ---
 
 <div class="cb">
@@ -64,6 +82,8 @@ if (hasTabs) {
                         set:html={tabContents[tab]}
                     />
                 ))
+            ) : defaultHtml ? (
+                <div set:html={defaultHtml} />
             ) : (
                 <slot />
             )

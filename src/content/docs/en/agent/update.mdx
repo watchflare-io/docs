@@ -1,6 +1,6 @@
 ---
-title: "Update the Agent"
-description: "Update the Watchflare agent to the latest version on Linux and macOS."
+title: "Update the Watchflare Agent"
+description: "Update the Watchflare agent on Linux with the built-in self-update command or on macOS via Homebrew. Covers automatic updates and version compatibility."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -33,13 +33,13 @@ sudo watchflare-agent update
 ```
 </CodeBlock>
 
-<Shell title="bash" code={`Watchflare Agent v0.33.0
+<Shell title="bash" code={`Watchflare Agent v0.35.0
 
 Checking for updates...
-Update available: v0.33.0 → v0.34.0
+Update available: v0.35.0 → v0.36.0
 
-Downloading v0.34.0...
-✓ Updated to v0.34.0
+Downloading v0.36.0...
+✓ Updated to v0.36.0
 ✓ Service restarted`} />
 
 To check whether an update is available without installing it:
@@ -51,7 +51,7 @@ sudo watchflare-agent update --check
 </CodeBlock>
 
 <Callout type="info">
-  The agent configuration (`agent.conf`, `ca.pem`) and data directory are never touched during an update — only the binary is replaced.
+  The agent configuration ([`agent.conf`](/agent/configuration/), `ca.pem`) and data directory are never touched during an update — only the binary is replaced.
 </Callout>
 
 ---
@@ -88,7 +88,7 @@ watchflare-agent version
 Output:
 
 ```
-Watchflare Agent v0.33.1
+Watchflare Agent v0.36.0
 ```
 
 The current version is also visible on the host detail page in the Hub dashboard.

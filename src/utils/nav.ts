@@ -25,6 +25,7 @@ export const nav: NavGroup[] = [
     titleKey: 'nav.group.hub',
     items: [
       { href: '/hub/deploy-docker/', label: 'Deploy with Docker', labelFr: 'Déployer avec Docker' },
+      { href: '/hub/binary-install/', label: 'Binary install (Linux)', labelFr: 'Installation binaire (Linux)' },
       { href: '/hub/configuration/', label: 'Configuration' },
       { href: '/hub/https/', label: 'HTTPS setup', labelFr: 'Configuration HTTPS' },
       { href: '/hub/reverse-proxy/', label: 'Reverse proxy' },
@@ -61,7 +62,6 @@ export const nav: NavGroup[] = [
     titleKey: 'nav.group.reference',
     items: [
       { href: '/reference/hub-env/', label: 'Hub environment variables', labelFr: "Variables d'environnement Hub" },
-      { href: '/reference/agent-config/', label: 'Agent config (TOML)', labelFr: 'Config agent (TOML)' },
       { href: '/reference/troubleshooting/', label: 'Troubleshooting', labelFr: 'Dépannage' },
     ],
   },
