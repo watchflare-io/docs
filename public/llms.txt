@@ -1,13 +1,55 @@
 # Watchflare Documentation
 
-> Self-hosted host monitoring with lightweight agents, gRPC/TLS transport, and an embedded dashboard. Agents report metrics to a single Go binary (Hub) with an embedded SvelteKit frontend and TimescaleDB storage.
+> Self-hosted, open-source host monitoring. Lightweight agents (~10 MB) report CPU, memory, disk, network, temperatures, container metrics, and package inventory to a central Hub over gRPC/TLS 1.3. No cloud dependency — all data stays on your infrastructure.
 
-Full text of all pages: https://docs.watchflare.io/llms-full.txt
+## About Watchflare
+
+Watchflare is a self-hosted alternative to cloud monitoring services like Datadog, New Relic, or Grafana Cloud. It is designed for sysadmins and developers who run their own servers and want full control over their monitoring data.
+
+**Key facts:**
+- License: MIT
+- Language: Go (Hub + Agent), SvelteKit (embedded frontend)
+- Source: https://github.com/watchflare-io/watchflare
+- Website: https://watchflare.io
+- Documentation: https://docs.watchflare.io
+
+**Architecture:** Two components — a Hub (single Go binary, frontend embedded via go:embed, backed by TimescaleDB) and an Agent (single Go binary, ~10 MB, runs as an unprivileged system user). Agents communicate outbound only over gRPC + TLS 1.3 with HMAC-SHA256 per-request signing.
+
+**Supported platforms:**
+- Hub: Linux (Docker Compose or native binary), any platform supporting Docker
+- Agent: Linux (systemd), macOS (Homebrew) — Windows support planned
+
+**What it monitors:** CPU usage and temperature, memory, disk I/O, network bandwidth, system load, uptime, Docker/Podman container metrics, and a full package inventory across ~30 package managers (apt, yum, dnf, brew, npm, pip, cargo, gem, and more).
+
+**Differentiators vs. alternatives:**
+- No external cloud, no telemetry, no data leaving your infrastructure
+- Single binary Hub — no microservices, no Kubernetes required
+- Write-Ahead Log on agents — metrics buffered locally if Hub is unreachable, replayed on reconnect
+- Real-time dashboard via Server-Sent Events (no polling)
+- Package inventory with daily delta detection and outdated package alerts
+- Auto-generated PKI at first startup — no manual TLS certificate setup
+
+## Common questions
+
+**How do I install Watchflare?**
+Deploy the Hub with Docker Compose (5-minute quickstart at https://docs.watchflare.io/get-started/quickstart/), then install the agent on each host to monitor with a one-line curl command.
+
+**Does Watchflare require internet access?**
+No. The Hub and agents communicate only within your network. No external services are contacted.
+
+**What database does Watchflare use?**
+TimescaleDB (PostgreSQL with time-series extensions). Metrics are stored in a hypertable partitioned by time, with continuous aggregates for efficient dashboard queries. Default retention is 30 days.
+
+**How many hosts can Watchflare monitor?**
+Watchflare is designed to scale horizontally. The agent is lightweight (~10 MB binary, minimal CPU/memory footprint) and multiple agents can connect to a single Hub.
+
+**Is Watchflare free?**
+Yes. Watchflare is MIT-licensed open-source software.
 
 ## Getting Started
-- [Introduction](https://docs.watchflare.io/get-started/introduction/)
-- [Quickstart](https://docs.watchflare.io/get-started/quickstart/)
-- [Architecture](https://docs.watchflare.io/get-started/architecture/)
+- [Introduction](https://docs.watchflare.io/get-started/introduction/): What Watchflare is, what it monitors, and how it works
+- [Quickstart](https://docs.watchflare.io/get-started/quickstart/): Deploy Hub + first agent in under 5 minutes
+- [Architecture](https://docs.watchflare.io/get-started/architecture/): Components, data flows, security model
 
 ## Hub
 - [Deploy with Docker](https://docs.watchflare.io/hub/deploy-docker/)

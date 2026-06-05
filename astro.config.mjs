@@ -47,7 +47,21 @@ export default defineConfig({
   },
   integrations: [mdx(), sitemap({
     serialize(item) {
-      return { ...item, lastmod: gitDate(urlToSrcPath(item.url)) };
+      const url = item.url;
+      const isFr = url.includes('/fr/') || url.endsWith('/fr/');
+
+      const enUrl = isFr ? url.replace('/fr/', '/') : url;
+      const frUrl = isFr ? url : url.replace(SITE + '/', SITE + '/fr/');
+
+      return {
+        ...item,
+        lastmod: gitDate(urlToSrcPath(item.url)),
+        links: [
+          { lang: 'en', url: enUrl },
+          { lang: 'x-default', url: enUrl },
+          { lang: 'fr', url: frUrl },
+        ],
+      };
     },
   })],
   markdown: {
