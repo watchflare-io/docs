@@ -52,7 +52,7 @@ Watchflare is made of two pieces that work together:
 - **Real-time dashboard** — host status updates within 5 seconds via Server-Sent Events. No polling, no page refresh.
 - **Historical charts** — metrics stored in TimescaleDB with automatic aggregation. View 1h, 12h, 24h, 7d, and 30d time ranges.
 - **Package inventory** — full list of installed packages on every host, updated daily, with change history and outdated package detection.
-- **Alerts** — threshold-based alerts on CPU, memory, and disk, plus host offline notifications delivered by email.
+- **Alerts** — threshold-based alerts on CPU, memory, and disk, plus host offline notifications delivered by email and/or webhooks (Discord, Slack, Telegram, generic HTTP).
 - **Write-Ahead Log** — if the Hub is unreachable, the agent buffers metrics locally and replays them on reconnect. Metrics are not lost during brief outages — the WAL holds up to 10 MB by default (configurable via `wal_max_size_mb`).
 
 ---

@@ -86,10 +86,14 @@ Temperature collection only runs on **physical hosts** — it is skipped on VMs 
 
 ## Notification delivery
 
-Notifications are sent to the address configured in **Settings → Notifications** (defaults to the admin account email). Each notification includes:
+Notifications are delivered via email and/or webhooks. Both channels are configured in **Settings → Notifications**.
+
+Each notification includes:
 
 - The host name and alert type
 - The value that triggered the breach and the configured threshold
 - The time the incident opened or resolved
 
-If SMTP is not configured or the test email fails, no notifications are delivered. Check **Settings → Notifications** and use the **Send test email** button to verify your configuration before relying on alerts.
+**Email** requires SMTP to be configured. Use the **Send test email** button to verify your setup before relying on alerts. See [Email notifications](/hub/smtp/).
+
+**Webhooks** can forward alerts to Discord, Slack, Telegram, or any HTTP endpoint. See [Webhook notifications](/hub/webhooks/).

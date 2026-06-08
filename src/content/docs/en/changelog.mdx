@@ -9,6 +9,21 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
+## v0.37.0 — 2026-06-08
+
+**New features**
+- **Webhook notifications** — alert and resolution notifications can now be sent to Discord, Slack, Telegram, or any HTTP/HTTPS endpoint; manage multiple endpoints from **Settings → Notifications**; Discord, Slack, and Telegram URLs are auto-detected and receive natively formatted messages; any other URL receives a structured JSON payload
+
+**Bug fixes**
+- Fixed `status`, `start`, `stop`, `restart`, and `logs` commands on macOS (via `launchctl` and Homebrew services)
+- Fixed systemd service detection and post-install messages on Linux
+- Fixed LXC container detection via `/proc/1/environ` on cgroups v2
+- Fixed registration installer not forwarding `--token`/`--host`/`--port` to `watchflare-agent install`
+- Default `log_level` in generated `agent.conf` is now `"info"` instead of being omitted
+- Upgraded Go to 1.26.4
+
+---
+
 ## v0.36.0 — 2026-05-27
 
 **New features**

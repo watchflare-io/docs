@@ -330,14 +330,14 @@ WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
 
 ---
 
-## Alerts & email
+## Alerts & notifications
 
 ### No alert emails received
 
 1. Check that SMTP is configured and enabled: **Settings → Notifications**
 2. Use **Send test email** to verify the connection works
 3. Check the alert duration window — a metric must exceed the threshold **continuously** for the configured duration (default: 5 minutes) before an email is sent
-4. Notifications go to the email of the first registered user (the admin account) — verify that address is correct
+4. Notifications go to the address configured in **Settings → Notifications** — verify it is correct
 
 ### Test email fails
 
@@ -350,6 +350,14 @@ WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
 <Callout type="info">
   Some providers (e.g. Gmail) require an **App Password** instead of your account password when using SMTP. Standard passwords are rejected even if correct.
 </Callout>
+
+### Webhook notifications not received
+
+1. Use the **Test** button next to the endpoint in **Settings → Notifications** — if it returns an error, the URL or endpoint is unreachable
+2. Check that the endpoint is **enabled** (toggle is on)
+3. Check the alert duration window — same as email, a threshold breach must be sustained for the full duration before any notification fires
+4. For Telegram, verify the URL includes `chat_id` as a query parameter: `https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}`
+5. The Hub logs delivery errors at `WARN` level — check Hub logs if a specific endpoint is silently failing
 
 ---
 
