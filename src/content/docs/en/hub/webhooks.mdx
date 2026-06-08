@@ -49,9 +49,32 @@ Paste a Telegram Bot API URL with the `chat_id` query parameter — the Hub auto
 
 **URL format:** `https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}`
 
-To get this URL:
-1. Message [@BotFather](https://t.me/BotFather) on Telegram and run `/newbot` to create a bot and get the `{token}`.
-2. Add the bot to your channel or group, then retrieve the `chat_id` from the [getUpdates](https://core.telegram.org/bots/api#getupdates) API method.
+**Step 1 — Create a bot and get the token:**
+
+1. Open Telegram and message [@BotFather](https://t.me/BotFather).
+2. Send `/newbot` and follow the prompts.
+3. BotFather replies with your bot token — a string like `7123456789:AAF...`.
+
+**Step 2 — Get your chat ID:**
+
+1. Search for your bot by name and send it any message (e.g. `hello`). The bot will not reply — that is expected, it only sends notifications.
+2. Open this URL in your browser (replace `{token}` with your actual token):
+   ```
+   https://api.telegram.org/bot{token}/getUpdates
+   ```
+3. Find `result[0].message.chat.id` in the JSON response — that number is your `chat_id`.
+
+**Step 3 — Build the URL:**
+
+Combine the token and chat ID:
+
+```
+https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}
+```
+
+<Callout type="info">
+  For a **group**, add the bot as a member, then send `/start@{botname}` in the group before calling `getUpdates`. By default, Telegram bots only receive commands (messages starting with `/`) in groups — regular messages are silently ignored. The `chat_id` of a group is a negative number (e.g. `-1937459245`).
+</Callout>
 
 ---
 
