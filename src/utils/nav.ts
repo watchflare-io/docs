@@ -33,7 +33,7 @@ export const nav: NavGroup[] = [
       { href: '/hub/two-factor-auth/', label: 'Two-factor authentication', labelFr: 'Authentification à deux facteurs' },
       { href: '/hub/alerts/', label: 'Alerts', labelFr: 'Alertes' },
       { href: '/hub/smtp/', label: 'Email notifications', labelFr: 'Notifications e-mail' },
-      { href: '/hub/webhooks/', label: 'Webhook notifications', labelFr: 'Notifications webhook' },
+      { href: '/hub/notifications/', label: 'Notification channels', labelFr: 'Canaux de notification' },
       { href: '/hub/update/', label: 'Update', labelFr: 'Mettre à jour' },
       { href: '/hub/uninstall/', label: 'Uninstall', labelFr: 'Désinstaller' },
     ],

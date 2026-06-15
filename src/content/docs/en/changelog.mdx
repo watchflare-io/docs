@@ -9,6 +9,23 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
+## v0.38.0 - 2026-06-15
+
+**New features**
+- **Multi-channel notifications** - alert notifications can now be sent through any of the 26+ services supported by [Shoutrrr](https://shoutrrr.nickfedor.com/services/overview/) (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, Teams, Pushover, SMTP, generic webhooks, and more); manage channels from **Settings > Notifications** with a side drawer for add/edit
+- **Test before save** - the channel form now validates and sends a test notification without persisting anything, so you can verify a URL before clicking Create
+- **Per-channel test cooldown** - the Test button is rate-limited to once every 5 seconds per channel (or per URL for drafts) to prevent accidental spam
+
+**Breaking changes**
+- The `SMTP_ENCRYPTION_KEY` environment variable is renamed to `NOTIFICATION_ENCRYPTION_KEY` to reflect its broader scope (it now also protects notification channel URLs). Rename the variable in your `.env` before upgrading; no fallback is provided.
+- The legacy `webhook_endpoints` table is dropped. Existing webhook URLs are lost on upgrade because the URL format has changed (Shoutrrr style: `discord://TOKEN@WEBHOOK_ID` instead of the native Discord webhook URL). Re-add your channels through **Settings > Notifications**.
+
+**Removed**
+- Native Discord, Slack, Telegram and Generic webhook senders, superseded by Shoutrrr
+- The previous `Settings > Webhooks` panel
+
+---
+
 ## v0.37.0 — 2026-06-08
 
 **New features**

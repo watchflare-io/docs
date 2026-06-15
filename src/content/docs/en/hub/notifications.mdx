@@ -1,0 +1,157 @@
+---
+title: "Notification Channels"
+description: "Send alert notifications to Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, or any of the 26+ services supported by Shoutrrr. Manage channels from Settings > Notifications."
+---
+
+import Callout from "@components/Callout.astro";
+
+Watchflare delivers alert and resolution notifications through one or more **notification channels**, backed by the [Shoutrrr](https://shoutrrr.nickfedor.com/) library. Each channel is a Shoutrrr URL targeting a single destination (a Discord webhook, a Slack incoming webhook, an SMTP mailbox, a Telegram bot, etc.). Channels are managed from **Settings > Notifications**.
+
+<Callout type="info">
+  Shoutrrr supports 26+ services out of the box. The list below shows the most common ones with copy-paste URL templates. For the full reference, see the [Shoutrrr services overview](https://shoutrrr.nickfedor.com/services/overview/).
+</Callout>
+
+---
+
+## Adding a channel
+
+1. Go to **Settings > Notifications**.
+2. Click **Add channel**. A side drawer opens.
+3. Give the channel a name (e.g. `Ops Discord`), paste a Shoutrrr URL, and click **Create**.
+4. Click **Test** before creating to verify the URL works without persisting anything.
+
+You can add multiple channels. Each enabled channel receives every alert and resolution notification independently.
+
+---
+
+## URL formats
+
+### Discord
+
+**Format:** `discord://{token}@{webhook_id}`
+
+Build it from a Discord webhook URL like `https://discord.com/api/webhooks/{webhook_id}/{token}`:
+
+- `{webhook_id}` is the first segment after `/webhooks/`
+- `{token}` is the segment after the webhook id
+
+To get the webhook URL: open a Discord channel > **Edit Channel > Integrations > Create Webhook** > copy the webhook URL.
+
+---
+
+### Slack
+
+**Format:** `slack://hook:{A}-{B}-{C}@webhook`
+
+Build it from a Slack Incoming Webhook URL like `https://hooks.slack.com/services/{A}/{B}/{C}`: join the three path segments with hyphens.
+
+To get the webhook URL: go to [api.slack.com/apps](https://api.slack.com/apps), create or open an app, enable **Incoming Webhooks**, and add a webhook to your workspace.
+
+---
+
+### Telegram
+
+**Format:** `telegram://{bot_token}@telegram?chats=@{channel_or_chat_id}`
+
+**Step 1 - Create a bot and get the token:**
+
+1. Open Telegram and message [@BotFather](https://t.me/BotFather).
+2. Send `/newbot` and follow the prompts.
+3. BotFather replies with your bot token (e.g. `7123456789:AAF...`).
+
+**Step 2 - Get your chat ID:**
+
+1. Search for your bot by name and send it any message. The bot will not reply, but the message is what binds your chat to the bot.
+2. Open `https://api.telegram.org/bot{token}/getUpdates` in a browser.
+3. Find `result[0].message.chat.id` in the JSON response.
+
+<Callout type="info">
+  For a **group**, add the bot as a member then send `/start@{botname}` in the group before calling `getUpdates`. By default, Telegram bots only receive commands (messages starting with `/`) in groups. The `chat_id` of a group is a negative number.
+</Callout>
+
+---
+
+### Matrix
+
+**Format:** `matrix://{user}:{password}@{homeserver}/?rooms={room_id}`
+
+Use a dedicated Matrix account for the Hub. Get the room ID from the room's advanced settings.
+
+---
+
+### Ntfy
+
+**Format:** `ntfy://{username}:{password}@{host}/{topic}`
+
+For a public ntfy.sh topic without auth: `ntfy://ntfy.sh/{topic}`.
+
+---
+
+### Gotify
+
+**Format:** `gotify://{host}/{token}`
+
+Generate an application token in your Gotify instance under **Apps > Create Application**.
+
+---
+
+### SMTP
+
+**Format:** `smtp://{user}:{password}@{host}:{port}/?fromAddress={from}&toAddresses={to}`
+
+Example for Gmail (with an app password):
+
+```
+smtp://you@gmail.com:abcdefghijklmnop@smtp.gmail.com:587/?fromAddress=you@gmail.com&toAddresses=alerts@example.com
+```
+
+For multiple recipients, comma-separate the `toAddresses`.
+
+---
+
+### Generic webhook
+
+**Format:** `generic://{host}{path}` (or `generic+https://...` to force HTTPS)
+
+The Hub sends a POST with a JSON body containing `title` and `message` fields. Use this for any service not natively supported by Shoutrrr.
+
+---
+
+## Test before save
+
+The **Test** button inside the Add or Edit drawer sends a one-off notification using the URL currently in the form, **without persisting anything**. Use it to verify the URL works before clicking **Create** or **Save**.
+
+The same button also works on saved channels: when the URL field is empty during edit, the test uses the stored URL.
+
+<Callout type="info">
+  Tests are rate-limited to one per channel every 5 seconds, with a visible countdown on the button. Drafts share the same limit, keyed by the URL itself: testing two different URLs in a row is not throttled.
+</Callout>
+
+---
+
+## Managing channels
+
+| Action | How |
+|--------|-----|
+| **Enable / disable** | Toggle the switch next to the channel |
+| **Edit** | Click the pencil icon. The drawer opens with the current name and a masked preview of the URL; leave the URL field empty to keep the stored value. |
+| **Delete** | Click the trash icon and confirm. Cannot be undone. |
+| **Test** | Click the **Send** icon in the row, or the **Test** button in the drawer. Rate limited per channel. |
+
+<Callout type="info">
+  Channel URLs are encrypted at rest using `NOTIFICATION_ENCRYPTION_KEY` (see [Configuration](/hub/configuration/)) and **never** returned in cleartext by the API. The Hub only exposes a masked form (e.g. `discord://***`).
+</Callout>
+
+---
+
+## Upgrading from v0.37 or earlier
+
+The `webhook_endpoints` table from older versions is dropped during the upgrade. The URL format used to be native (e.g. the full Discord webhook URL), but Shoutrrr expects a compact form (`discord://TOKEN@WEBHOOK_ID`). Re-add your destinations from **Settings > Notifications** after the upgrade.
+
+The environment variable `SMTP_ENCRYPTION_KEY` is renamed to `NOTIFICATION_ENCRYPTION_KEY`. Rename it in your `.env` before starting v0.38 or later.
+
+---
+
+## Next step
+
+Configure alert thresholds to control when notifications fire. See [Alert Rules](/hub/alerts/).

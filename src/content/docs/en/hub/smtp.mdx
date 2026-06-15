@@ -6,9 +6,9 @@ description: "Configure SMTP in Watchflare Settings to send alert emails. Covers
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-Watchflare sends alert notifications by email. SMTP is configured from the **Settings** page in the dashboard — no environment variables are needed beyond `SMTP_ENCRYPTION_KEY`, which must be set before the Hub starts.
+Watchflare sends alert notifications by email. SMTP is configured from the **Settings** page in the dashboard - no environment variables are needed beyond `NOTIFICATION_ENCRYPTION_KEY`, which must be set before the Hub starts.
 
-For webhook notifications (Discord, Slack, Telegram, generic HTTP), see [Webhook notifications](/hub/webhooks/).
+For other notification channels (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, generic HTTP, and more via Shoutrrr), see [Notification channels](/hub/notifications/).
 
 ---
 
@@ -21,11 +21,11 @@ You need an SMTP server or relay. Common options:
 - A self-hosted mail server
 - Gmail SMTP with an [App Password](https://support.google.com/accounts/answer/185833) (required if 2-Step Verification is enabled)
 
-Make sure `SMTP_ENCRYPTION_KEY` is set in your `.env` before proceeding — the password you enter in Settings is encrypted with this key before being stored:
+Make sure `NOTIFICATION_ENCRYPTION_KEY` is set in your `.env` before proceeding — the password you enter in Settings is encrypted with this key before being stored:
 
 <CodeBlock filename=".env" lang="bash">
 ```bash
-SMTP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
 ```
 </CodeBlock>
 
@@ -76,10 +76,10 @@ Use the **Send test email** button in Settings before enabling alerts. A test me
 
 ## Password storage
 
-SMTP passwords are encrypted at rest using **AES-256-GCM**. The key is `SMTP_ENCRYPTION_KEY` in your `.env`. The password is never returned via the API — the dashboard only indicates whether a password is currently stored.
+SMTP passwords are encrypted at rest using **AES-256-GCM**. The key is `NOTIFICATION_ENCRYPTION_KEY` in your `.env`. The password is never returned via the API — the dashboard only indicates whether a password is currently stored.
 
 <Callout type="warn">
-  If you change `SMTP_ENCRYPTION_KEY` and restart the Hub, the stored password can no longer be decrypted. You will need to re-enter it in Settings.
+  If you change `NOTIFICATION_ENCRYPTION_KEY` and restart the Hub, the stored password can no longer be decrypted. You will need to re-enter it in Settings.
 </Callout>
 
 ---
