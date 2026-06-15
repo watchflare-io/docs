@@ -16,20 +16,20 @@ The Hub is configured entirely through environment variables. When deployed with
 |----------|-----------|----------|-------------|
 | `POSTGRES_PASSWORD` | — | Yes | Password for the TimescaleDB instance. No minimum length is enforced, but use a strong random value. |
 | `JWT_SECRET` | 32 chars | Yes | Signs and verifies user session cookies. Hub exits on startup if missing or too short. |
-| `SMTP_ENCRYPTION_KEY` | 32 chars | For email alerts | Encrypts SMTP passwords stored in the database. Hub starts without it but SMTP password storage will be unavailable. Exits if set but too short. |
+| `NOTIFICATION_ENCRYPTION_KEY` | 32 chars | For notifications | Encrypts SMTP credentials and notification channel URLs (Discord, Slack, etc.) stored in the database. Hub starts without it but notification storage will be unavailable. Exits if set but too short. |
 
 Generate all three with:
 
 <CodeBlock lang="bash">
 ```bash
-POSTGRES_PASSWORD=$(openssl rand -hex 32)
-JWT_SECRET=$(openssl rand -hex 32)
-SMTP_ENCRYPTION_KEY=$(openssl rand -hex 32)
+POSTGRES_PASSWORD=$(openssl rand -base64 32)
+JWT_SECRET=$(openssl rand -base64 32)
+NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
 ```
 </CodeBlock>
 
 <Callout type="danger">
-  Keep these values secret. Back them up outside Docker volumes. Changing `JWT_SECRET` invalidates all active user sessions. Changing `SMTP_ENCRYPTION_KEY` makes any saved email credentials unreadable — you will need to re-enter them.
+  Keep these values secret. Back them up outside Docker volumes. Changing `JWT_SECRET` invalidates all active user sessions and disables 2FA for any users who had it enabled (their TOTP secrets can no longer be decrypted — they must re-enroll). Changing `NOTIFICATION_ENCRYPTION_KEY` makes any saved email credentials unreadable — you will need to re-enter them.
 </Callout>
 
 ---
@@ -133,9 +133,9 @@ Increase this value if agents frequently fail with clock desync warnings and you
 <CodeBlock filename=".env" lang="bash">
 ```bash
 # ── Required secrets ────────────────────────────────────────────
-POSTGRES_PASSWORD=                  # required — generate with openssl rand -hex 32
+POSTGRES_PASSWORD=                  # required — generate with openssl rand -base64 32
 JWT_SECRET=                         # required — min 32 characters
-SMTP_ENCRYPTION_KEY=                # optional — min 32 characters if set
+NOTIFICATION_ENCRYPTION_KEY=                # optional — min 32 characters if set
 
 # ── Database ─────────────────────────────────────────────────────
 # POSTGRES_USER=watchflare          # default: watchflare
@@ -176,4 +176,4 @@ SMTP_ENCRYPTION_KEY=                # optional — min 32 characters if set
 - [HTTPS setup](/hub/https/) — configure secure cookies after enabling HTTPS
 - [TLS certificates](/hub/tls/) — bring your own CA and server certificate
 - [Email notifications](/hub/smtp/) — configure SMTP for alert delivery
-- [Webhook notifications](/hub/webhooks/) — send alerts to Discord, Slack, Telegram, or any HTTP endpoint
+- [Notification channels](/hub/notifications/) - send alerts to Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, and 20+ other services via Shoutrrr

@@ -16,7 +16,7 @@ import PageSchema from "@components/PageSchema.astro";
       "name": "Why does the Hub exit immediately at startup?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Check the logs. Common causes: JWT_SECRET not set or shorter than 32 characters, SMTP_ENCRYPTION_KEY too short, or PostgreSQL not reachable. Add JWT_SECRET=$(openssl rand -hex 32) to your .env or hub.env file and verify your database connection settings."
+        "text": "Check the logs. Common causes: JWT_SECRET not set or shorter than 32 characters, NOTIFICATION_ENCRYPTION_KEY too short, or PostgreSQL not reachable. Add JWT_SECRET=$(openssl rand -base64 32) to your .env or hub.env file and verify your database connection settings."
       }
     },
     {
@@ -139,9 +139,9 @@ journalctl -u watchflare-hub -n 50
 
 | Log message | Cause | Fix |
 |-------------|-------|-----|
-| `JWT_SECRET is required in environment variables` | `JWT_SECRET` not set | Add `JWT_SECRET=$(openssl rand -hex 32)` to `.env` or `hub.env` |
-| `JWT_SECRET too short current_length=X required=32` | `JWT_SECRET` is less than 32 characters | Regenerate with `openssl rand -hex 32` |
-| `SMTP_ENCRYPTION_KEY too short` | Key is set but less than 32 characters | Regenerate or remove it (`SMTP_ENCRYPTION_KEY` is optional) |
+| `JWT_SECRET is required in environment variables` | `JWT_SECRET` not set | Add `JWT_SECRET=$(openssl rand -base64 32)` to `.env` or `hub.env` |
+| `JWT_SECRET too short current_length=X required=32` | `JWT_SECRET` is less than 32 characters | Regenerate with `openssl rand -base64 32` |
+| `NOTIFICATION_ENCRYPTION_KEY too short` | Key is set but less than 32 characters | Regenerate or remove it (`NOTIFICATION_ENCRYPTION_KEY` is optional) |
 | `failed to connect to database` | PostgreSQL not reachable | Docker: check that `POSTGRES_HOST=postgres` in the Compose env block (not just `.env`). Binary: verify `POSTGRES_HOST` in `hub.env`. |
 
 ### Can't reach the dashboard
@@ -351,13 +351,13 @@ WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
   Some providers (e.g. Gmail) require an **App Password** instead of your account password when using SMTP. Standard passwords are rejected even if correct.
 </Callout>
 
-### Webhook notifications not received
+### Notification channels not received
 
-1. Use the **Test** button next to the endpoint in **Settings → Notifications** — if it returns an error, the URL or endpoint is unreachable
-2. Check that the endpoint is **enabled** (toggle is on)
-3. Check the alert duration window — same as email, a threshold breach must be sustained for the full duration before any notification fires
-4. For Telegram, verify the URL includes `chat_id` as a query parameter: `https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}`
-5. The Hub logs delivery errors at `WARN` level — check Hub logs if a specific endpoint is silently failing
+1. Use the **Test** button next to the channel in **Settings > Notifications** - if it returns an error, the URL or destination is unreachable
+2. Check that the channel is **enabled** (toggle is on)
+3. Check the alert duration window - same as email, a threshold breach must be sustained for the full duration before any notification fires
+4. Verify the URL follows the Shoutrrr format for that service (see [Notification channels](/hub/notifications/) for the supported URL templates)
+5. The Hub logs delivery errors at `ERROR` level - check Hub logs if a specific channel is silently failing
 
 ---
 

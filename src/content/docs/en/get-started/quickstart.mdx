@@ -43,7 +43,7 @@ services:
       - POSTGRES_SSLMODE=disable
       - GRPC_PORT=${GRPC_PORT:-50051}
       - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env}
-      - SMTP_ENCRYPTION_KEY=${SMTP_ENCRYPTION_KEY:?Set SMTP_ENCRYPTION_KEY in .env}
+      - NOTIFICATION_ENCRYPTION_KEY=${NOTIFICATION_ENCRYPTION_KEY:?Set NOTIFICATION_ENCRYPTION_KEY in .env}
       - TLS_MODE=${TLS_MODE:-auto}
       - TLS_PKI_DIR=/var/lib/watchflare/pki
       - GRPC_TIMESTAMP_WINDOW=${GRPC_TIMESTAMP_WINDOW:-300}
@@ -95,17 +95,17 @@ Create a `.env` file in the same directory with the three required secrets:
 <CodeBlock tabs={["Linux", "Windows"]} lang="bash">
 <Fragment slot="Linux">
 ```bash
-printf "POSTGRES_PASSWORD=%s\nJWT_SECRET=%s\nSMTP_ENCRYPTION_KEY=%s\n" \
-  "$(openssl rand -hex 32)" \
-  "$(openssl rand -hex 32)" \
-  "$(openssl rand -hex 32)" > .env
+printf "POSTGRES_PASSWORD=%s\nJWT_SECRET=%s\nNOTIFICATION_ENCRYPTION_KEY=%s\n" \
+  "$(openssl rand -base64 32)" \
+  "$(openssl rand -base64 32)" \
+  "$(openssl rand -base64 32)" > .env
 ```
 </Fragment>
 <Fragment slot="Windows">
 ```powershell
 $r = [System.Security.Cryptography.RandomNumberGenerator]
 $h = { -join ($r::GetBytes(32) | % { '{0:x2}' -f $_ }) }
-"POSTGRES_PASSWORD=$(& $h)", "JWT_SECRET=$(& $h)", "SMTP_ENCRYPTION_KEY=$(& $h)" | Set-Content .env
+"POSTGRES_PASSWORD=$(& $h)", "JWT_SECRET=$(& $h)", "NOTIFICATION_ENCRYPTION_KEY=$(& $h)" | Set-Content .env
 ```
 </Fragment>
 </CodeBlock>

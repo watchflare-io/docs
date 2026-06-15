@@ -35,7 +35,7 @@ curl -O https://raw.githubusercontent.com/watchflare-io/watchflare/main/docker-c
 Generate a database password and start the container:
 
 ```bash
-echo "POSTGRES_PASSWORD=$(openssl rand -hex 32)" > .env
+echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" > .env
 docker compose -f docker-compose-postgres.yml up -d
 ```
 
@@ -97,7 +97,7 @@ POSTGRES_PASSWORD=your-db-password
 POSTGRES_DB=watchflare
 
 JWT_SECRET=your-32-char-secret
-SMTP_ENCRYPTION_KEY=your-32-char-secret
+NOTIFICATION_ENCRYPTION_KEY=your-32-char-secret
 
 ENV=production
 TRUSTED_PROXIES=127.0.0.1,::1
@@ -108,7 +108,7 @@ TRUSTED_PROXIES=127.0.0.1,::1
 ```
 </CodeBlock>
 
-Generate secrets with `openssl rand -hex 32`.
+Generate secrets with `openssl rand -base64 32`.
 
 Lock down the file:
 
