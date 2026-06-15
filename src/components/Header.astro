@@ -21,15 +21,17 @@ function isActive(path: string) {
     <div class="dx-nav__inner">
         <!-- Brand -->
         <a href={`${prefix}/`} class="dx-nav__brand">
-            <Logo size={22} class="dx-nav__logo" />
+            <Logo size={24} class="dx-nav__logo" />
             <span class="dx-nav__name">Watchflare</span>
             <span class="dx-nav__docs-tag">docs</span>
         </a>
 
         <!-- Nav links (hidden ≤768px) -->
-        <nav class="dx-nav__links" aria-label={t('nav.aria.main')}>
-            <a href={`${prefix}/`} class:list={["dx-nav__link", { active: isHome }]}
-                >{t('nav.home')}</a
+        <nav class="dx-nav__links" aria-label={t("nav.aria.main")}>
+            <a
+                href={`${prefix}/`}
+                class:list={["dx-nav__link", { active: isHome }]}
+                >{t("nav.home")}</a
             >
             <a
                 href={`${prefix}/get-started/introduction/`}
@@ -43,12 +45,14 @@ function isActive(path: string) {
                             isActive(`${prefix}/monitoring`) ||
                             isActive(`${prefix}/reference`),
                     },
-                ]}>{t('nav.guides')}</a
+                ]}>{t("nav.guides")}</a
             >
             <a
                 href={`${prefix}/changelog/`}
-                class:list={["dx-nav__link", { active: isActive(`${prefix}/changelog`) }]}
-                >{t('nav.changelog')}</a
+                class:list={[
+                    "dx-nav__link",
+                    { active: isActive(`${prefix}/changelog`) },
+                ]}>{t("nav.changelog")}</a
             >
         </nav>
 
@@ -65,7 +69,7 @@ function isActive(path: string) {
                     class="dx-nav__icon-btn"
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={t('nav.aria.github')}
+                    aria-label={t("nav.aria.github")}
                 >
                     <Icon name="github" size={16} />
                 </a>
@@ -107,7 +111,6 @@ function isActive(path: string) {
         flex-shrink: 0;
         margin-inline-end: 16px;
     }
-
 
     .dx-nav__name {
         font-size: 15px;

@@ -1,0 +1,75 @@
+---
+title: "Two-Factor Authentication (2FA)"
+description: "Enable TOTP-based two-factor authentication for your Watchflare account. Covers setup, login flow, backup codes, and disabling 2FA."
+---
+
+import Callout from "@components/Callout.astro";
+
+Watchflare supports **TOTP-based two-factor authentication** (Time-based One-Time Password, RFC 6238). When enabled, logging in requires both your password and a 6-digit code from an authenticator app.
+
+---
+
+## Supported apps
+
+Any TOTP-compatible app works:
+
+- [Proton Authenticator](https://proton.me/authenticator) & [Proton Pass](https://proton.me/pass)
+- [2FAS](https://2fas.com/)
+- [Bitwarden Authenticator](https://bitwarden.com/products/authenticator/)
+- [1Password](https://1password.com/)
+- [Authy](https://authy.com/)
+- Google Authenticator
+- and many more!
+
+---
+
+## Enable 2FA
+
+1. Go to **your username → Account**.
+2. Under **Two-Factor Authentication**, click **Set up 2FA**.
+3. Scan the QR code with your authenticator app, or copy the secret key and enter it manually.
+4. Enter the 6-digit code your app displays to confirm setup.
+5. **Save your backup codes.** Watchflare generates 8 one-time backup codes — store them somewhere safe. You can use them to sign in if you lose access to your authenticator.
+
+<Callout type="warn">
+  Backup codes are shown only once. If you lose both your authenticator and your backup codes, you cannot recover access to your account.
+</Callout>
+
+---
+
+## Login flow
+
+When 2FA is enabled, the login sequence is:
+
+1. Enter your email and password on the login page.
+2. A 2FA challenge screen appears — enter the 6-digit code from your authenticator app.
+3. Alternatively, click **Use a backup code** and enter one of your saved codes.
+
+The 2FA challenge expires after **5 minutes**. If it times out, start the login again.
+
+---
+
+## Backup codes
+
+Backup codes are 10-character uppercase hex codes (e.g. `A3F7C2E1B0`). Each code can only be used once — it is consumed on use.
+
+You have 8 backup codes after setup. To replace them all with a fresh set:
+
+1. Go to **your username → Account**.
+2. Under **Two-Factor Authentication**, click **Regenerate backup codes**.
+3. Enter a valid 6-digit TOTP code to confirm.
+4. The new codes are shown once — save them immediately.
+
+<Callout type="warn">
+  Regenerating backup codes invalidates all previous ones.
+</Callout>
+
+---
+
+## Disable 2FA
+
+1. Go to **your username → Account**.
+2. Under **Two-Factor Authentication**, click **Disable 2FA**.
+3. Enter a valid 6-digit TOTP code **or** a backup code to confirm.
+
+After disabling, all backup codes and the stored TOTP secret are permanently deleted.

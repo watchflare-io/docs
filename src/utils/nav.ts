@@ -30,6 +30,7 @@ export const nav: NavGroup[] = [
       { href: '/hub/https/', label: 'HTTPS setup', labelFr: 'Configuration HTTPS' },
       { href: '/hub/reverse-proxy/', label: 'Reverse proxy' },
       { href: '/hub/tls/', label: 'TLS certificates', labelFr: 'Certificats TLS' },
+      { href: '/hub/two-factor-auth/', label: 'Two-factor authentication', labelFr: 'Authentification à deux facteurs' },
       { href: '/hub/alerts/', label: 'Alerts', labelFr: 'Alertes' },
       { href: '/hub/smtp/', label: 'Email notifications', labelFr: 'Notifications e-mail' },
       { href: '/hub/webhooks/', label: 'Webhook notifications', labelFr: 'Notifications webhook' },
