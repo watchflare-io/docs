@@ -9,8 +9,9 @@ const pages: Record<string, { title: string; description: string }> = {};
 
 // Static pages (home uses a hand-crafted static image, not generated)
 pages["fr/changelog"] = {
-  title: "Changelog — Watchflare Docs",
-  description: "Historique des versions et notes de mise à jour de Watchflare.",
+  title: "Changelog",
+  description:
+    "Historique complet des versions de Watchflare Hub et Agent. Nouvelles fonctionnalités, corrections des bugs et mises à jour importantes. Mis à jour à chaque nouvelle version depuis la v0.27.0.",
 };
 
 // MDX content pages
@@ -30,7 +31,10 @@ for (const entry of docs) {
   if (!entry.id.startsWith("en/")) continue;
   const frKey = `fr/${entry.id.slice(3)}`;
   if (!pages[frKey]) {
-    pages[frKey] = { title: entry.data.title, description: entry.data.description };
+    pages[frKey] = {
+      title: entry.data.title,
+      description: entry.data.description,
+    };
   }
 }
 
@@ -66,10 +70,11 @@ export const { getStaticPaths, GET } = await OGImageRoute({
         const section = path.replace(/^fr\//, "").split("/")[0];
         const map: Record<string, string> = {
           "get-started": `./src/images/og-docs-bg-get-started-${lang}.png`,
-          "hub": `./src/images/og-docs-bg-hub-${lang}.png`,
-          "agent": `./src/images/og-docs-bg-agent-${lang}.png`,
-          "monitoring": `./src/images/og-docs-bg-monitoring-${lang}.png`,
-          "reference": `./src/images/og-docs-bg-reference-${lang}.png`,
+          hub: `./src/images/og-docs-bg-hub-${lang}.png`,
+          agent: `./src/images/og-docs-bg-agent-${lang}.png`,
+          monitoring: `./src/images/og-docs-bg-monitoring-${lang}.png`,
+          reference: `./src/images/og-docs-bg-reference-${lang}.png`,
+          changelog: `./src/images/og-docs-bg-changelog.png`,
         };
         return map[section] ?? `./public/og-docs-${lang}.png`;
       })(),
