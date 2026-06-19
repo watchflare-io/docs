@@ -20,34 +20,34 @@ const cards = [
     },
     {
         href: "/agent/install/linux/",
-        title: "Install the Agent",
+        title: "Install the agent",
         description:
-            "Enroll any Linux machine in two commands, or use Homebrew on macOS. The agent registers itself, generates its key, and starts reporting in under a minute.",
+            "Enroll any Linux machine in one command, or use Homebrew on macOS. The agent registers itself, generates its key, and starts reporting in under a minute.",
         cta: "Read guide",
         icon: "monitor" as const,
         iconSize: 20,
     },
     {
         href: "/monitoring/alerts/",
-        title: "Set Up Alerts",
+        title: "Set up alerts",
         description:
-            "Define CPU, memory, disk, and load thresholds per host. Connect a notification channel and get paged before a problem becomes an outage.",
+            "Define CPU, memory, disk, load, and temperature thresholds per host. Get paged when a host crosses a limit or goes offline. Connect a notification channel before a problem becomes an outage.",
         cta: "Read guide",
         icon: "alertTriangle" as const,
         iconSize: 20,
     },
     {
         href: "/monitoring/packages/",
-        title: "Monitor Packages",
+        title: "Monitor packages",
         description:
-            "Track every installed package across your fleet. Watchflare flags outdated and security-vulnerable software so you know what needs patching.",
+            "Track every installed package across your fleet. Watchflare flags outdated packages and pending security updates so you know what needs patching.",
         cta: "Read guide",
         icon: "package" as const,
         iconSize: 20,
     },
     {
         href: "/get-started/architecture/",
-        title: "Architecture & Security",
+        title: "Architecture & security",
         description:
             "The Hub and its agents communicate over gRPC/TLS 1.3 with per-request HMAC auth. Data never leaves your infrastructure. Understand the trust model before going to production.",
         cta: "Read concept",
@@ -56,9 +56,9 @@ const cards = [
     },
     {
         href: "/hub/configuration/",
-        title: "Configuration Reference",
+        title: "Configuration reference",
         description:
-            "All Hub environment variables in one place — database, ports, TLS mode, cookie security, gRPC timestamp window, and more.",
+            "All Hub environment variables in one place: database, ports, TLS mode, cookie security, gRPC timestamp window, and more.",
         cta: "Read guide",
         icon: "server" as const,
         iconSize: 20,
@@ -87,9 +87,10 @@ const cards = [
             </div>
             <h1 class="dhome__title">Watchflare documentation</h1>
             <p class="dhome__lede">
-                Guides, reference and concepts to deploy the Hub, enroll agents
-                and read your metrics. Self-hosted, a single Go binary,
-                TimescaleDB, gRPC over TLS&nbsp;1.3.
+                Everything you need to deploy the Hub, enroll your agents and
+                watch your metrics, from a five-minute quickstart to TLS, alerts
+                and package inventory. Open source, self-hosted, a single Go
+                binary.
             </p>
         </header>
 
@@ -147,7 +148,7 @@ const cards = [
                                             >Linux host</span
                                         >
                                         <span class="dstack__node-meta"
-                                            >Systemd</span
+                                            >systemd</span
                                         >
                                     </a>
                                     <a
@@ -161,7 +162,7 @@ const cards = [
                                             >macOS host</span
                                         >
                                         <span class="dstack__node-meta"
-                                            >homebrew</span
+                                            >Homebrew</span
                                         >
                                     </a>
                                     <span
@@ -233,7 +234,7 @@ const cards = [
                         <!-- Pipe: SQL -->
                         <div class="dstack__pipe">
                             <span class="dstack__pipe-label"
-                                >SQL · local socket</span
+                                >SQL · TCP 5432</span
                             >
                             <svg
                                 class="dstack__pipe-line"
@@ -338,7 +339,7 @@ const cards = [
         </section>
 
         <footer class="dhome__footer">
-            <span>© 2026 Watchflare — Self-hosted host monitoring</span>
+            <span>© 2026 Watchflare · Self-hosted server monitoring</span>
         </footer>
     </div>
 </HomeLayout>
