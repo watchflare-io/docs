@@ -9,6 +9,26 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
+## v0.39.0 - 2026-06-20
+
+**New features**
+- **Pause and resume alerts per host**: you can now pause a host's open incidents along with the host itself. Paused incidents get a dedicated filter and badge on both the incidents page and the host detail view, update live over SSE, and paused hosts are excluded from package-inventory alerting.
+- **Smoother modals**: background scrolling is locked while a modal is open, and modals close when you click outside them.
+- **Clearer error messages**: backend error messages are now capitalized when shown in the UI.
+
+**Bug fixes**
+- 7d and 30d charts now show the full history: long-range metric graphs were only displaying the last day or two of data because the continuous-aggregate refresh windows were overwriting older data points. Fixed for both host and container metrics; the fix applies automatically on upgrade.
+- LXC containers no longer report a phantom CPU temperature.
+- Two-factor authentication: entering an invalid 2FA code no longer logs you out (it now returns a proper error instead of a forced sign-out).
+- Dead agents are correctly marked offline again after a Hub restart (the heartbeat cache is now primed from the database on boot).
+- Host detail no longer briefly loses fields during partial live updates.
+- Minor accessibility fixes.
+
+**Breaking changes**
+- The Hub binary is now `watchflare-hub` (previously `watchflare-app`). If you run the Hub from a binary, update your install scripts / systemd unit to the new name. Docker users are unaffected.
+
+---
+
 ## v0.38.0 - 2026-06-16
 
 **New features**
