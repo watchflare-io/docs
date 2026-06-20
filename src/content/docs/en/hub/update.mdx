@@ -128,9 +128,9 @@ TAG=LATEST_TAG
 VERSION=LATEST_VERSION
 ARCH=amd64    # or arm64
 
-curl -L "https://github.com/watchflare-io/watchflare/releases/download/${TAG}/watchflare-app_${VERSION}_linux_${ARCH}.tar.gz" \
+curl -L "https://github.com/watchflare-io/watchflare/releases/download/${TAG}/watchflare-hub_${VERSION}_linux_${ARCH}.tar.gz" \
   | tar xz
-sudo mv watchflare-app /usr/local/bin/
+sudo mv watchflare-hub /usr/local/bin/
 
 sudo systemctl start watchflare-hub
 ```
@@ -163,9 +163,9 @@ psql -h localhost -U watchflare watchflare < watchflare-pre-update.sql
 TAG=v0.35.0   # the version you are rolling back to
 VERSION=${TAG#v}
 ARCH=amd64
-curl -L "https://github.com/watchflare-io/watchflare/releases/download/${TAG}/watchflare-app_${VERSION}_linux_${ARCH}.tar.gz" \
+curl -L "https://github.com/watchflare-io/watchflare/releases/download/${TAG}/watchflare-hub_${VERSION}_linux_${ARCH}.tar.gz" \
   | tar xz
-sudo mv watchflare-app /usr/local/bin/
+sudo mv watchflare-hub /usr/local/bin/
 
 sudo systemctl start watchflare-hub
 ```

@@ -1,11 +1,11 @@
 ---
-title: "Watchflare: Self-Hosted Host Monitoring"
-description: "Open-source, self-hosted host monitoring: agents report metrics to the Hub over gRPC/TLS. Learn what the dashboard shows and which platforms are supported."
+title: "Watchflare: Self-Hosted Server Monitoring"
+description: "Open-source, self-hosted server monitoring: agents report metrics to the Hub over gRPC/TLS. Learn what the dashboard shows and which platforms are supported."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Watchflare is a **self-hosted platform** that monitors your hosts and tracks their software. It collects system metrics in real time — CPU, memory, disk, network, and temperatures — and maintains a full package inventory across your fleet: installed versions, daily change history, and available updates.
+Watchflare is a **self-hosted platform** that monitors your hosts and tracks their software. It collects system metrics in real time (CPU, memory, disk, network, and temperatures) and maintains a full package inventory across your fleet: installed versions, daily change history, and available updates.
 
 No cloud dependency. No data leaving your infrastructure.
 
@@ -15,9 +15,9 @@ No cloud dependency. No data leaving your infrastructure.
 
 Watchflare is made of two pieces that work together:
 
-**Hub** — the central server. Deploy it once with [Docker Compose](/hub/deploy-docker/) or as a [native Linux binary](/hub/binary-install/). It receives data from agents, stores it in a time-series database, and serves the web dashboard. The Hub is a single binary with the frontend embedded.
+**Hub** is the central server. Deploy it once with [Docker Compose](/hub/deploy-docker/) or as a [native Linux binary](/hub/binary-install/). It receives data from agents, stores it in a time-series database, and serves the web dashboard. The Hub is a single binary with the frontend embedded.
 
-**Agent** — a lightweight daemon that runs on each host you want to monitor. Supports **Linux and macOS** — Windows support is planned. It collects system metrics every 30 seconds, sends a heartbeat every 5 seconds, and builds a daily package inventory. The agent uses minimal resources and runs as an unprivileged system user.
+**Agent** is a lightweight daemon that runs on each host you want to monitor. It supports **Linux and macOS**, with Windows support planned. It collects system metrics every 30 seconds, sends a heartbeat every 5 seconds, and builds a daily package inventory. The agent uses minimal resources and runs as an unprivileged system user.
 
 ```
   your-server-1          your-server-2          your-server-3
@@ -25,7 +25,7 @@ Watchflare is made of two pieces that work together:
       |                      |                      |
       └──────────────────────┴──────────────────────┘
                              |
-                         gRPC / TLS
+                         gRPC / TLS 1.3
                              |
                           [ Hub ]
                         dashboard + DB
@@ -37,29 +37,30 @@ Watchflare is made of two pieces that work together:
 
 | Category | Metrics |
 |----------|---------|
-| **CPU** | Usage %, iowait, steal (VMs), temperature (physical hosts) |
+| **CPU** | Usage %, iowait, steal (VMs) |
 | **Memory** | Used, available, buffers, cached, swap |
 | **Disk** | Total, used, read/write throughput |
 | **Network** | Inbound/outbound bandwidth |
+| **Temperature** | CPU and sensor readings (battery, storage, etc.) on physical hosts |
 | **System** | Uptime, load average (1/5/15 min), process count |
 | **Containers** | Per-container CPU, memory, network (Docker/Podman) |
-| **Packages** | Installed packages, versions, outdated detection — [~30 supported package managers](/monitoring/packages/#supported-package-managers) |
+| **Packages** | Installed packages, versions, and outdated detection across [~30 supported package managers](/monitoring/packages/#supported-package-managers) |
 
 ---
 
 ## What you get
 
-- **Real-time dashboard** — host status updates within 5 seconds via Server-Sent Events. No polling, no page refresh.
-- **Historical charts** — metrics stored in TimescaleDB with automatic aggregation. View 1h, 12h, 24h, 7d, and 30d time ranges.
-- **Package inventory** — full list of installed packages on every host, updated daily, with change history and outdated package detection.
-- **Alerts** — threshold-based alerts on CPU, memory, and disk, plus host offline notifications delivered to any of the 26+ services supported by [Shoutrrr](https://shoutrrr.nickfedor.com/) (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, generic HTTP, and more).
-- **Write-Ahead Log** — if the Hub is unreachable, the agent buffers metrics locally and replays them on reconnect. Metrics are not lost during brief outages — the WAL holds up to 10 MB by default (configurable via `wal_max_size_mb`).
+- **Real-time dashboard.** Host status updates within 5 seconds via Server-Sent Events. No polling, no page refresh.
+- **Historical charts.** Metrics stored in TimescaleDB with automatic aggregation. View 1h, 12h, 24h, 7d, and 30d time ranges.
+- **Package inventory.** Full list of installed packages on every host, updated daily, with change history and outdated package detection.
+- **Alerts.** Threshold-based alerts on CPU, memory, disk, load, and temperature, plus host-offline notifications delivered to any of the 26+ services supported by [Shoutrrr](https://shoutrrr.nickfedor.com/) (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, generic HTTP, and more).
+- **Write-Ahead Log.** If the Hub is unreachable, the agent buffers metrics locally and replays them on reconnect. Metrics are not lost during brief outages: the WAL holds up to 10 MB by default (configurable via `wal_max_size_mb`).
 
 ---
 
 ## Self-hosted, by design
 
-Watchflare runs entirely on your infrastructure. The Hub and its database live on a server you control. Agents communicate only with your Hub — no external services, no telemetry.
+Watchflare runs entirely on your infrastructure. The Hub and its database live on a server you control. Agents communicate only with your Hub: no external services, no telemetry.
 
 <Callout type="info">
   Ready to get started? The [Quickstart](/get-started/quickstart/) has you up and running in under 5 minutes.

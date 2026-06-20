@@ -57,10 +57,10 @@ TAG=$(curl -s https://api.github.com/repos/watchflare-io/watchflare/releases/lat
 VERSION=${TAG#v}  # strip leading 'v' for the filename
 ARCH=amd64  # or arm64
 
-curl -L "https://github.com/watchflare-io/watchflare/releases/download/${TAG}/watchflare-app_${VERSION}_linux_${ARCH}.tar.gz" \
+curl -L "https://github.com/watchflare-io/watchflare/releases/download/${TAG}/watchflare-hub_${VERSION}_linux_${ARCH}.tar.gz" \
   | tar xz
-sudo mv watchflare-app /usr/local/bin/
-sudo chmod +x /usr/local/bin/watchflare-app
+sudo mv watchflare-hub /usr/local/bin/
+sudo chmod +x /usr/local/bin/watchflare-hub
 ```
 </CodeBlock>
 
@@ -135,7 +135,7 @@ Wants=network-online.target
 Type=simple
 User=watchflare
 EnvironmentFile=/etc/watchflare/hub.env
-ExecStart=/usr/local/bin/watchflare-app
+ExecStart=/usr/local/bin/watchflare-hub
 Restart=always
 RestartSec=5s
 NoNewPrivileges=true
