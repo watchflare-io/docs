@@ -9,23 +9,28 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
+## v0.39.1 - 2026-06-22
+
+**Bug fixes**
+- Restored full metric collection for LXC containers (disk, disk I/O, network, swap, and temperature). These stopped being reported in v0.39.0 when LXC were routed to the limited container profile; LXC are now monitored as full hosts again.
+- Fixed metric values lingering in the Hosts table after a host stopped reporting them (for example a temperature that kept showing on an LXC).
+- Added a host-level indicator on an LXC's Disk I/O, Load Average, and CPU Temperature charts, since these reflect the underlying host node (shared kernel) rather than the container.
+
+---
+
 ## v0.39.0 - 2026-06-20
 
 **New features**
-- **Pause and resume alerts per host**: you can now pause a host's open incidents along with the host itself. Paused incidents get a dedicated filter and badge on both the incidents page and the host detail view, update live over SSE, and paused hosts are excluded from package-inventory alerting.
-- **Smoother modals**: background scrolling is locked while a modal is open, and modals close when you click outside them.
-- **Clearer error messages**: backend error messages are now capitalized when shown in the UI.
+- **Pause incidents with hosts**: pausing a host now also pauses its open incidents. Paused incidents are excluded from the active list and shown with a dedicated filter and badge on both the Incidents page and the host detail. Resuming a host restores normal incident handling without falsely resolving incidents, and package inventory from paused hosts is ignored.
+- **Modal behavior**: dialogs now lock background scrolling and close when you click outside them.
 
 **Bug fixes**
-- 7d and 30d charts now show the full history: long-range metric graphs were only displaying the last day or two of data because the continuous-aggregate refresh windows were overwriting older data points. Fixed for both host and container metrics; the fix applies automatically on upgrade.
-- LXC containers no longer report a phantom CPU temperature.
-- Two-factor authentication: entering an invalid 2FA code no longer logs you out (it now returns a proper error instead of a forced sign-out).
-- Dead agents are correctly marked offline again after a Hub restart (the heartbeat cache is now primed from the database on boot).
-- Host detail no longer briefly loses fields during partial live updates.
-- Minor accessibility fixes.
-
-**Breaking changes**
-- The Hub binary is now `watchflare-hub` (previously `watchflare-app`). If you run the Hub from a binary, update your install scripts / systemd unit to the new name. Docker users are unaffected.
+- Fixed 7-day and 30-day charts losing history and showing only recent points (continuous aggregate refresh offsets exceeded raw data retention).
+- Improved LXC detection on cgroups v2 and unprivileged agents (now via `/run/systemd/container`).
+- Entering an invalid 2FA code no longer logs you out (returns 403 instead of 401).
+- Dead agents are now correctly marked offline when the Hub restarts (the heartbeat cache is primed from the database on boot).
+- Improved alert and incident accuracy around host pause/resume and pending-to-online transitions.
+- Backend error messages are capitalized when displayed in the UI.
 
 ---
 
