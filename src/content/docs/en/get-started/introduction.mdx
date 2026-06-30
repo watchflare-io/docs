@@ -1,13 +1,11 @@
 ---
 title: "Watchflare: Self-Hosted Server Monitoring"
-description: "Open-source, self-hosted server monitoring: agents report metrics to the Hub over gRPC/TLS. Learn what the dashboard shows and which platforms are supported."
+description: "Open-source, self-hosted server monitoring. Lightweight agents report metrics and package inventory to the Hub over gRPC/TLS, with real-time dashboards and alerts."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Watchflare is a **self-hosted platform** that monitors your hosts and tracks their software. It collects system metrics in real time (CPU, memory, disk, network, and temperatures) and maintains a full package inventory across your fleet: installed versions, daily change history, and available updates.
-
-No cloud dependency. No data leaving your infrastructure.
+Watchflare is a **self-hosted platform** that monitors your hosts and tracks their software. It collects system metrics in real time (CPU, memory, disk, network, and temperatures) and maintains a full package inventory across your hosts: installed versions, daily change history, and available updates.
 
 ---
 
@@ -17,19 +15,18 @@ Watchflare is made of two pieces that work together:
 
 **Hub** is the central server. Deploy it once with [Docker Compose](/hub/deploy-docker/) or as a [native Linux binary](/hub/binary-install/). It receives data from agents, stores it in a time-series database, and serves the web dashboard. The Hub is a single binary with the frontend embedded.
 
-**Agent** is a lightweight daemon that runs on each host you want to monitor. It supports **Linux and macOS**, with Windows support planned. It collects system metrics every 30 seconds, sends a heartbeat every 5 seconds, and builds a daily package inventory. The agent uses minimal resources and runs as an unprivileged system user.
+**Agent** is a lightweight daemon that runs on each host you want to monitor. It supports **Linux and macOS**, with Windows support planned. It collects system metrics every 30 seconds, sends a heartbeat every 5 seconds, and builds a daily package inventory. The agent uses minimal resources and never needs root to run. On Linux it runs as a dedicated `watchflare` system user, and on macOS it runs under your own account via Homebrew.
 
-```
-  your-server-1          your-server-2          your-server-3
-  [ Agent ]              [ Agent ]              [ Agent ]
-      |                      |                      |
-      └──────────────────────┴──────────────────────┘
-                             |
-                         gRPC / TLS 1.3
-                             |
-                          [ Hub ]
-                        dashboard + DB
-```
+<figure class="doc__diagram">
+  <img
+    src="/diagrams/architecture.png"
+    alt="Agents running on Linux (systemd) and macOS (Homebrew) hosts send metrics to the Hub over gRPC with TLS 1.3 and HMAC. The Hub, a single Go binary serving an embedded SvelteKit dashboard, stores data in PostgreSQL/TimescaleDB over SQL on TCP 5432."
+    width="2163"
+    height="1128"
+    loading="lazy"
+    decoding="async"
+  />
+</figure>
 
 ---
 
@@ -41,7 +38,7 @@ Watchflare is made of two pieces that work together:
 | **Memory** | Used, available, buffers, cached, swap |
 | **Disk** | Total, used, read/write throughput |
 | **Network** | Inbound/outbound bandwidth |
-| **Temperature** | CPU and sensor readings (battery, storage, etc.) on physical hosts |
+| **Temperature** | CPU and other temperature sensors (storage, power management, etc.) on physical hosts |
 | **System** | Uptime, load average (1/5/15 min), process count |
 | **Containers** | Per-container CPU, memory, network (Docker/Podman) |
 | **Packages** | Installed packages, versions, and outdated detection across [~30 supported package managers](/monitoring/packages/#supported-package-managers) |
@@ -50,17 +47,17 @@ Watchflare is made of two pieces that work together:
 
 ## What you get
 
-- **Real-time dashboard.** Host status updates within 5 seconds via Server-Sent Events. No polling, no page refresh.
+- **Real-time dashboard.** Host online/offline status updates within seconds via Server-Sent Events. Live metrics stream straight to the dashboard as agents report them. No polling, no page refresh.
 - **Historical charts.** Metrics stored in TimescaleDB with automatic aggregation. View 1h, 12h, 24h, 7d, and 30d time ranges.
 - **Package inventory.** Full list of installed packages on every host, updated daily, with change history and outdated package detection.
 - **Alerts.** Threshold-based alerts on CPU, memory, disk, load, and temperature, plus host-offline notifications delivered to any of the 26+ services supported by [Shoutrrr](https://shoutrrr.nickfedor.com/) (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, generic HTTP, and more).
-- **Write-Ahead Log.** If the Hub is unreachable, the agent buffers metrics locally and replays them on reconnect. Metrics are not lost during brief outages: the WAL holds up to 10 MB by default (configurable via `wal_max_size_mb`).
+- **Write-ahead log.** If the Hub is unreachable, the agent buffers metrics locally and replays them on reconnect. Metrics are not lost during brief outages: the WAL holds up to 10 MB by default (configurable via `wal_max_size_mb`).
 
 ---
 
 ## Self-hosted, by design
 
-Watchflare runs entirely on your infrastructure. The Hub and its database live on a server you control. Agents communicate only with your Hub: no external services, no telemetry.
+Watchflare runs entirely on your infrastructure. The Hub and its database live on a server you control. Agents communicate only with your Hub: no usage tracking, no telemetry.
 
 <Callout type="info">
   Ready to get started? The [Quickstart](/get-started/quickstart/) has you up and running in under 5 minutes.

@@ -147,6 +147,25 @@
     color: var(--code-dark-fg);
 }
 
+/* ── Diagram figure (raster, theme-safe) ── */
+
+.doc__diagram {
+    margin: 0 0 24px;
+    padding: clamp(16px, 4vw, 32px);
+    /* Forced light surface: the diagram has a transparent background and dark
+       labels, so it must always sit on a light surface to stay readable in
+       dark mode. */
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.doc__diagram img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
 /* ── Prose copy button ── */
 
 .prose-pre-wrap {
