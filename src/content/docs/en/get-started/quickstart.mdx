@@ -1,6 +1,6 @@
 ---
-title: "Quickstart: Deploy in 5 Minutes"
-description: "Deploy Watchflare Hub with Docker Compose and enroll your first agent. Five steps, zero optional config — from install to live metrics in under 5 minutes."
+title: "Quickstart: Deploy in 5 minutes"
+description: "Deploy Watchflare Hub with Docker Compose and enroll your first agent. Five steps and zero optional config take you from install to live metrics in under 5 minutes."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -111,7 +111,7 @@ $h = { -join ($r::GetBytes(32) | % { '{0:x2}' -f $_ }) }
 </CodeBlock>
 
 <Callout type="info">
-  On macOS, use the Linux tab — `openssl` is available by default.
+  On macOS, use the Linux tab, since `openssl` is available by default.
 </Callout>
 
 Start the stack:
@@ -124,7 +124,7 @@ Start the stack:
 
 <Callout type="info">
   The Hub auto-generates a self-signed TLS CA on first startup. This CA secures
-  gRPC communication with agents — no manual certificate setup needed.
+  gRPC communication with agents. No manual certificate setup is needed.
 </Callout>
 
 The Hub will be available at `http://your-host:8080` within a few seconds.
@@ -140,7 +140,7 @@ Open `http://your-host:8080` in your browser. On a fresh install, you are automa
 ## 3. Add a host
 
 1. In the sidebar, click **Hosts**, then **Add host**.
-2. Enter a name (e.g. `web-01`). Optionally enter the host's IP address — the Hub will warn you if the agent connects from a different IP. Leave the IP blank or check **Allow registration from any IP** to skip this check entirely.
+2. Enter a name (e.g. `web-01`). Optionally enter the host's IP address. The Hub will warn you if the agent connects from a different IP. Leave the IP blank or check **Allow registration from any IP** to skip this check entirely.
 3. Click **Create Host**.
 4. Copy the registration token shown:
 
@@ -195,7 +195,7 @@ From there you can explore real-time metrics and historical charts. The package 
 
 ## Next steps
 
-- [Install the agent on additional hosts](/agent/install/linux/) — Linux or macOS
-- [Set up HTTPS with a reverse proxy](/hub/reverse-proxy/) — Caddy or Nginx
-- [Configure alerts](/hub/alerts/) — CPU, memory, disk thresholds, and host offline notifications
-- [Understand the Hub environment variables](/hub/configuration/) — ports, TLS modes, cookie security
+- [Install the agent on additional hosts](/agent/install/linux/) (Linux or macOS)
+- [Set up HTTPS with a reverse proxy](/hub/reverse-proxy/) (Caddy or Nginx)
+- [Configure alerts](/hub/alerts/) (CPU, memory, disk, load, and temperature thresholds, plus host-offline notifications)
+- [Understand the Hub environment variables](/hub/configuration/) (ports, TLS modes, cookie security)
