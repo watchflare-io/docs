@@ -1,0 +1,66 @@
+---
+title: "systemd services"
+description: "Monitor systemd services on your Linux hosts with Watchflare: an inventory of enabled and active units, live health state, and failed-service detection collected over D-Bus."
+---
+
+import Callout from "@components/Callout.astro";
+
+On Linux hosts running systemd, the agent reports the host's services: which units exist, whether they are enabled at boot, and their live state. This lets you see what should be running, spot failed services at a glance, and browse a host's service catalog from the **Services** tab on its detail page.
+
+<Callout type="info">
+  systemd services are collected on **Linux hosts running systemd only**. On macOS, Windows, or Linux without systemd, the Services tab stays empty.
+</Callout>
+
+---
+
+## What is tracked
+
+The agent tracks `.service` units that are **enabled at boot** or **currently active**, the union of the two. This is the set that matters operationally: a service meant to run permanently, or one that is active right now.
+
+Services that are both disabled and inactive are not listed. They are installed but unused, and would only add noise.
+
+Template instances (for example `systemd-fsck@dev-BOOT.service`) inherit their enablement state from their template unit (`systemd-fsck@.service`).
+
+---
+
+## How it works
+
+The agent reads systemd over **D-Bus** as an unprivileged user. It never shells out to `systemctl` and never reads the journal, so collection is cheap and requires no elevated privileges.
+
+Two separate flows keep the data fresh at the right cost:
+
+**Inventory:** The full catalog (unit name, description, enabled state) is sent 60 seconds after the agent starts, then every **15 minutes**. The Hub refreshes the host's service catalog on each inventory.
+
+**Health:** The live state of each service (active, failed, and so on) is reported every **30 seconds** and streamed to the UI. A service that leaves the tracked set, such as a non-enabled service that has stopped, is removed within 30 seconds.
+
+<Callout type="info">
+  The **Services** tab is empty for the first 60 seconds after agent startup, because the first inventory has not completed yet.
+</Callout>
+
+---
+
+## The Services tab
+
+Open a host's detail page and select the **Services** tab. Each service shows:
+
+| Column | Description |
+|--------|-------------|
+| **Name** | The systemd unit name (e.g. `nginx.service`). Hover to see its description. |
+| **Enabled** | The unit file state: `enabled`, `disabled`, `static`, `masked`, and so on. Shows `-` for transient units that have no unit file. |
+| **State** | The active state: `active`, `inactive`, or `failed`. |
+| **Substate** | The finer sub-state: `running`, `exited`, `dead`, `failed`, and so on. |
+| **Updated** | The time of the last collection. Shown in green while the host is reporting, and turns amber if the host stops reporting. Hover for the full date and time. |
+
+Failed services are highlighted and can be sorted to the top by clicking the **State** column. The header shows the total number of services and how many are failed. You can search by name, sort by any column, and choose which columns are visible.
+
+---
+
+## Refresh cadence
+
+The **live state** of each service refreshes every **30 seconds** and is pushed to the browser in real time.
+
+The **inventory fields** (enabled state, description) and any newly tracked service appear with the inventory: 60 seconds after startup, then every **15 minutes**. Enabling a service or changing its unit-file state is reflected within about 15 minutes, or immediately after an agent restart. A service that drops out of the tracked set is removed sooner, within **30 seconds**, on the next health report.
+
+<Callout type="tip">
+  If a healthy host's services all turn amber in the **Updated** column, the agent has stopped reporting. Check that the `watchflare-agent` service is running on that host.
+</Callout>

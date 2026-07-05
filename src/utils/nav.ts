@@ -56,6 +56,7 @@ export const nav: NavGroup[] = [
       { href: '/monitoring/hosts/', label: 'Hosts & status', labelFr: 'Hôtes & statut' },
       { href: '/monitoring/metrics/', label: 'System metrics', labelFr: 'Métriques système' },
       { href: '/monitoring/packages/', label: 'Package inventory', labelFr: 'Inventaire des paquets' },
+      { href: '/monitoring/services/', label: 'systemd services', labelFr: 'Services systemd' },
       { href: '/monitoring/containers/', label: 'Container metrics', labelFr: 'Métriques conteneurs' },
       { href: '/monitoring/alerts/', label: 'Alerts & notifications', labelFr: 'Alertes & notifications' },
     ],
