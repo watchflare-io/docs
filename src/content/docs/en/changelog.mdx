@@ -9,6 +9,13 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
+## v0.40.1 - 2026-07-17
+
+**Bug fixes**
+- Fixed the Containers page getting stuck on "Loading containers..." when a host ran a container that exposed the same port over both TCP and UDP. Duplicate port badges crashed the table render; port badges are now deduplicated.
+
+---
+
 ## v0.40.0 - 2026-07-17
 
 **New features**
