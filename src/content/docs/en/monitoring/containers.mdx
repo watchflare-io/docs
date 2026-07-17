@@ -51,6 +51,35 @@ Time ranges and resolution are the same as system metrics — see [System metric
 
 ---
 
+## Global containers view
+
+The **Containers** entry in the sidebar opens a fleet-wide view of every running container across all hosts in a single table. It is useful for finding where a given image runs, comparing resource usage side by side, or spotting containers whose host has gone offline.
+
+Three summary cards sit at the top:
+
+| Card | Meaning |
+|------|---------|
+| **Containers** | Total number of containers currently tracked across the fleet |
+| **Live** | Containers whose host is online and reporting |
+| **Stale** | Containers whose host is offline. Their row shows the last known state, which may no longer be accurate |
+
+The Live / Stale distinction reflects the **host**, not the container. When a host stops reporting, its containers keep their last known values and are flagged Stale rather than removed from the list.
+
+### Filtering
+
+- **Search** matches on container name or image.
+- **Host** narrows the list to a single host.
+- **Runtime** filters by container runtime (Docker, Podman, etc.).
+- **Liveness** filters to Live or Stale containers only.
+
+Click any row to open a detail drawer with the container's full image, ports, health, and per-metric values.
+
+<Callout type="info">
+  The list refreshes every 60 seconds by polling, independently of the live SSE stream used on host detail pages. Only running containers appear: the agent reports running containers only, so stopped containers are never listed. The view only shows containers from hosts that have [container metrics enabled](#enabling-container-metrics).
+</Callout>
+
+---
+
 ## Requirements
 
 - Docker Engine 23.0+ (API v1.44+) or Podman with a compatible API socket
