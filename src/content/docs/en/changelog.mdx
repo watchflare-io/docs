@@ -9,6 +9,19 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
+## v0.40.0 - 2026-07-17
+
+**New features**
+- **systemd service monitoring**: monitor Linux systemd services per host. Each host detail page gains a **Services** tab listing units with their state and a colour-coded freshness indicator. The agent collects over D-Bus on two cadences: a full inventory every 15 minutes and health every 30 seconds. Stopped services are pruned from the inventory.
+- **Global containers view**: a new **Containers** page in the sidebar lists every running container across all hosts in one table, with Live/Stale status based on the host, search, host/runtime/liveness filters, and a per-container detail drawer.
+- **Notification categories**: every notification channel and the SMTP sender now subscribes to one or more categories (**Alerts**, **Transactional**), so monitoring alerts and account messages can be routed to different destinations.
+- **Account security notifications**: the Hub now sends transactional notifications on account events (new login with IP and device, password change, two-factor enabled or disabled, and email address changes) to any channel or SMTP sender subscribed to the **Transactional** category.
+
+**Bug fixes**
+- Updated the Go toolchain to 1.26.5 to incorporate the upstream `crypto/tls` fix (GO-2026-5856).
+
+---
+
 ## v0.39.1 - 2026-06-22
 
 **Bug fixes**
