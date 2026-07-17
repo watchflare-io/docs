@@ -31,12 +31,39 @@ Every channel subscribes to one or more **categories**, chosen with the checkbox
 | Category | What it covers |
 |----------|----------------|
 | **Alerts** | Monitoring alerts and their resolutions: a host going down, a metric threshold breached, an incident clearing. |
-| **Transactional** | Account and security events: new login, password change, two-factor authentication changes, and email address changes. |
+| **Transactional** | Account and security events: new login, password change, two-factor authentication changes, and email address changes. See [Transactional notifications](#transactional-notifications). |
 
 A channel with no category enabled receives nothing; a channel can subscribe to both.
 
 <Callout type="info">
   Email sent through the dedicated [Email notifications](/hub/smtp/) (SMTP) settings carries the same category selector: it only sends alert emails when it subscribes to **Alerts**, and only account and security emails when it subscribes to **Transactional**. That SMTP sender is separate from an `smtp://` channel added here, which is treated like any other Shoutrrr channel.
+</Callout>
+
+---
+
+## Transactional notifications
+
+Beyond monitoring alerts, the Hub notifies you of security-relevant changes to your own account. These belong to the **Transactional** category and are delivered to every channel, and to the [SMTP sender](/hub/smtp/), that subscribes to it.
+
+The following account events each trigger a notification:
+
+| Event | When it fires | Details included |
+|-------|---------------|------------------|
+| **New login** | A successful sign-in, including after a two-factor challenge | Time, IP address, device (user agent) |
+| **Password changed** | Your account password is changed | Time |
+| **Two-factor enabled** | 2FA is turned on | Time |
+| **Two-factor disabled** | 2FA is turned off | Time |
+| **Email changed** | Your account email is changed. A notice also goes to the previous address | Time, new address |
+| **Email confirmed** | Sent to the new address once it becomes the active email | Time |
+
+Changing your email produces two messages: one to the old address, so a compromised account cannot silently swap the address unnoticed, and one to the new address.
+
+<Callout type="info">
+  Transactional notifications are best-effort and asynchronous. They never block or fail the action that triggered them: if no channel or SMTP sender subscribes to **Transactional**, the event simply proceeds without a notification.
+</Callout>
+
+<Callout type="warn">
+  The IP address in a login notification is the client IP as seen by the Hub. Behind a reverse proxy, it is only accurate when the proxy sets the standard forwarded headers and the Hub is configured to trust them. See [Reverse proxy](/hub/reverse-proxy/).
 </Callout>
 
 ---
