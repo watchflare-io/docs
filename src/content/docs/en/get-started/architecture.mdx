@@ -1,5 +1,5 @@
 ---
-title: "Architecture & Security Model"
+title: "Architecture & security model"
 description: "How Watchflare components fit together: agents report over gRPC/TLS 1.3 to the Hub, which stores metrics in TimescaleDB and pushes live updates via SSE."
 ---
 
@@ -32,14 +32,14 @@ Watchflare is built around four components: agents, the Hub, a time-series datab
 
 The Hub is a single Go binary that embeds the frontend and exposes two ports:
 
-- **`:8080`** — HTTP server: REST API, web dashboard, SSE stream
-- **`:50051`** — gRPC server: receives heartbeats, metrics, and package inventory from agents
+- **`:8080`** serves the HTTP API, web dashboard, and SSE stream
+- **`:50051`** runs the gRPC server that receives heartbeats, metrics, and package inventory from agents
 
 The Hub runs alongside a **TimescaleDB** instance (PostgreSQL with time-series extensions) for persistent storage. Both are deployed as Docker containers.
 
 ### Agent
 
-The agent is a lightweight Go daemon installed on each monitored host. It communicates outbound only — no inbound ports are opened. On Linux it runs as a dedicated system user (`watchflare`); on macOS it is managed by Homebrew as the current user.
+The agent is a lightweight Go daemon installed on each monitored host. It communicates outbound only, opening no inbound ports. On Linux it runs as a dedicated system user (`watchflare`). On macOS it is managed by Homebrew as the current user.
 
 The agent runs three loops independently:
 
@@ -51,11 +51,11 @@ The agent runs three loops independently:
 
 ### Database
 
-TimescaleDB stores metrics in a hypertable automatically partitioned by time. Continuous aggregates pre-compute 10-minute, 15-minute, 2-hour, and 8-hour buckets — the dashboard queries these instead of raw rows for longer time ranges.
+TimescaleDB stores metrics in a hypertable automatically partitioned by time. Continuous aggregates pre-compute 10-minute, 15-minute, 2-hour, and 8-hour buckets. The dashboard queries these instead of raw rows for longer time ranges.
 
 ### Browser dashboard
 
-The frontend (SvelteKit) receives all live updates via a persistent SSE connection to the Hub. Host status, metrics, and aggregates are pushed as events — the page never polls.
+The frontend (SvelteKit) receives all live updates via a persistent SSE connection to the Hub. Host status, metrics, and aggregates are pushed as events. The page never polls.
 
 ---
 
@@ -76,7 +76,7 @@ SyncWorker (every 5min):
   flush cache (status, last_seen, IPs) ──▶  database
 ```
 
-On each heartbeat, the Hub updates the in-memory cache and immediately broadcasts an SSE event to the dashboard. No database write occurs — credentials are verified with a single read. The SyncWorker flushes status, timestamps, and IP addresses to the database every 5 minutes. When the StaleChecker detects a missed heartbeat, it marks the agent offline in the cache and broadcasts the offline event directly.
+On each heartbeat, the Hub updates the in-memory cache and immediately broadcasts an SSE event to the dashboard. No database write occurs. Credentials are verified with a single read. The SyncWorker flushes status, timestamps, and IP addresses to the database every 5 minutes. When the StaleChecker detects a missed heartbeat, it marks the agent offline in the cache and broadcasts the offline event directly.
 
 ### Metrics collection
 
@@ -113,12 +113,12 @@ Registration is a one-time bootstrap that establishes trust between an agent and
    → Hub generates a registration token (wf_reg_...) valid for 24 hours
 
 2. Token is pasted into the install command on the target host
-   → Agent calls RegisterHost gRPC (TLS without cert verification — the agent has no CA cert yet;
-     authentication relies on the registration token)
+   → Agent calls RegisterHost gRPC (TLS without cert verification, as the agent has no CA
+     cert yet, so it authenticates with the registration token)
    → Hub validates token, returns: agent_id, agent_key, CA certificate
 
 3. Agent saves credentials + CA cert to disk
-   → CA is pinned immediately — the agent will reject any certificate not signed by this CA
+   → CA is pinned immediately, so the agent rejects any certificate not signed by this CA
    → All future gRPC calls use mutual auth (HMAC-SHA256 + pinned CA)
 ```
 
@@ -128,9 +128,9 @@ Registration is a one-time bootstrap that establishes trust between an agent and
 
 - **TLS 1.3** on all agent↔Hub communication
 - **HMAC-SHA256** signs every gRPC request (agent_id + timestamp + payload). Requests outside a ±5 minute window are rejected.
-- **CA pinning** — the agent pins the Hub's CA certificate at registration. It will reject any certificate not signed by that CA.
-- **Unprivileged agent** — on Linux, runs as system user `watchflare` with no shell, no home directory, and write access only to its own data directory. On macOS, managed by Homebrew as the current user.
-- **One-time tokens** — registration tokens are stored as SHA-256 hashes. The plaintext is shown once and never persisted.
+- **CA pinning.** The agent pins the Hub's CA certificate at registration. It will reject any certificate not signed by that CA.
+- **Unprivileged agent.** On Linux, it runs as system user `watchflare` with no shell, no home directory, and write access only to its own data directory. On macOS, it is managed by Homebrew as the current user.
+- **One-time tokens.** Registration tokens are stored as SHA-256 hashes. The plaintext is shown once and never persisted.
 
 <Callout type="info">
   The Hub auto-generates its own TLS CA and server certificate on first startup. You can bring your own certificates by setting `TLS_MODE=custom`. See [TLS certificates](/hub/tls/).
@@ -144,6 +144,7 @@ The agent adapts what it collects based on where it runs:
 
 | Environment | Skips |
 |-------------|-------|
-| Container | Disk, disk I/O, network, swap, temperature |
+| Application container (Docker, Podman) | Disk, disk I/O, network, swap, temperature |
+| System container (LXC) | Nothing, monitored like a full host |
 | Virtual machine | Temperature sensors (no physical hardware access) |
-| Physical host | Nothing — full collection |
+| Physical host | Nothing, full collection |
