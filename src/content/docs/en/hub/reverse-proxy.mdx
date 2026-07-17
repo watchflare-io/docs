@@ -224,6 +224,49 @@ Using `HostSNI("*")` avoids mismatches if the certificate CN changes (e.g. when 
 
 ---
 
+## Rate limiting
+
+The Hub's dashboard is a single-page app: a cold page load fetches dozens of static assets from `/_app/immutable/*` in parallel, more so on heavier pages. If your proxy enforces a request rate limit, the burst must be high enough to absorb a full page load. A burst that is too low returns `429` for some of those assets, which the browser reports as `NS_ERROR_CORRUPTED_CONTENT` and a failed page load (the dashboard then shows an "Internal Error" page).
+
+<Callout type="warn">
+  Rate limiting immutable static assets by request count rarely adds value and easily breaks the dashboard. Use a generous burst (a few hundred), or scope the rate limit to API paths only.
+</Callout>
+
+The values shown below are only examples: size the burst to your own page weight and client count, there is no required number.
+
+For Traefik, this is the `burst` value on the `rateLimit` middleware:
+
+<CodeBlock filename="rules.d/watchflare.yml" lang="yaml">
+```yaml
+http:
+  middlewares:
+    watchflare-ratelimit:
+      rateLimit:
+        average: 300 # example, tune to your setup
+        burst: 300   # example, tune to your setup
+```
+</CodeBlock>
+
+For Nginx, use `limit_req` with a `burst` large enough for a full page load (add `nodelay` so the burst is served immediately, not queued):
+
+<CodeBlock filename="nginx.conf" lang="nginx">
+```nginx
+# http {} context
+limit_req_zone $binary_remote_addr zone=watchflare:10m rate=300r/s; # example
+
+# inside the location block
+location / {
+    limit_req zone=watchflare burst=300 nodelay; # example, tune to your setup
+    proxy_pass http://HUB_IP:8080;
+    # ... your other proxy_set_header / SSE settings
+}
+```
+</CodeBlock>
+
+Caddy has no built-in rate limiting, so there is nothing to tune by default. If you add rate limiting through a plugin, size it generously or scope it to API paths only, following the same principle.
+
+---
+
 ## After setup
 
 Once HTTPS is working, update your `.env` to ensure session cookies are correctly marked `Secure`:
