@@ -46,6 +46,16 @@ Go to **Settings → Notifications** and fill in the following fields:
 | **Encryption** | `starttls`, `tls`, or `none` |
 | **Auth type** | `plain` or `login` — depends on your SMTP provider |
 | **HELO name** | Hostname sent in the SMTP HELO/EHLO command. Leave empty to use the system default. |
+| **Categories** | Which notification types this sender delivers: **Alerts**, **Transactional**, or both. Defaults to Alerts. |
+
+### Categories
+
+The category checkboxes decide what the SMTP sender is allowed to email:
+
+- **Alerts**: monitoring alerts and their resolutions.
+- **Transactional**: account and security events (login, password change, two-factor changes, email changes).
+
+If neither is selected, the SMTP sender stays configured but sends nothing. The same category model applies to every notification channel; see [Notification categories](/hub/notifications/#notification-categories).
 
 ### Encryption modes
 

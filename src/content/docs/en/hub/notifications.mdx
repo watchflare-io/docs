@@ -17,10 +17,27 @@ Watchflare delivers alert and resolution notifications through one or more **not
 
 1. Go to **Settings > Notifications**.
 2. Click **Add channel**. A side drawer opens.
-3. Give the channel a name (e.g. `Ops Discord`), paste a Shoutrrr URL, and click **Create**.
-4. Click **Test** before creating to verify the URL works without persisting anything.
+3. Give the channel a name (e.g. `Ops Discord`), paste a Shoutrrr URL, and select one or more **categories** (see [Notification categories](#notification-categories)).
+4. Click **Test** to verify the URL works without persisting anything, then click **Create**.
 
-You can add multiple channels. Each enabled channel receives every alert and resolution notification independently.
+You can add multiple channels. Each enabled channel receives every notification in the categories it subscribes to, independently.
+
+---
+
+## Notification categories
+
+Every channel subscribes to one or more **categories**, chosen with the checkboxes in the Add or Edit drawer. A channel only receives a notification when it subscribes to that notification's category, so you can route monitoring alerts to one destination and account security events to another.
+
+| Category | What it covers |
+|----------|----------------|
+| **Alerts** | Monitoring alerts and their resolutions: a host going down, a metric threshold breached, an incident clearing. |
+| **Transactional** | Account and security events: new login, password change, two-factor authentication changes, and email address changes. |
+
+A channel with no category enabled receives nothing; a channel can subscribe to both.
+
+<Callout type="info">
+  Email sent through the dedicated [Email notifications](/hub/smtp/) (SMTP) settings carries the same category selector: it only sends alert emails when it subscribes to **Alerts**, and only account and security emails when it subscribes to **Transactional**. That SMTP sender is separate from an `smtp://` channel added here, which is treated like any other Shoutrrr channel.
+</Callout>
 
 ---
 
@@ -134,7 +151,7 @@ The same button also works on saved channels: when the URL field is empty during
 | Action | How |
 |--------|-----|
 | **Enable / disable** | Toggle the switch next to the channel |
-| **Edit** | Click the pencil icon. The drawer opens with the current name and a masked preview of the URL; leave the URL field empty to keep the stored value. |
+| **Edit** | Click the pencil icon. The drawer opens with the current name, categories, and a masked preview of the URL; leave the URL field empty to keep the stored value. |
 | **Delete** | Click the trash icon and confirm. Cannot be undone. |
 | **Test** | Click the **Send** icon in the row, or the **Test** button in the drawer. Rate limited per channel. |
 
