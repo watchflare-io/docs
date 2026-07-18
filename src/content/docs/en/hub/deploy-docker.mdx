@@ -132,7 +132,7 @@ networks:
 
 ## 2. Create the `.env` file
 
-Generate the three required secrets. `NOTIFICATION_ENCRYPTION_KEY` encrypts SMTP credentials and notification channel URLs at rest. Generate it now even if you don't plan to use notifications yet, as the Compose file requires it to be set:
+Generate the three required secrets. `NOTIFICATION_ENCRYPTION_KEY` encrypts SMTP credentials and notification channel URLs at rest. Create it now even if you don't plan to use notifications yet, as the compose file requires it to be set:
 
 <CodeBlock tabs={["Linux", "Windows"]} lang="bash">
 <Fragment slot="Linux">
@@ -153,7 +153,7 @@ $h = { -join ($r::GetBytes(32) | % { '{0:x2}' -f $_ }) }
 </CodeBlock>
 
 <Callout type="info">
-  On macOS, use the Linux tab — `openssl` is available by default.
+  On macOS, use the Linux tab, since `openssl` is available by default.
 </Callout>
 
 ---
@@ -187,15 +187,15 @@ The stack uses two named Docker volumes:
 | `pgdata` | PostgreSQL database (metrics, hosts, packages, users) |
 | `pki_data` | TLS CA and server certificate (auto-generated on first start) |
 
-Named volumes are managed by Docker — no permission setup required. Data persists across container restarts and image upgrades.
+Named volumes are managed by Docker, so no permission setup is required. Data persists across container restarts and image upgrades.
 
 ### Bind mounts
 
-By default, both volumes are managed by Docker (`pgdata` and `pki_data`). If you want the data stored at a specific path on the host — for example to include it in a backup script, inspect files directly, or migrate to another machine — you can replace either or both with a bind mount pointing to a directory on the host filesystem.
+By default, `pgdata` and `pki_data` are Docker-managed named volumes. To store the data at a specific path on the host (for example to include it in a backup script, inspect files directly, or migrate to another machine), replace either or both with a bind mount to a host directory.
 
 Both volumes can be replaced independently or together.
 
-#### PKI data (Hub — UID `65532`)
+#### PKI data (Hub, UID `65532`)
 
 The Hub container runs as UID `65532`. The PKI directory must be owned by that user before the container starts:
 
@@ -219,7 +219,7 @@ Then update `docker-compose.yml`:
 
 Remove `pki_data` from the `volumes:` section at the bottom of the file if it is no longer used.
 
-#### Database data (TimescaleDB — UID `70`)
+#### Database data (TimescaleDB, UID `70`)
 
 The TimescaleDB container runs PostgreSQL as UID `70`. The data directory must be owned by that user:
 
@@ -244,7 +244,7 @@ Then update `docker-compose.yml`:
 Remove `pgdata` from the `volumes:` section at the bottom of the file if it is no longer used.
 
 <Callout type="warn">
-  Never copy a PostgreSQL data directory while the container is running — the files will be in an inconsistent state. Use `pg_dump` for live backups, or stop the stack first with `docker compose stop` before copying.
+  Never copy a PostgreSQL data directory while the container is running. The files will be in an inconsistent state. Use `pg_dump` for live backups, or stop the stack first with `docker compose stop` before copying.
 </Callout>
 
 ---
