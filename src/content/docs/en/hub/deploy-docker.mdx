@@ -1,6 +1,6 @@
 ---
 title: "Deploy Watchflare Hub with Docker"
-description: "Deploy the Watchflare Hub with Docker Compose. Includes the full compose file, secret generation, TimescaleDB setup, data volumes, and bind mount options."
+description: "Deploy the Watchflare Hub with Docker Compose. Includes the full Compose file, secret generation, TimescaleDB setup, data volumes, and bind mount options."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -59,7 +59,7 @@ The Hub is distributed as a single Docker image that embeds the web dashboard. I
 
 ---
 
-## 1. Create the compose file
+## 1. Create the Compose file
 
 Save the following as `docker-compose.yml` in a dedicated directory:
 
@@ -132,7 +132,7 @@ networks:
 
 ## 2. Create the `.env` file
 
-Generate the three required secrets. `NOTIFICATION_ENCRYPTION_KEY` encrypts SMTP credentials and notification channel URLs at rest. Create it now even if you don't plan to use notifications yet, as the compose file requires it to be set:
+Generate the three required secrets. `NOTIFICATION_ENCRYPTION_KEY` encrypts SMTP credentials and notification channel URLs at rest. Create it now even if you don't plan to use notifications yet, as the Compose file requires it to be set:
 
 <CodeBlock tabs={["Linux", "Windows"]} lang="bash">
 <Fragment slot="Linux">

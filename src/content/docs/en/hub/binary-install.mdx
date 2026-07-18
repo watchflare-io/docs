@@ -19,7 +19,7 @@ The Hub is distributed as a pre-built binary for Linux (x86_64 and arm64). This 
 
 - Linux x86_64 (`amd64`) or arm64
 - systemd
-- Docker (for TimescaleDB) — or an existing TimescaleDB instance
+- Docker for TimescaleDB, or an existing TimescaleDB instance
 - Two open ports: **8080** (dashboard) and **50051** (agent gRPC)
 
 ---
@@ -102,7 +102,7 @@ NOTIFICATION_ENCRYPTION_KEY=your-32-char-secret
 ENV=production
 TRUSTED_PROXIES=127.0.0.1,::1
 
-# TLS_MODE=auto         # default — auto-generates a self-signed CA for gRPC
+# TLS_MODE=auto         # default, auto-generates a self-signed CA for gRPC
 # COOKIE_SECURE=true    # enable if the Hub is behind an HTTPS reverse proxy
 # COOKIE_DOMAIN=watchflare.example.com
 ```
