@@ -14,7 +14,7 @@ The Hub is configured entirely through environment variables. When deployed with
 
 | Variable | Min length | Required | Description |
 |----------|-----------|----------|-------------|
-| `POSTGRES_PASSWORD` | — | Yes | Password for the TimescaleDB instance. No minimum length is enforced, but use a strong random value. |
+| `POSTGRES_PASSWORD` | None | Yes | Password for the TimescaleDB instance. No minimum length is enforced, but use a strong random value. |
 | `JWT_SECRET` | 32 chars | Yes | Signs and verifies user session cookies. Hub exits on startup if missing or too short. |
 | `NOTIFICATION_ENCRYPTION_KEY` | 32 chars | For notifications | Encrypts SMTP credentials and notification channel URLs (Discord, Slack, etc.) stored in the database. Hub starts without it but notification storage will be unavailable. Exits if set but too short. |
 
@@ -29,7 +29,7 @@ NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
 </CodeBlock>
 
 <Callout type="danger">
-  Keep these values secret. Back them up outside Docker volumes. Changing `JWT_SECRET` invalidates all active user sessions and disables 2FA for any users who had it enabled (their TOTP secrets can no longer be decrypted — they must re-enroll). Changing `NOTIFICATION_ENCRYPTION_KEY` makes any saved email credentials unreadable — you will need to re-enter them.
+  Keep these values secret. Back them up outside Docker volumes. Changing `JWT_SECRET` invalidates all active user sessions and disables 2FA for any users who had it enabled (their TOTP secrets can no longer be decrypted, so they must re-enroll). Changing `NOTIFICATION_ENCRYPTION_KEY` makes any saved email credentials unreadable, and you will need to re-enter them.
 </Callout>
 
 ---
@@ -41,7 +41,7 @@ NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
 | `POSTGRES_HOST` | `localhost` | Hostname of the PostgreSQL instance. Docker Compose overrides this to `postgres` (the service name). |
 | `POSTGRES_PORT` | `5432` | PostgreSQL port |
 | `POSTGRES_USER` | `watchflare` | Database user |
-| `POSTGRES_PASSWORD` | `watchflare_dev` | Database password. The binary falls back to `watchflare_dev` if unset — always override this in production. Docker Compose enforces it as required via `:?`. |
+| `POSTGRES_PASSWORD` | `watchflare_dev` | Database password. The binary falls back to `watchflare_dev` if unset, so always override this in production. Docker Compose enforces it as required via `:?`. |
 | `POSTGRES_DB` | `watchflare` | Database name |
 | `POSTGRES_SSLMODE` | `disable` | PostgreSQL SSL mode. `disable` is safe when both containers share a Docker network. |
 
@@ -58,7 +58,7 @@ NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
 | `HUB_PORT` | `8080` | **Docker only.** External port exposed on the host for the HTTP server and dashboard. The internal container port is always `8080`. |
 | `GRPC_PORT` | `50051` | Port for agent gRPC connections. Must be reachable from all monitored hosts. |
 
-The HTTP port is fixed at `8080` inside the container. `HUB_PORT` only remaps the external port — e.g. set `HUB_PORT=80` to serve the dashboard on port 80.
+The HTTP port is fixed at `8080` inside the container. `HUB_PORT` only remaps the external port. For example, set `HUB_PORT=80` to serve the dashboard on port 80.
 
 ---
 
@@ -68,16 +68,16 @@ The Hub uses TLS for all gRPC communication with agents. Two modes are available
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TLS_MODE` | `auto` | `auto` — Hub generates its own CA and server certificate on first startup. `custom` — provide your own certificate files (see below). |
+| `TLS_MODE` | `auto` | `auto`: Hub generates its own CA and server certificate on first startup. `custom`: provide your own certificate files (see below). |
 | `TLS_PKI_DIR` | `/var/lib/watchflare/pki` | Directory where auto-generated certificates are stored. Backed by the `pki_data` Docker volume. |
 
 ### Custom certificates (`TLS_MODE=custom`)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TLS_CERT_FILE` | — | Path to the server certificate (PEM) |
-| `TLS_KEY_FILE` | — | Path to the server private key (PEM) |
-| `TLS_CA_FILE` | — | Path to the CA certificate (PEM) distributed to agents at registration |
+| `TLS_CERT_FILE` | None | Path to the server certificate (PEM) |
+| `TLS_KEY_FILE` | None | Path to the server private key (PEM) |
+| `TLS_CA_FILE` | None | Path to the CA certificate (PEM) distributed to agents at registration |
 
 <Callout type="warn">
   When using `TLS_MODE=custom`, the CA certificate at `TLS_CA_FILE` is sent to agents during registration and pinned on each agent. If you rotate the CA, all registered agents must be re-registered.
@@ -133,11 +133,13 @@ Increase this value if agents frequently fail with clock desync warnings and you
 <CodeBlock filename=".env" lang="bash">
 ```bash
 # ── Required secrets ────────────────────────────────────────────
-POSTGRES_PASSWORD=                  # required — generate with openssl rand -base64 32
-JWT_SECRET=                         # required — min 32 characters
-NOTIFICATION_ENCRYPTION_KEY=                # optional — min 32 characters if set
+POSTGRES_PASSWORD=                  # required, generate with openssl rand -base64 32
+JWT_SECRET=                         # required, min 32 characters
+NOTIFICATION_ENCRYPTION_KEY=                # optional, min 32 characters if set
 
 # ── Database ─────────────────────────────────────────────────────
+# POSTGRES_HOST=localhost           # default: localhost (Compose sets it to 'postgres')
+# POSTGRES_PORT=5432                # default: 5432
 # POSTGRES_USER=watchflare          # default: watchflare
 # POSTGRES_DB=watchflare            # default: watchflare
 # POSTGRES_SSLMODE=disable          # default: disable
@@ -172,8 +174,8 @@ NOTIFICATION_ENCRYPTION_KEY=                # optional — min 32 characters if 
 
 ## Next steps
 
-- [Reverse proxy](/hub/reverse-proxy/) — put Traefik, Caddy, or Nginx in front of the Hub for HTTPS
-- [HTTPS setup](/hub/https/) — configure secure cookies after enabling HTTPS
-- [TLS certificates](/hub/tls/) — bring your own CA and server certificate
-- [Email notifications](/hub/smtp/) — configure SMTP for alert delivery
-- [Notification channels](/hub/notifications/) - send alerts to Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, and 20+ other services via Shoutrrr
+- [Reverse proxy](/hub/reverse-proxy/): put Traefik, Caddy, or Nginx in front of the Hub for HTTPS
+- [HTTPS setup](/hub/https/): configure secure cookies after enabling HTTPS
+- [TLS certificates](/hub/tls/): bring your own CA and server certificate
+- [Email notifications](/hub/smtp/): configure SMTP for alert delivery
+- [Notification channels](/hub/notifications/): send alerts to Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, and 20+ more via Shoutrrr
