@@ -1,13 +1,12 @@
 ---
-title: "HTTPS & Cookie Security Setup"
+title: "HTTPS & cookie security setup"
 description: "Expose the Watchflare dashboard over HTTPS via a reverse proxy and configure COOKIE_DOMAIN and TRUSTED_PROXIES so session cookies are marked Secure."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-
-The Hub serves its dashboard over HTTP on port `8080`. To expose it over HTTPS, put it behind a reverse proxy that handles TLS termination. After doing so, two environment variables need to be updated so that session cookies are marked `Secure` correctly.
+The Hub serves its dashboard over HTTP on port `8080`. To expose it over HTTPS, put it behind a reverse proxy that handles TLS termination. After doing so, update two environment variables so that session cookies are marked `Secure` correctly.
 
 <Callout type="info">
   The gRPC port (`50051`) handles its own TLS 1.3 and must **not** be terminated by the proxy. See [Reverse proxy](/hub/reverse-proxy/) for the full setup including the gRPC passthrough.
