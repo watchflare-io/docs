@@ -16,7 +16,7 @@ With `TLS_MODE=auto`, the Hub generates a self-signed Certificate Authority (CA)
 
 ```
 pki_data/
-├── ca.pem       # CA certificate — sent to agents at registration
+├── ca.pem       # CA certificate, sent to agents at registration
 ├── ca.key       # CA private key
 ├── server.pem   # Server certificate, signed by the CA
 └── server.key   # Server private key
@@ -29,7 +29,7 @@ Both certificates use **ECDSA P-256** keys.
 | CA | `watchflare CA` | 10 years |
 | Server | `watchflare` | 5 years |
 
-At registration, the Hub sends the CA certificate to the agent. The agent pins it for all future connections — no manual certificate distribution needed. On Linux it is saved to `/etc/watchflare/ca.pem`; on macOS to `$(brew --prefix)/etc/watchflare/ca.pem`.
+At registration, the Hub sends the CA certificate to the agent. The agent pins it for all future connections, with no manual certificate distribution needed. On Linux it is saved to `/etc/watchflare/ca.pem`, and on macOS to `$(brew --prefix)/etc/watchflare/ca.pem`.
 
 <Callout type="warn">
   In auto mode, the Hub regenerates both the CA and the server certificate together. There is no way to renew the server certificate alone. If you remove `server.pem` to force a renewal, the CA will also be replaced and all registered agents must be re-registered.
@@ -67,11 +67,11 @@ services:
 ### Requirements
 
 - `TLS_CA_FILE` must be the CA that signed `TLS_CERT_FILE`. This CA is returned to agents at registration and pinned on their side.
-- TLS 1.3 is mandatory — the Hub rejects connections below this version regardless of mode.
-- The server certificate CN does not need to match the Hub's hostname. It must match the `tls_server` value in `agent.conf` (default: `watchflare`). Using `HostSNI("*")` on your reverse proxy avoids any CN mismatch — see [Reverse proxy](/hub/reverse-proxy/).
+- TLS 1.3 is mandatory. The Hub rejects connections below this version regardless of mode.
+- The server certificate CN does not need to match the Hub's hostname. It must match the `server_name` value in `agent.conf` (default: `watchflare`). Using `HostSNI("*")` on your reverse proxy avoids any CN mismatch. See [Reverse proxy](/hub/reverse-proxy/).
 
 <Callout type="warn">
-  If you replace the CA after agents have registered, those agents will reject the new certificate — their pinned CA no longer matches. You will need to re-register each affected agent.
+  If you replace the CA after agents have registered, those agents will reject the new certificate, since their pinned CA no longer matches. You will need to re-register each affected agent.
 </Callout>
 
 ---
@@ -91,4 +91,4 @@ docker exec watchflare openssl x509 -in /var/lib/watchflare/pki/server.pem -noou
 
 ## The gRPC port and reverse proxies
 
-The gRPC port (`50051`) must **not** be TLS-terminated by a reverse proxy. Agents pin the Hub's CA — any certificate from a different CA is rejected. Configure your proxy for TCP passthrough. See [Reverse proxy](/hub/reverse-proxy/).
+The gRPC port (`50051`) must **not** be TLS-terminated by a reverse proxy. Agents pin the Hub's CA, so any certificate from a different CA is rejected. Configure your proxy for TCP passthrough. See [Reverse proxy](/hub/reverse-proxy/).
