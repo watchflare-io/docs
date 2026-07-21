@@ -5,7 +5,7 @@ description: "Configure per-host alert rules for CPU, memory, disk, load average
 
 import Callout from "@components/Callout.astro";
 
-Watchflare sends email notifications when a metric crosses a threshold or when a host goes offline. Alerts are evaluated every 30 seconds and configured per host. Notifications are sent to the address configured in **Settings → Notifications** (defaults to the admin account email).
+Watchflare sends a notification when a metric crosses a threshold or when a host goes offline. Alerts are evaluated every 30 seconds and configured per host. Notifications go to the email address configured in **Settings → Notifications** (defaults to the admin account email) and to any [notification channels](/hub/notifications/) you have set up.
 
 For a conceptual overview of how alerts, incidents, and notifications work together, see [Alerts & notifications](/monitoring/alerts/).
 
@@ -23,13 +23,13 @@ For a conceptual overview of how alerts, incidents, and notifications work toget
 
 | Type | Description | Unit |
 |------|-------------|------|
-| `host_down` | No heartbeat received for more than 15 seconds | — |
+| `host_down` | No heartbeat received for more than 15 seconds | None |
 | `cpu_usage` | CPU usage exceeds the threshold | % |
 | `memory_usage` | Memory usage exceeds the threshold | % |
 | `disk_usage` | Disk usage exceeds the threshold | % |
-| `load_avg` | 1-minute load average exceeds the threshold | — |
-| `load_avg_5` | 5-minute load average exceeds the threshold | — |
-| `load_avg_15` | 15-minute load average exceeds the threshold | — |
+| `load_avg` | 1-minute load average exceeds the threshold | None |
+| `load_avg_5` | 5-minute load average exceeds the threshold | None |
+| `load_avg_15` | 15-minute load average exceeds the threshold | None |
 | `temperature` | CPU temperature exceeds the threshold | °C |
 
 ---
@@ -45,7 +45,7 @@ Go to **Settings → Alerts** to set default thresholds that apply to all hosts.
 1. Open a host's detail page.
 2. Click the **Alerts** tab.
 3. Toggle the alert types you want to enable and set the threshold for each host.
-4. Changes are saved immediately — no confirmation step.
+4. Changes are saved immediately, with no confirmation step.
 
 Per-host rules take precedence over global defaults. You can set a higher CPU threshold on a database server than on a lightly-loaded static host, for example.
 
@@ -55,7 +55,7 @@ Per-host rules take precedence over global defaults. You can set a higher CPU th
 
 Each alert rule has a **duration** (default: 5 minutes). The threshold must be exceeded continuously for that duration before an incident opens and a notification is sent. This prevents spurious alerts from brief spikes.
 
-If the metric drops below the threshold before the duration elapses, no incident is opened and no email is sent.
+If the metric drops below the threshold before the duration elapses, no incident is opened and no notification is sent.
 
 ---
 
@@ -63,7 +63,7 @@ If the metric drops below the threshold before the duration elapses, no incident
 
 When a metric breach is sustained for the configured duration, the Hub opens an **incident**:
 
-1. An email notification is sent when the incident **opens** (threshold breached).
+1. A notification is sent when the incident **opens** (threshold breached).
 2. A second notification is sent when the incident **resolves** (metric returns below threshold, or host comes back online).
 
 Incidents are visible in the **Alerts** tab on each host's detail page, with start time, resolution time, threshold value, and the value that triggered the breach.
@@ -72,7 +72,7 @@ Incidents are visible in the **Alerts** tab on each host's detail page, with sta
 
 ## Host offline detection
 
-The `host_down` alert fires when no heartbeat has been received for more than 15 seconds. The stale checker runs every 10 seconds — a host is marked offline after missing approximately 3 consecutive heartbeats (heartbeat interval: 5 seconds).
+The `host_down` alert fires when no heartbeat has been received for more than 15 seconds. The stale checker runs every 10 seconds, and a host is marked offline after missing approximately 3 consecutive heartbeats (heartbeat interval: 5 seconds).
 
 The incident resolves automatically when the next heartbeat arrives.
 
@@ -84,4 +84,4 @@ The incident resolves automatically when the next heartbeat arrives.
 
 ## Temperature alerts
 
-Temperature collection only runs on **physical hosts** — it is skipped on VMs and containers where hardware sensor access is unavailable. Enabling a temperature alert on a VM will never fire.
+Temperature collection only runs on **physical hosts**. It is skipped on VMs and containers where hardware sensor access is unavailable, so enabling a temperature alert on a VM will never fire.
