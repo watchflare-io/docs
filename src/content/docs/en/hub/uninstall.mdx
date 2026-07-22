@@ -6,7 +6,7 @@ description: "Remove the Watchflare Hub from Docker or a systemd binary install.
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-Before removing the Hub, decide whether you want to preserve your data. The Hub stores everything — metrics history, host registrations, users, alert rules, TLS certificates, and package inventory — in two Docker named volumes: `pgdata` (TimescaleDB) and `pki_data` (PKI certificates).
+Before removing the Hub, decide whether you want to preserve your data. The Hub stores everything (metrics history, host registrations, users, alert rules, TLS certificates, and package inventory) in two Docker named volumes: `pgdata` (TimescaleDB) and `pki_data` (PKI certificates).
 
 ## Back up your data first
 
@@ -18,7 +18,7 @@ docker exec watchflare-postgres pg_dump -U watchflare watchflare > watchflare-ba
 ```
 </CodeBlock>
 
-Store the dump somewhere outside the Docker host. The `pki_data` volume is equally important — agents are registered against the CA it contains. Without the original CA, re-registered agents must be re-enrolled from scratch.
+Store the dump somewhere outside the Docker host. The `pki_data` volume is equally important, since agents are registered against the CA it contains. Without the original CA, re-registered agents must be re-enrolled from scratch.
 
 To back up the PKI volume:
 
@@ -41,7 +41,7 @@ docker compose down
 ```
 </CodeBlock>
 
-You can bring the Hub back up at any time with `docker compose up -d` — all hosts, metrics, and configuration will still be there.
+You can bring the Hub back up at any time with `docker compose up -d`. All hosts, metrics, and configuration will still be there.
 
 ---
 
@@ -56,14 +56,14 @@ docker compose down -v
 </CodeBlock>
 
 <Callout type="danger">
-  This permanently and irrecoverably deletes all metrics history, host registrations, users, package inventory, alert rules, and TLS certificates. Agents registered against this Hub will no longer be able to connect — they must be re-registered against a new installation.
+  This permanently and irrecoverably deletes all metrics history, host registrations, users, package inventory, alert rules, and TLS certificates. Agents registered against this Hub will no longer be able to connect. They must be re-registered against a new installation.
 </Callout>
 
 What each volume contains:
 
 | Volume | Contents |
 |--------|---------|
-| `pgdata` | TimescaleDB data — all metrics, hosts, users, alert rules, package inventory |
+| `pgdata` | TimescaleDB data: all metrics, hosts, users, alert rules, package inventory |
 | `pki_data` | Hub CA private key, CA certificate, server certificate and key |
 
 ---
@@ -116,9 +116,7 @@ Both commands should return no output.
 
 ---
 
----
-
-## Binary install (Linux — systemd)
+## Binary install (Linux, systemd)
 
 ### Back up your data
 
