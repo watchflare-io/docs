@@ -43,7 +43,7 @@ A channel with no category enabled receives nothing, and a channel can subscribe
 
 ## Transactional notifications
 
-Beyond monitoring alerts, the Hub notifies you of security-relevant changes to your own account. These belong to the **Transactional** category and are delivered to every channel, and to the [SMTP sender](/hub/smtp/), that subscribes to it.
+Beyond monitoring alerts, the Hub notifies you of security-relevant changes to your own account. These belong to the **Transactional** category and are delivered to every channel and to the [SMTP sender](/hub/smtp/) that subscribes to it.
 
 The following account events each trigger a notification:
 
@@ -77,7 +77,7 @@ Changing your email produces two messages: one to the old address, so a compromi
 Build it from a Discord webhook URL like `https://discord.com/api/webhooks/{webhook_id}/{token}`:
 
 - `{webhook_id}` is the first segment after `/webhooks/`
-- `{token}` is the segment after the webhook id
+- `{token}` is the segment after the webhook ID
 
 To get the webhook URL: open a Discord channel > **Edit Channel > Integrations > Create Webhook** > copy the webhook URL.
 
