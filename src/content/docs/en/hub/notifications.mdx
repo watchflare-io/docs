@@ -33,7 +33,7 @@ Every channel subscribes to one or more **categories**, chosen with the checkbox
 | **Alerts** | Monitoring alerts and their resolutions: a host going down, a metric threshold breached, an incident clearing. |
 | **Transactional** | Account and security events: new login, password change, two-factor authentication changes, and email address changes. See [Transactional notifications](#transactional-notifications). |
 
-A channel with no category enabled receives nothing; a channel can subscribe to both.
+A channel with no category enabled receives nothing, and a channel can subscribe to both.
 
 <Callout type="info">
   Email sent through the dedicated [Email notifications](/hub/smtp/) (SMTP) settings carries the same category selector: it only sends alert emails when it subscribes to **Alerts**, and only account and security emails when it subscribes to **Transactional**. That SMTP sender is separate from an `smtp://` channel added here, which is treated like any other Shoutrrr channel.
@@ -97,13 +97,13 @@ To get the webhook URL: go to [api.slack.com/apps](https://api.slack.com/apps), 
 
 **Format:** `telegram://{bot_token}@telegram?chats=@{channel_or_chat_id}`
 
-**Step 1 - Create a bot and get the token:**
+**Step 1: Create a bot and get the token**
 
 1. Open Telegram and message [@BotFather](https://t.me/BotFather).
 2. Send `/newbot` and follow the prompts.
 3. BotFather replies with your bot token (e.g. `7123456789:AAF...`).
 
-**Step 2 - Get your chat ID:**
+**Step 2: Get your chat ID**
 
 1. Search for your bot by name and send it any message. The bot will not reply, but the message is what binds your chat to the bot.
 2. Open `https://api.telegram.org/bot{token}/getUpdates` in a browser.
@@ -178,7 +178,7 @@ The same button also works on saved channels: when the URL field is empty during
 | Action | How |
 |--------|-----|
 | **Enable / disable** | Toggle the switch next to the channel |
-| **Edit** | Click the pencil icon. The drawer opens with the current name, categories, and a masked preview of the URL; leave the URL field empty to keep the stored value. |
+| **Edit** | Click the pencil icon. The drawer opens with the current name, categories, and a masked preview of the URL. Leave the URL field empty to keep the stored value. |
 | **Delete** | Click the trash icon and confirm. Cannot be undone. |
 | **Test** | Click the **Send** icon in the row, or the **Test** button in the drawer. Rate limited per channel. |
 
@@ -198,4 +198,4 @@ The environment variable `SMTP_ENCRYPTION_KEY` is renamed to `NOTIFICATION_ENCRY
 
 ## Next step
 
-Configure alert thresholds to control when notifications fire. See [Alert Rules](/hub/alerts/).
+Configure alert thresholds to control when notifications fire. See [Alert rules](/hub/alerts/).
