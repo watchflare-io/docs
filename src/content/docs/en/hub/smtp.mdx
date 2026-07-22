@@ -6,7 +6,7 @@ description: "Configure SMTP in Watchflare Settings to send alert emails. Covers
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-Watchflare sends alert notifications by email. SMTP is configured from the **Settings** page in the dashboard - no environment variables are needed beyond `NOTIFICATION_ENCRYPTION_KEY`, which must be set before the Hub starts.
+Watchflare sends alert notifications by email. SMTP is configured from the **Settings** page in the dashboard. No environment variables are needed beyond `NOTIFICATION_ENCRYPTION_KEY`, which must be set before the Hub starts.
 
 For other notification channels (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, generic HTTP, and more via Shoutrrr), see [Notification channels](/hub/notifications/).
 
@@ -21,7 +21,7 @@ You need an SMTP server or relay. Common options:
 - A self-hosted mail server
 - Gmail SMTP with an [App Password](https://support.google.com/accounts/answer/185833) (required if 2-Step Verification is enabled)
 
-Make sure `NOTIFICATION_ENCRYPTION_KEY` is set in your `.env` before proceeding — the password you enter in Settings is encrypted with this key before being stored:
+Make sure `NOTIFICATION_ENCRYPTION_KEY` is set in your `.env` before proceeding. The password you enter in Settings is encrypted with this key before being stored:
 
 <CodeBlock filename=".env" lang="bash">
 ```bash
@@ -38,13 +38,13 @@ Go to **Settings → Notifications** and fill in the following fields:
 | Field | Description |
 |-------|-------------|
 | **Host** | SMTP server hostname (e.g. `smtp.example.com`) |
-| **Port** | SMTP port — see encryption table below |
+| **Port** | SMTP port (see encryption table below) |
 | **Username** | SMTP username for authentication |
 | **Password** | SMTP password. Stored encrypted with AES-256-GCM. |
 | **From address** | Sender email (e.g. `watchflare@example.com`) |
 | **From name** | Sender display name (e.g. `Watchflare`) |
 | **Encryption** | `starttls`, `tls`, or `none` |
-| **Auth type** | `plain` or `login` — depends on your SMTP provider |
+| **Auth type** | `plain` or `login`, depending on your SMTP provider |
 | **HELO name** | Hostname sent in the SMTP HELO/EHLO command. Leave empty to use the system default. |
 | **Categories** | Which notification types this sender delivers: **Alerts**, **Transactional**, or both. Defaults to Alerts. |
 
@@ -69,7 +69,7 @@ If neither is selected, the SMTP sender stays configured but sends nothing. The 
 
 | Type | When to use |
 |------|-------------|
-| `plain` | Standard — username and password sent as-is over the encrypted connection. Works with most providers. |
+| `plain` | Standard. Username and password sent as-is over the encrypted connection. Works with most providers. |
 | `login` | Legacy AUTH LOGIN mechanism. Required by some older or corporate mail servers. |
 
 ---
@@ -86,7 +86,7 @@ Use the **Send test email** button in Settings before enabling alerts. A test me
 
 ## Password storage
 
-SMTP passwords are encrypted at rest using **AES-256-GCM**. The key is `NOTIFICATION_ENCRYPTION_KEY` in your `.env`. The password is never returned via the API — the dashboard only indicates whether a password is currently stored.
+SMTP passwords are encrypted at rest using **AES-256-GCM**. The key is `NOTIFICATION_ENCRYPTION_KEY` in your `.env`. The password is never returned via the API. The dashboard only indicates whether a password is currently stored.
 
 <Callout type="warn">
   If you change `NOTIFICATION_ENCRYPTION_KEY` and restart the Hub, the stored password can no longer be decrypted. You will need to re-enter it in Settings.
