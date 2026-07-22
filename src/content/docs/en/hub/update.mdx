@@ -67,7 +67,7 @@ docker compose logs watchflare --tail 30
 ```
 </CodeBlock>
 
-Look for a line like `Hub started` in the logs. If migrations ran, they will appear before this line. Open the dashboard to confirm it is reachable and hosts and metrics are intact.
+Look for the `HTTP server starting` and `gRPC server starting` lines. If migrations ran, they appear before them. Open the dashboard to confirm it is reachable and that hosts and metrics are intact.
 
 ### Pinning a version
 
@@ -94,7 +94,7 @@ Pinning is recommended in production so that automated image pulls do not trigge
 
 ### Rolling back (Docker)
 
-Downgrading is **not supported**. Migrations are additive and forward-only — running an older image against a migrated database may fail or produce unexpected behavior.
+Downgrading is **not supported**. Migrations are additive and forward-only. Running an older image against a migrated database may fail or produce unexpected behavior.
 
 If you need to roll back, restore from the backup taken before the upgrade:
 
@@ -114,7 +114,7 @@ docker compose up -d
 
 ---
 
-## Binary (Linux — systemd)
+## Binary (Linux, systemd)
 
 ### Replace the binary
 
@@ -145,7 +145,7 @@ journalctl -u watchflare-hub --since "1 minute ago"
 ```
 </CodeBlock>
 
-Look for `Hub started` in the logs. The binary runs embedded migrations automatically on startup.
+Look for the `HTTP server starting` and `gRPC server starting` lines. The binary runs embedded migrations automatically on startup.
 
 ### Rolling back (binary)
 
@@ -155,7 +155,7 @@ Stop the service, restore the database backup, reinstall the previous binary, an
 ```bash
 sudo systemctl stop watchflare-hub
 
-# Restore the database — use psql directly, or docker exec if TimescaleDB is in Docker
+# Restore the database: use psql directly, or docker exec if TimescaleDB is in Docker
 psql -h localhost -U watchflare watchflare < watchflare-pre-update.sql
 # docker exec -i watchflare-postgres psql -U watchflare watchflare < watchflare-pre-update.sql
 
