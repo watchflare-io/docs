@@ -41,13 +41,15 @@ The Hub runs alongside a **TimescaleDB** instance (PostgreSQL with time-series e
 
 The agent is a lightweight Go daemon installed on each monitored host. It communicates outbound only, opening no inbound ports. On Linux it runs as a dedicated system user (`watchflare`). On macOS it is managed by Homebrew as the current user.
 
-The agent runs three loops independently:
+The agent runs these loops independently:
 
 | Loop | Interval | What it does |
 |------|----------|--------------|
 | Heartbeat | 5 s | Sends a presence ping with current IP addresses |
 | Metrics | 30 s | Collects and sends system metrics |
 | Package inventory | 60s after start, then daily at 03:00 | Scans installed packages, sends delta |
+| Service inventory | 60s after start, then every 15 min | Catalogs systemd units (Linux with systemd only) |
+| Service health | 30 s | Reports live systemd service state (Linux with systemd only) |
 
 ### Database
 
@@ -103,6 +105,16 @@ Agent (60s after start, then daily at 03:00):
 ```
 
 The delta approach keeps daily payloads small regardless of how many packages are installed.
+
+### systemd services (Linux)
+
+```
+Agent (systemd hosts only):
+  Inventory (60s after start, then every 15 min)  → full unit catalog → Hub refreshes service list
+  Health (every 30s)                              → live unit state   → SSE → browser
+```
+
+The agent reads systemd over D-Bus as an unprivileged user, never shelling out to `systemctl`. The health loop prunes services that leave the tracked set within 30 seconds. See [systemd services](/monitoring/services/).
 
 ### Agent registration
 
