@@ -1,6 +1,6 @@
 ---
 title: "Uninstall the Watchflare Agent"
-description: "Fully remove the Watchflare agent from Linux or macOS — stops the service, removes binary and config files, with optional data and user cleanup."
+description: "Fully remove the Watchflare agent from Linux or macOS. Stops the service, removes binary and config files, with optional data and user cleanup."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -128,6 +128,6 @@ If you want to reinstall the agent on this host without going through a new regi
 
 1. Answer **N** to all data/config removal prompts during uninstall (Linux), or skip the `rm -rf` commands (macOS).
 2. Reinstall the agent binary.
-3. The agent will reconnect using the saved `agent_id`, `agent_key`, and `ca.pem` — no new registration token needed.
+3. The agent will reconnect using the saved `agent_id`, `agent_key`, and `ca.pem`, with no new registration token needed.
 
 If you removed the config directory, you will need to create a new host in the dashboard and run the `register` command with a fresh token.
