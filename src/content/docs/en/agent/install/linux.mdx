@@ -98,7 +98,7 @@ The host transitions from **pending** to **online** in the dashboard within 5 se
 
 If you want to install the binary first and register later:
 
-**Step 1** — Install without registering:
+**Step 1: Install without registering**
 
 <CodeBlock lang="bash">
 ```bash
@@ -106,7 +106,7 @@ curl -sSL https://get.watchflare.io | sudo bash
 ```
 </CodeBlock>
 
-**Step 2** — Register when ready:
+**Step 2: Register when ready**
 
 <CodeBlock lang="bash">
 ```bash
@@ -117,7 +117,7 @@ sudo watchflare-agent register \
 ```
 </CodeBlock>
 
-**Step 3** — Enable and start the service:
+**Step 3: Enable and start the service**
 
 <CodeBlock lang="bash">
 ```bash
@@ -151,7 +151,7 @@ journalctl -u watchflare-agent -f          # Follow logs
 | `/etc/watchflare/agent.conf` | Config (credentials) | root:watchflare | 640 |
 | `/etc/watchflare/ca.pem` | Hub CA certificate | root:watchflare | 640 |
 | `/var/lib/watchflare/` | Data directory | watchflare:watchflare | 750 |
-| `/var/lib/watchflare/metrics.wal` | Write-Ahead Log | watchflare:watchflare | — |
+| `/var/lib/watchflare/metrics.wal` | Write-Ahead Log | watchflare:watchflare | 640 |
 | `/var/lib/watchflare/packages.state.json` | Package inventory state | watchflare:watchflare | 640 |
 | `/etc/systemd/system/watchflare-agent.service` | Service definition | root:root | 644 |
 | `/var/log/watchflare-agent.log` | Logs | watchflare:watchflare | 644 |
@@ -195,7 +195,7 @@ sudo restorecon -Rv /var/lib/watchflare
 | `permission denied` | Wrong file ownership | Check `ls -la /etc/watchflare/` |
 | `connection refused` | Wrong host/port or firewall | Verify port 50051 is reachable from this host |
 | `Invalid agent credentials` | Key mismatch | Re-register the agent |
-| Host stays offline after start | Clock desync | Ensure NTP is running — Hub rejects timestamps ±5 min off |
+| Host stays offline after start | Clock desync | Ensure NTP is running, as the Hub rejects timestamps ±5 min off |
 
 Check the logs for details:
 
