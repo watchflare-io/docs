@@ -6,7 +6,7 @@ description: "All agent.conf fields explained: Hub connection, TLS, heartbeat an
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-The agent is configured via a TOML file written at registration. You rarely need to edit it manually — most fields are set by the `register` command. The file is reloaded on service restart.
+The agent is configured via a TOML file written at registration. You rarely need to edit it manually, since most fields are set by the `register` command. The file is reloaded on service restart.
 
 | Platform | Path |
 |----------|------|
@@ -15,7 +15,7 @@ The agent is configured via a TOML file written at registration. You rarely need
 | macOS (Intel) | `/usr/local/etc/watchflare/agent.conf` |
 
 <Callout type="warn">
-  `agent.conf` contains `agent_key` — treat it like a password. The file is mode `0640` (root:watchflare on Linux). Never expose its contents.
+  `agent.conf` contains `agent_key`, so treat it like a password. The file is mode `0640` (root:watchflare on Linux). Never expose its contents.
 </Callout>
 
 ---
@@ -28,7 +28,7 @@ The agent is configured via a TOML file written at registration. You rarely need
 server_host = "hub.example.com"
 server_port = "50051"
 
-# Credentials (written at registration — do not edit manually)
+# Credentials (written at registration, do not edit manually)
 agent_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 agent_key = "base64encodedkey..."
 
@@ -62,7 +62,7 @@ container_metrics = false
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `server_host` | string | — | Hub hostname or IP address |
+| `server_host` | string | None | Hub hostname or IP address |
 | `server_port` | string | `"50051"` | Hub gRPC port |
 
 ### Credentials
@@ -78,7 +78,7 @@ These fields are written automatically by `register`. Do not edit them.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `ca_cert_file` | string | — | Path to the Hub's CA certificate, written at registration |
+| `ca_cert_file` | string | None | Path to the Hub's CA certificate, written at registration |
 | `server_name` | string | `"watchflare"` | Server name for TLS certificate validation. Written at registration from the Hub response. Must match the certificate CN. |
 
 ### Collection intervals
@@ -134,7 +134,7 @@ Four environment variables can override default paths and behavior. They are use
 | `/etc/watchflare/agent.conf` | Config | root:watchflare | 640 |
 | `/etc/watchflare/ca.pem` | CA certificate | root:watchflare | 640 |
 | `/var/lib/watchflare/` | Data directory | watchflare:watchflare | 750 |
-| `/var/lib/watchflare/metrics.wal` | WAL | watchflare:watchflare | — |
+| `/var/lib/watchflare/metrics.wal` | WAL | watchflare:watchflare | 640 |
 | `/var/lib/watchflare/packages.state.json` | Package state | watchflare:watchflare | 640 |
 | `/var/log/watchflare-agent.log` | Logs | watchflare:watchflare | 644 |
 | `/etc/systemd/system/watchflare-agent.service` | Service | root:root | 644 |
