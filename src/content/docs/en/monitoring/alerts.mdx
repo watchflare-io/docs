@@ -5,9 +5,9 @@ description: "View and manage active alerts in the Incidents page. Understand ho
 
 import Callout from "@components/Callout.astro";
 
-Watchflare sends email notifications when a metric exceeds a threshold or when a host goes offline. Alerts are evaluated every 30 seconds. Global defaults apply to all hosts — individual hosts can override any rule from their **Alerts** tab.
+Watchflare sends a notification when a metric exceeds a threshold or when a host goes offline. Alerts are evaluated every 30 seconds. Global defaults apply to all hosts, and individual hosts can override any rule from their **Alerts** tab.
 
-For the full list of alert types and configuration options, see [Alerts — Hub reference](/hub/alerts/).
+For the full list of alert types and configuration options, see the [Hub alert reference](/hub/alerts/).
 
 <Callout type="info">
   Email delivery requires SMTP to be configured. Go to **Settings → Notifications**. See [Email notifications](/hub/smtp/).
@@ -19,13 +19,13 @@ For the full list of alert types and configuration options, see [Alerts — Hub 
 
 | Alert | Triggers when | Unit |
 |-------|--------------|------|
-| **Host offline** | No heartbeat for more than 15 seconds | — |
+| **Host offline** | No heartbeat for more than 15 seconds | None |
 | **CPU usage** | CPU % exceeds the threshold | % |
 | **Memory usage** | Memory % exceeds the threshold | % |
 | **Disk usage** | Disk % exceeds the threshold | % |
-| **Load average (1 min)** | 1-min load average exceeds the threshold | — |
-| **Load average (5 min)** | 5-min load average exceeds the threshold | — |
-| **Load average (15 min)** | 15-min load average exceeds the threshold | — |
+| **Load average (1 min)** | 1-min load average exceeds the threshold | None |
+| **Load average (5 min)** | 5-min load average exceeds the threshold | None |
+| **Load average (15 min)** | 15-min load average exceeds the threshold | None |
 | **Temperature** | CPU temperature exceeds the threshold | °C |
 
 ---
@@ -34,7 +34,7 @@ For the full list of alert types and configuration options, see [Alerts — Hub 
 
 ### Global defaults
 
-Go to **Settings → Alerts** to set default thresholds that apply to all hosts. These are a good starting point — you can override them per host where needed.
+Go to **Settings → Alerts** to set default thresholds that apply to all hosts. These are a good starting point, and you can override them per host where needed.
 
 ### Per-host rules
 
@@ -57,8 +57,8 @@ Each rule has a **duration** (default: 5 minutes). The metric must exceed the th
 
 When a threshold is breached for the configured duration, the Hub opens an **incident**:
 
-1. An email is sent when the incident **opens**.
-2. A second email is sent when the incident **resolves** (metric returns below the threshold, or the host comes back online).
+1. A notification is sent when the incident **opens**.
+2. A second notification is sent when the incident **resolves** (metric returns below the threshold, or the host comes back online).
 
 Incidents are visible in the **Alerts** tab and the **Incidents** section on each host's detail page, with the start time, resolution time, and the value that triggered the breach.
 
@@ -80,7 +80,7 @@ The incident resolves automatically on the next successful heartbeat.
 
 ## Temperature alerts
 
-Temperature collection only runs on **physical hosts** — it is skipped on VMs and Docker containers. Enabling a temperature alert on a VM will never fire.
+Temperature collection only runs on **physical hosts**. It is skipped on VMs and Docker containers, so enabling a temperature alert on a VM will never fire.
 
 ---
 
@@ -96,4 +96,4 @@ Each notification includes:
 
 **Email** requires SMTP to be configured. Use the **Send test email** button to verify your setup before relying on alerts. See [Email notifications](/hub/smtp/).
 
-**Notification channels** can forward alerts to Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, generic HTTP, and more via [Shoutrrr](https://shoutrrr.nickfedor.com/). See [Notification channels](/hub/notifications/).
+**Notification channels** deliver the same alerts to any of the Shoutrrr destinations listed above. See [Notification channels](/hub/notifications/).
