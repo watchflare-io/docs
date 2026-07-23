@@ -42,9 +42,9 @@ The `--containers` flag sets `container_metrics = true` in `agent.conf` and adds
 
 ## Enable on an existing installation
 
-If the agent is already installed and registered, enable container metrics in two steps:
+If the agent is already installed and registered, enable container metrics in three steps:
 
-**Step 1** — Add `watchflare` to the `docker` group:
+**Step 1: Add `watchflare` to the `docker` group**
 
 <CodeBlock lang="bash">
 ```bash
@@ -52,7 +52,7 @@ sudo usermod -aG docker watchflare
 ```
 </CodeBlock>
 
-**Step 2** — Set `container_metrics = true` in [`/etc/watchflare/agent.conf`](/agent/configuration/):
+**Step 2: Set `container_metrics = true` in [`/etc/watchflare/agent.conf`](/agent/configuration/)**
 
 <CodeBlock filename="/etc/watchflare/agent.conf" lang="toml">
 ```toml
@@ -60,7 +60,7 @@ container_metrics = true
 ```
 </CodeBlock>
 
-**Step 3** — Restart the agent:
+**Step 3: Restart the agent**
 
 <CodeBlock lang="bash">
 ```bash
@@ -76,7 +76,7 @@ sudo systemctl restart watchflare-agent
 
 ## macOS
 
-On macOS (Docker Desktop or Colima), the agent runs as the user who started the Homebrew service. That user already has access to the Docker socket — no group change is needed.
+On macOS (Docker Desktop or Colima), the agent runs as the user who started the Homebrew service. That user already has access to the Docker socket, so no group change is needed.
 
 Pass `--containers` at registration:
 
@@ -112,7 +112,7 @@ brew services restart watchflare-agent
 Metrics are collected at the same interval as system metrics (default: 30 seconds) and displayed in the **Containers** tab on the host detail page.
 
 <Callout type="info">
-  Container metrics are sent point-in-time and are **not buffered in the Write-Ahead Log**. If the Hub is unreachable, container metrics for that period are lost — system metrics (CPU, memory, disk, etc.) are preserved and replayed from the WAL on reconnect.
+  Container metrics are sent point-in-time and are **not buffered in the Write-Ahead Log**. If the Hub is unreachable, container metrics for that period are lost. System metrics (CPU, memory, disk, etc.) are preserved and replayed from the WAL on reconnect.
 </Callout>
 
 ---
