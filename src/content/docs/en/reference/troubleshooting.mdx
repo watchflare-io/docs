@@ -40,7 +40,7 @@ import PageSchema from "@components/PageSchema.astro";
       "name": "Why does the host stay offline after the agent starts?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Check the agent logs. Common causes: wrong Hub IP or port (connection refused), agent not registered (configuration error), HMAC key mismatch (Invalid agent credentials), or clock desync (send failed: clock out of sync). Each error has a specific fix — verify agent.conf settings and ensure the agent clock is synced with NTP."
+        "text": "Check the agent logs. Common causes: wrong Hub IP or port (connection refused), agent not registered (configuration error), HMAC key mismatch (Invalid agent credentials), or clock desync (send failed: clock out of sync). Each error has a specific fix. Verify agent.conf settings and ensure the agent clock is synced with NTP."
       }
     },
     {
@@ -112,7 +112,7 @@ import PageSchema from "@components/PageSchema.astro";
       "name": "Why is the gRPC port unreachable through a reverse proxy?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The gRPC port (50051) must be proxied at the TCP level with no TLS termination. Agents pin the Hub CA — if a proxy presents a different certificate, all agents will refuse to connect. See the reverse proxy guide for Traefik, Nginx, and Caddy TCP passthrough configuration."
+        "text": "The gRPC port (50051) must be proxied at the TCP level with no TLS termination. Agents pin the Hub CA, so if a proxy presents a different certificate, all agents will refuse to connect. See the reverse proxy guide for Traefik, Nginx, and Caddy TCP passthrough configuration."
       }
     }
   ]
@@ -158,7 +158,7 @@ journalctl -u watchflare-hub -n 50
 
 ### Session cookie not set as Secure after HTTPS setup
 
-See the [HTTPS setup guide](/hub/https/) — the most common cause is that `TRUSTED_PROXIES` does not include the reverse proxy IP.
+See the [HTTPS setup guide](/hub/https/). The most common cause is that `TRUSTED_PROXIES` does not include the reverse proxy IP.
 
 ---
 
@@ -190,8 +190,8 @@ tail -30 $(brew --prefix)/var/log/watchflare-agent.log
 | `configuration error` (error: "config file not found...") | Agent not registered | Run `sudo watchflare-agent register --token ... --host ...` |
 | `Invalid agent credentials` | HMAC key mismatch | Re-register the agent |
 | `context deadline exceeded` | Hub unreachable or slow | Check network connectivity to Hub |
-| `send failed: clock out of sync with backend` | Agent clock differs from Hub clock by more than 5 minutes | Sync with NTP — see [Clock desync](#clock-desync-banner-on-host-detail-page) |
-| `certificate signed by unknown authority` | CA mismatch — Hub may have regenerated its CA | Re-register the agent (see [TLS](#agents-refuse-to-connect-after-hub-restart)) |
+| `send failed: clock out of sync with backend` | Agent clock differs from Hub clock by more than 5 minutes | Sync with NTP, see [Clock desync](#clock-desync-banner-on-host-detail-page) |
+| `certificate signed by unknown authority` | CA mismatch, the Hub may have regenerated its CA | Re-register the agent (see [TLS](#agents-refuse-to-connect-after-hub-restart)) |
 
 ### Clock desync banner on host detail page
 
@@ -201,10 +201,10 @@ Fix: sync the agent's clock with NTP.
 
 <CodeBlock lang="bash">
 ```bash
-# Linux — check status
+# Linux: check status
 timedatectl status
 
-# Linux — sync immediately
+# Linux: sync immediately
 sudo systemctl restart systemd-timesyncd
 ```
 </CodeBlock>
@@ -236,7 +236,7 @@ The first metrics batch arrives within 30 seconds of the agent starting. If noth
 
 Gaps in the charts indicate that the agent was unable to send metrics during that period. Two distinct causes:
 
-**Hub unreachable — WAL full:**
+**Hub unreachable, WAL full:**
 
 If the Hub was unreachable for an extended time, the agent's Write-Ahead Log may have filled up. By default the WAL holds 10 MB of data (~3 000 metric samples). Once full, the oldest records are silently dropped as new ones are written.
 
@@ -265,7 +265,7 @@ Temperature collection only runs on **physical hosts**. It is skipped on:
 - Virtual machines (no physical sensor access)
 - Docker containers
 
-This is expected behavior — see [System metrics](/monitoring/metrics/#cpu).
+This is expected behavior. See [System metrics](/monitoring/metrics/#cpu).
 
 ### Disk or network metrics missing
 
@@ -336,8 +336,8 @@ WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
 
 1. Check that SMTP is configured and enabled: **Settings → Notifications**
 2. Use **Send test email** to verify the connection works
-3. Check the alert duration window — a metric must exceed the threshold **continuously** for the configured duration (default: 5 minutes) before an email is sent
-4. Notifications go to the address configured in **Settings → Notifications** — verify it is correct
+3. Check the alert duration window. A metric must exceed the threshold **continuously** for the configured duration (default: 5 minutes) before an email is sent
+4. Notifications go to the address configured in **Settings → Notifications**. Verify it is correct
 
 ### Test email fails
 
@@ -353,11 +353,11 @@ WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
 
 ### Notification channels not received
 
-1. Use the **Test** button next to the channel in **Settings > Notifications** - if it returns an error, the URL or destination is unreachable
+1. Use the **Test** button next to the channel in **Settings > Notifications**. If it returns an error, the URL or destination is unreachable
 2. Check that the channel is **enabled** (toggle is on)
-3. Check the alert duration window - same as email, a threshold breach must be sustained for the full duration before any notification fires
+3. Check the alert duration window. As with email, a threshold breach must be sustained for the full duration before any notification fires
 4. Verify the URL follows the Shoutrrr format for that service (see [Notification channels](/hub/notifications/) for the supported URL templates)
-5. The Hub logs delivery errors at `ERROR` level - check Hub logs if a specific channel is silently failing
+5. The Hub logs delivery errors at `ERROR` level. Check Hub logs if a specific channel is silently failing
 
 ---
 
@@ -385,6 +385,6 @@ sudo systemctl start watchflare-agent
 
 ### gRPC port unreachable through reverse proxy
 
-The gRPC port (`50051`) must be proxied at the **TCP level** — no TLS termination. Agents pin the Hub's CA. If a proxy presents a different certificate, every agent will refuse to connect.
+The gRPC port (`50051`) must be proxied at the **TCP level**, with no TLS termination. Agents pin the Hub's CA. If a proxy presents a different certificate, every agent will refuse to connect.
 
 See the [Reverse proxy guide](/hub/reverse-proxy/) for Traefik, Nginx, and Caddy TCP passthrough configuration.
