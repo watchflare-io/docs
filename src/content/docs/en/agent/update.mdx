@@ -51,7 +51,7 @@ sudo watchflare-agent update --check
 </CodeBlock>
 
 <Callout type="info">
-  The agent configuration ([`agent.conf`](/agent/configuration/), `ca.pem`) and data directory are never touched during an update — only the binary is replaced.
+  The agent configuration ([`agent.conf`](/agent/configuration/), `ca.pem`) and data directory are never touched during an update. Only the binary is replaced.
 </Callout>
 
 ---
@@ -71,7 +71,7 @@ brew services restart watchflare-agent
 
 ## Automatic updates (Linux)
 
-The Linux agent supports automatic updates via a systemd path unit. When an update is triggered from the Hub dashboard (host detail page → **Update agent**), the Hub sends a command to the agent on the next heartbeat. The agent downloads and installs the update automatically, then restarts the service — no manual intervention needed.
+The Linux agent supports automatic updates via a systemd path unit. When an update is triggered from the Hub dashboard (host detail page → **Update agent**), the Hub sends a command to the agent on the next heartbeat. The agent downloads and installs the update automatically, then restarts the service, with no manual intervention needed.
 
 The Hub dashboard shows the current agent version on each host detail page and highlights hosts running outdated versions.
 
@@ -97,6 +97,6 @@ The current version is also visible on the host detail page in the Hub dashboard
 
 ## Version compatibility
 
-The agent and Hub are independently versioned. Minor version differences (e.g. Hub v0.34 with agent v0.33) are generally compatible. When a newer Hub version introduces a new metric or RPC, older agents simply do not send that data — they continue to work.
+The agent and Hub are independently versioned. Minor version differences (e.g. Hub v0.34 with agent v0.33) are generally compatible. When a newer Hub version introduces a new metric or RPC, older agents simply do not send that data and continue to work.
 
 Keep agents reasonably up to date to benefit from bug fixes and new collectors.
