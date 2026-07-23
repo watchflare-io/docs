@@ -1,6 +1,6 @@
 ---
 title: "Changelog"
-description: "Full release history for Watchflare Hub and Agent — new features, bug fixes, and breaking changes. Updated with every release since v0.27.0."
+description: "Full release history for Watchflare Hub and Agent: new features, bug fixes, and breaking changes. Updated with every release since v0.27.0."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -73,10 +73,10 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.37.0 — 2026-06-08
+## v0.37.0 - 2026-06-08
 
 **New features**
-- **Webhook notifications** — alert and resolution notifications can now be sent to Discord, Slack, Telegram, or any HTTP/HTTPS endpoint; manage multiple endpoints from **Settings → Notifications**; Discord, Slack, and Telegram URLs are auto-detected and receive natively formatted messages; any other URL receives a structured JSON payload
+- **Webhook notifications:** alert and resolution notifications can now be sent to Discord, Slack, Telegram, or any HTTP/HTTPS endpoint; manage multiple endpoints from **Settings → Notifications**; Discord, Slack, and Telegram URLs are auto-detected and receive natively formatted messages; any other URL receives a structured JSON payload
 
 **Bug fixes**
 - Fixed `status`, `start`, `stop`, `restart`, and `logs` commands on macOS (via `launchctl` and Homebrew services)
@@ -88,19 +88,19 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.36.0 — 2026-05-27
+## v0.36.0 - 2026-05-27
 
 **New features**
-- **Logo and favicon** — logo, full favicon set, and minimal meta tags added to the Hub frontend
-- **Persistent update spinner** — agent update dispatched from the Hub now shows a persistent spinner on the host detail page instead of a disappearing confirmation message
+- **Logo and favicon:** logo, full favicon set, and minimal meta tags added to the Hub frontend
+- **Persistent update spinner:** agent update dispatched from the Hub now shows a persistent spinner on the host detail page instead of a disappearing confirmation message
 
 ---
 
-## v0.35.0 — 2026-05-23
+## v0.35.0 - 2026-05-23
 
 **New features**
-- **Containers table** — new "Containers" tab on the host detail page listing all running containers with status, health check result, exposed ports, and sortable columns; includes an inline search filter
-- **Configurable notification recipient** — alert notification email address can now be set independently in Settings → Notifications, separate from the Hub admin account
+- **Containers table:** new "Containers" tab on the host detail page listing all running containers with status, health check result, exposed ports, and sortable columns; includes an inline search filter
+- **Configurable notification recipient:** alert notification email address can now be set independently in Settings → Notifications, separate from the Hub admin account
 - Renamed "Load" to "Load Avg" in dashboard columns and alert rule labels for clarity
 
 **Bug fixes**
@@ -109,60 +109,60 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.34.0 — 2026-05-20
+## v0.34.0 - 2026-05-20
 
 **New features**
-- **Container metrics** — agent collects per-container CPU usage, memory, and network I/O for Docker, Podman, and Colima via the API socket; opt-in with `--containers`
-- **IP address reporting** — agent sends all current network interface addresses on every heartbeat; addresses are displayed in the host detail header
-- **Dashboard redesign** — full bento grid layout with new stat cards (CPU, memory, disk, load avg), per-metric sparklines with 1h/24h delta trends; Sparkline chart rewritten from SVG to Canvas for performance
-- **Global incidents page** — new `/incidents` route listing all active and resolved alert incidents across every host, with start/end timestamps and triggering values
-- **Settings tab bar** — Settings reorganized into tabs; collapsed sidebar now opens as a popover flyout instead of requiring full expansion
-- **Reworked command palette** — rebuilt with native keyboard navigation; fixes iOS Safari focus trap and scroll-lock issues
+- **Container metrics:** agent collects per-container CPU usage, memory, and network I/O for Docker, Podman, and Colima via the API socket; opt-in with `--containers`
+- **IP address reporting:** agent sends all current network interface addresses on every heartbeat; addresses are displayed in the host detail header
+- **Dashboard redesign:** full bento grid layout with new stat cards (CPU, memory, disk, load avg), per-metric sparklines with 1h/24h delta trends; Sparkline chart rewritten from SVG to Canvas for performance
+- **Global incidents page:** new `/incidents` route listing all active and resolved alert incidents across every host, with start/end timestamps and triggering values
+- **Settings tab bar:** Settings reorganized into tabs; collapsed sidebar now opens as a popover flyout instead of requiring full expansion
+- **Reworked command palette:** rebuilt with native keyboard navigation; fixes iOS Safari focus trap and scroll-lock issues
 - Current installed version shown in the "Latest Version" column on the Packages page for packages that are already up to date
 
 **Bug fixes**
 - Hardened agent binary install: atomic replacement with `os.Rename`, stdlib `user.Lookup` instead of shell calls, correct Homebrew registration order (register → start service)
 - Widened valid temperature range; CPU thermal sensor now uses a bool sentinel to distinguish "no reading" from zero
-- Login error handling sanitized — database failures are logged server-side; clients receive a generic 503 to prevent information leakage
+- Login error handling sanitized: database failures are logged server-side, and clients receive a generic 503 to prevent information leakage
 - SSE stream cleanup: removed unused per-host batch machinery and redundant `host_id` guards; per-host stream now correctly filters the global broadcast
 - Load average (1m/5m/15m) included in aggregated metrics snapshots and dashboard sparklines
 - Upgraded Go to 1.26.3 and `golang.org/x/net` to patch HTTP/2 and network-layer vulnerabilities
 
 ---
 
-## v0.33.1 — 2025-04-25
+## v0.33.1 - 2025-04-25
 
 **Bug fixes**
-- Fixed SSE connection leak on host detail page — connections are now reused instead of duplicated on navigation
+- Fixed SSE connection leak on host detail page: connections are now reused instead of duplicated on navigation
 - Added breadcrumb navigation on the host detail page (`Hosts › hostname`)
 - Updated repository URLs to `watchflare-io` organisation
 
 ---
 
-## v0.33.0 — 2025-04-19
+## v0.33.0 - 2025-04-19
 
 **New features**
-- **Agent version via SSE** — the agent version is now broadcast on the first heartbeat and displayed live in the host detail header, no page refresh required
-- **Automatic agent updates (Linux)** — self-update via systemd path unit: the Hub dispatches an update command to the agent, which downloads and applies the new binary without manual intervention
+- **Agent version via SSE:** the agent version is now broadcast on the first heartbeat and displayed live in the host detail header, no page refresh required
+- **Automatic agent updates (Linux):** self-update via systemd path unit: the Hub dispatches an update command to the agent, which downloads and applies the new binary without manual intervention
 
 ---
 
-## v0.32.1 — 2025-04-19
+## v0.32.1 - 2025-04-19
 
 **Bug fixes**
-- `SMTP_ENCRYPTION_KEY` is now required at startup — the Hub exits with a clear error instead of silently failing when SMTP credentials cannot be decrypted
+- `SMTP_ENCRYPTION_KEY` is now required at startup. The Hub exits with a clear error instead of silently failing when SMTP credentials cannot be decrypted
 
 ---
 
-## v0.32.0 — 2025-04-19
+## v0.32.0 - 2025-04-19
 
 **New features**
-- **HTTPS auto-detection** — the `Secure` cookie flag is now set automatically based on the request context (direct TLS or `X-Forwarded-Proto: https` from a trusted proxy), replacing the old `ENV=production` heuristic
-- **Extended system metrics** — iowait %, steal %, swap used/total, process count, and host info (CPU model, core counts, clock speed) are now collected and displayed
-- **Global packages view** — new `/packages` page showing a deduplicated package inventory across all hosts, with filters and outdated counts
-- **Per-host SSE filtering** — the host detail page subscribes to a host-specific SSE stream instead of the full broadcast, reducing client-side processing
-- **Outdated package detection** — packages with available updates and security fixes are flagged; supported managers: apt, dnf, pacman, apk, Homebrew, npm, pnpm, pip, gem, Composer
-- **`log_level` config field** — agent log verbosity can now be set to `debug`, `info`, `warn`, or `error` in `agent.conf`
+- **HTTPS auto-detection:** the `Secure` cookie flag is now set automatically based on the request context (direct TLS or `X-Forwarded-Proto: https` from a trusted proxy), replacing the old `ENV=production` heuristic
+- **Extended system metrics:** iowait %, steal %, swap used/total, process count, and host info (CPU model, core counts, clock speed) are now collected and displayed
+- **Global packages view:** new `/packages` page showing a deduplicated package inventory across all hosts, with filters and outdated counts
+- **Per-host SSE filtering:** the host detail page subscribes to a host-specific SSE stream instead of the full broadcast, reducing client-side processing
+- **Outdated package detection:** packages with available updates and security fixes are flagged; supported managers: apt, dnf, pacman, apk, Homebrew, npm, pnpm, pip, gem, Composer
+- **`log_level` config field:** agent log verbosity can now be set to `debug`, `info`, `warn`, or `error` in `agent.conf`
 - **Server-side pagination** for the packages endpoint
 
 **Bug fixes**
@@ -172,29 +172,29 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.31.0 — 2025-04-11
+## v0.31.0 - 2025-04-11
 
 **New features**
-- **Command dispatch via heartbeat** — the Hub can dispatch commands to agents through `HeartbeatResponse`: force package collection, trigger agent update
-- **Add host modal** — the add host flow is now a modal on the hosts page instead of a separate page
+- **Command dispatch via heartbeat:** the Hub can dispatch commands to agents through `HeartbeatResponse`: force package collection, trigger agent update
+- **Add host modal:** the add host flow is now a modal on the hosts page instead of a separate page
 
 **Breaking changes**
 - Renamed `Server` → `Host` throughout the Hub, frontend, and agent (API paths, SSE events, config keys). Existing agents must be re-registered or have their config updated if upgrading from v0.30.
 
 ---
 
-## v0.30.0 — 2025-04-10
+## v0.30.0 - 2025-04-10
 
 **New features**
-- **Alert system** — threshold-based alerts for CPU, memory, disk, load average, and temperature, plus host offline notifications
-- **Email notifications** — SMTP configuration in Settings → Notifications with test email support; AES-256-GCM encrypted password storage
-- **Incident history** — alert incidents are stored with start/end time and triggering value; visible on each host detail page
-- **Incident resolution emails** — a second notification is sent when an alert resolves
-- **Default alert rules** — global defaults apply to all hosts; per-host rules override them
+- **Alert system:** threshold-based alerts for CPU, memory, disk, load average, and temperature, plus host offline notifications
+- **Email notifications:** SMTP configuration in Settings → Notifications with test email support; AES-256-GCM encrypted password storage
+- **Incident history:** alert incidents are stored with start/end time and triggering value; visible on each host detail page
+- **Incident resolution emails:** a second notification is sent when an alert resolves
+- **Default alert rules:** global defaults apply to all hosts; per-host rules override them
 
 ---
 
-## v0.29.2 — 2025-03-31
+## v0.29.2 - 2025-03-31
 
 **Bug fixes**
 - Fixed agent self-update on Linux systems with `noexec` `/tmp` mounts
@@ -202,14 +202,14 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.29.1 — 2025-03-31
+## v0.29.1 - 2025-03-31
 
 **Bug fixes**
 - Added `COOKIE_SECURE` environment variable to decouple cookie security from the `ENV=production` heuristic
 
 ---
 
-## v0.29.0 — 2025-03-31
+## v0.29.0 - 2025-03-31
 
 **New features**
 - Per-sensor temperature collection with multi-curve charts
@@ -223,7 +223,7 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.28.1 — 2025-03-22
+## v0.28.1 - 2025-03-22
 
 **Bug fixes**
 - Fixed Linux agent install issues (ETXTBSY errors and silent service failures)
@@ -232,16 +232,16 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.28.0 — 2025-03-21
+## v0.28.0 - 2025-03-21
 
 **New features**
-- **Homebrew distribution** — the agent is now available via `brew install watchflare-agent` (tap: `watchflare-io/watchflare`)
-- **Agent version display** — the running agent version is shown on host list and detail pages with an update badge when a newer release is available
-- **Username** — users can set a display username in profile settings
+- **Homebrew distribution:** the agent is now available via `brew install watchflare-agent` (tap: `watchflare-io/watchflare`)
+- **Agent version display:** the running agent version is shown on host list and detail pages with an update badge when a newer release is available
+- **Username:** users can set a display username in profile settings
 
 ---
 
-## v0.27.5 — 2025-03-21
+## v0.27.5 - 2025-03-21
 
 **New features**
 - Vulnerability detection for installed packages
@@ -251,7 +251,7 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.27.4 — 2025-03-19
+## v0.27.4 - 2025-03-19
 
 **New features**
 - Additional dashboard columns: Load Average, Network I/O, Temperature
@@ -262,7 +262,7 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.27.3 — 2025-03-16
+## v0.27.3 - 2025-03-16
 
 **Bug fixes**
 - Host detail header redesign with improved mobile charts
@@ -270,14 +270,14 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.27.2 — 2025-03-15
+## v0.27.2 - 2025-03-15
 
 **Bug fixes**
 - Agent metrics aligned to wall clock boundaries for consistency
 
 ---
 
-## v0.27.1 — 2025-03-15
+## v0.27.1 - 2025-03-15
 
 **Bug fixes**
 - Comprehensive codebase audit (42 bugs addressed)
@@ -285,14 +285,14 @@ Hub and Agent share a single version number and are released together. Full rele
 
 ---
 
-## v0.27.0 — 2025-03-14
+## v0.27.0 - 2025-03-14
 
 **New features**
-- **CI/CD with GoReleaser** — automated release pipeline producing signed binaries and archives for Linux (amd64/arm64) and macOS (amd64/arm64)
-- **Docker container metrics** — per-container CPU, memory, and network I/O via the Docker API socket (opt-in with `--containers`)
-- **uPlot charts** — all metric charts migrated from SVG (layerchart) to Canvas (uPlot), fixing Firefox OOM on host detail pages with many series
-- **Clock desync detection** — the gRPC interceptor detects agent clock drift and shows a warning banner on the host detail page
-- **Distroless Docker image** — production Hub container uses a minimal Debian-based distroless image
+- **CI/CD with GoReleaser:** automated release pipeline producing signed binaries and archives for Linux (amd64/arm64) and macOS (amd64/arm64)
+- **Docker container metrics:** per-container CPU, memory, and network I/O via the Docker API socket (opt-in with `--containers`)
+- **uPlot charts:** all metric charts migrated from SVG (layerchart) to Canvas (uPlot), fixing Firefox OOM on host detail pages with many series
+- **Clock desync detection:** the gRPC interceptor detects agent clock drift and shows a warning banner on the host detail page
+- **Distroless Docker image:** production Hub container uses a minimal Debian-based distroless image
 
 <Callout type="info">
   Versions prior to v0.27.0 were internal development releases. The public release history starts at v0.27.0.
