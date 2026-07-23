@@ -71,7 +71,7 @@ The host transitions from **pending** to **online** in the dashboard within 5 se
 
 ## Manual install
 
-**Step 1** — Add the tap and install:
+**Step 1: Add the tap and install**
 
 <CodeBlock lang="bash">
 ```bash
@@ -80,7 +80,7 @@ brew install watchflare-agent
 ```
 </CodeBlock>
 
-**Step 2** — Register:
+**Step 2: Register**
 
 <CodeBlock lang="bash">
 ```bash
@@ -91,7 +91,7 @@ watchflare-agent register \
 ```
 </CodeBlock>
 
-**Step 3** — Start the service:
+**Step 3: Start the service**
 
 <CodeBlock lang="bash">
 ```bash
@@ -161,7 +161,7 @@ brew services start watchflare-agent
 | `configuration error` (config file not found) | Not registered | Run `watchflare-agent register ...` |
 | `connection refused` | Wrong host/port | Verify port 50051 is reachable |
 | `Invalid agent credentials` | Key mismatch | Re-register the agent |
-| Host stays offline after start | Clock desync | Check system clock — Hub rejects timestamps ±5 min off |
+| Host stays offline after start | Clock desync | Check the system clock, as the Hub rejects timestamps ±5 min off |
 
 Check recent logs:
 
@@ -183,7 +183,7 @@ brew services list | grep watchflare
 
 ## Installing without Homebrew
 
-If you cannot use Homebrew, the agent can be built from source — Go 1.22+ is required. Refer to the [source repository](https://github.com/watchflare-io/watchflare) for build instructions. Use the `WATCHFLARE_CONFIG_DIR` and `WATCHFLARE_DATA_DIR` environment variables to point the agent at custom paths, and start it manually or with your own service manager.
+If you cannot use Homebrew, the agent can be built from source. Go 1.26+ is required. Refer to the [source repository](https://github.com/watchflare-io/watchflare) for build instructions. Use the `WATCHFLARE_CONFIG_DIR` and `WATCHFLARE_DATA_DIR` environment variables to point the agent at custom paths, and start it manually or with your own service manager.
 
 <Callout type="info">
   A standalone macOS installer (no Homebrew dependency) is planned for a future release.
