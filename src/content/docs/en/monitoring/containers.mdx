@@ -5,7 +5,7 @@ description: "View per-container CPU, memory, and network metrics in Watchflare.
 
 import Callout from "@components/Callout.astro";
 
-Watchflare can collect per-container metrics from Docker hosts: CPU usage, memory, and network I/O for each running container. This feature is opt-in.
+Watchflare can collect per-container metrics from Docker and Podman hosts: CPU usage, memory, and network I/O for each running container. This feature is opt-in.
 
 ---
 
@@ -34,7 +34,7 @@ Metrics are collected per running container at the same interval as system metri
 Each container is identified by its name and image. Stopped containers are not collected.
 
 <Callout type="info">
-  Container metrics are sent point-in-time and are **not buffered in the Write-Ahead Log**. If the Hub is unreachable, container metrics for that period are lost. System metrics (CPU, memory, disk, etc.) are unaffected — they accumulate in the WAL and are replayed on reconnect.
+  Container metrics are sent point-in-time and are **not buffered in the Write-Ahead Log**. If the Hub is unreachable, container metrics for that period are lost. System metrics (CPU, memory, disk, etc.) are unaffected. They accumulate in the WAL and are replayed on reconnect.
 </Callout>
 
 ---
@@ -47,7 +47,7 @@ The tab shows:
 - A table of all running containers with their current CPU and memory values
 - Per-container charts for CPU, memory, and network over the selected time range
 
-Time ranges and resolution are the same as system metrics — see [System metrics](/monitoring/metrics/#time-ranges-and-resolution).
+Time ranges and resolution are the same as system metrics. See [System metrics](/monitoring/metrics/#time-ranges-and-resolution).
 
 ---
 
@@ -94,4 +94,4 @@ Click any row to open a detail drawer with the container's full image, ports, he
 
 ## Containers vs. host metrics
 
-When the agent itself runs inside a Docker container (rather than on the host), container metrics are not available — the agent cannot reach the Docker socket from inside the container. Install the agent directly on the host OS to enable container metric collection.
+When the agent itself runs inside a Docker container (rather than on the host), container metrics are not available, since the agent cannot reach the Docker socket from inside the container. Install the agent directly on the host OS to enable container metric collection.
