@@ -16,10 +16,10 @@ The **Hosts** page is the main dashboard. It lists all registered hosts with the
 | `pending` | Host created in the dashboard, registration token not yet used by an agent |
 | `online` | A heartbeat was received within the last 15 seconds |
 | `offline` | No heartbeat received for more than 15 seconds |
-| `paused` | Monitoring suspended manually — heartbeats are ignored, no offline alerts fire |
+| `paused` | Monitoring suspended manually. Heartbeats are ignored, no offline alerts fire |
 | `expired` | Registration token expired (24-hour window) before the agent registered |
 
-Status is updated in real time via Server-Sent Events — no page refresh needed. An online host transitions to offline within 15–25 seconds after its agent stops sending heartbeats (15-second timeout, checked every 10 seconds).
+Status is updated in real time via Server-Sent Events, with no page refresh needed. An online host transitions to offline within 15–25 seconds after its agent stops sending heartbeats (15-second timeout, checked every 10 seconds).
 
 ---
 
@@ -27,7 +27,7 @@ Status is updated in real time via Server-Sent Events — no page refresh needed
 
 1. Click **Add host** in the top right of the Hosts page.
 2. Enter a display name.
-3. Optionally set the expected IP address — the Hub will flag mismatches if the agent connects from a different IP.
+3. Optionally set the expected IP address. The Hub will flag mismatches if the agent connects from a different IP.
 4. Copy the registration token and use it when [installing the agent](/agent/install/linux/).
 
 The token is valid for **24 hours**. After expiry, the host status changes to `expired` and a new token must be generated from the host's detail page.
@@ -38,13 +38,13 @@ The token is valid for **24 hours**. After expiry, the host status changes to `e
 
 Click any host to open its detail page. It shows:
 
-- **Header** — hostname, IP addresses, OS, architecture, CPU model, total RAM, uptime, agent version
-- **Live stats** — real-time CPU, memory, and disk gauges updated every 30 seconds
-- **Charts** — historical metric graphs for the selected time range
-- **Packages** — installed packages and change history
-- **Containers** — per-container metrics (if enabled)
-- **Alerts** — active incidents and per-host alert rules
-- **Incidents** — history of past alert incidents
+- **Header.** Hostname, IP addresses, OS, architecture, CPU model, total RAM, uptime, agent version
+- **Live stats.** Real-time CPU, memory, and disk gauges updated every 30 seconds
+- **Charts.** Historical metric graphs for the selected time range
+- **Packages.** Installed packages and change history
+- **Containers.** Per-container metrics (if enabled)
+- **Alerts.** Active incidents and per-host alert rules
+- **Incidents.** History of past alert incidents
 
 ---
 
@@ -55,7 +55,7 @@ From a host's detail page (⋯ menu or dedicated buttons):
 | Action | Description |
 |--------|-------------|
 | **Rename** | Change the display name |
-| **Pause** | Suspend monitoring — no offline alerts will fire |
+| **Pause** | Suspend monitoring, no offline alerts will fire |
 | **Resume** | Re-enable monitoring after a pause |
 | **Update IP** | Update the expected IP address when a host's IP has changed |
 | **Dismiss IP mismatch** | Ignore the IP mismatch warning without updating the configured IP |
@@ -67,11 +67,11 @@ From a host's detail page (⋯ menu or dedicated buttons):
 
 ## IP mismatch
 
-When you create a host and set an expected IP address, the Hub checks that the agent connects from that IP. If the agent's IP differs — for example after a network change or server migration — the host detail page shows an **IP mismatch** warning.
+When you create a host and set an expected IP address, the Hub checks that the agent connects from that IP. If the agent's IP differs (for example after a network change or server migration), the host detail page shows an **IP mismatch** warning.
 
 From the ⋯ menu you can either:
-- **Update IP** — save the new IP as the expected address and clear the warning.
-- **Dismiss IP mismatch** — keep the old configured IP but suppress the warning.
+- **Update IP.** Save the new IP as the expected address and clear the warning.
+- **Dismiss IP mismatch.** Keep the old configured IP but suppress the warning.
 
 ---
 
