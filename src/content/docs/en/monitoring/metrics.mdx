@@ -1,6 +1,6 @@
 ---
 title: "System metrics & time ranges"
-description: "See which system metrics Watchflare collects — CPU, memory, disk, load, network, temperature — and how time range selection affects chart resolution."
+description: "See which system metrics Watchflare collects (CPU, memory, disk, load, network, temperature) and how time range selection affects chart resolution."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -8,7 +8,7 @@ import Callout from "@components/Callout.astro";
 The agent collects system metrics every 30 seconds and sends them to the Hub. They are displayed in real time on host detail pages and stored in TimescaleDB for historical queries.
 
 <Callout type="info">
-  Some metrics show **0** on certain environments — this is expected. Temperature is unavailable on VMs and containers. IOWait is Linux-only. Disk and network are skipped when the agent runs inside a container. See the Notes column in each table.
+  Some metrics show **0** on certain environments, which is expected. Temperature is unavailable on VMs and containers. IOWait is Linux-only. Disk and network are skipped when the agent runs inside a container. See the Notes column in each table.
 </Callout>
 
 ---
@@ -20,8 +20,8 @@ The agent collects system metrics every 30 seconds and sends them to the Hub. Th
 | Metric | Unit | Notes |
 |--------|------|-------|
 | Usage | % | Percentage of all logical cores |
-| IOWait | % | Time waiting for I/O. Linux only — 0 on macOS and VMs. |
-| Steal | % | CPU time stolen by the hypervisor. Linux VMs only — 0 on physical hosts and macOS. |
+| IOWait | % | Time waiting for I/O. Linux only, 0 on macOS and VMs. |
+| Steal | % | CPU time stolen by the hypervisor. Linux VMs only, 0 on physical hosts and macOS. |
 | Temperature | °C | Physical hosts only. Unavailable on VMs and containers. |
 
 ### Memory
@@ -65,9 +65,9 @@ Disk metrics are skipped on Docker containers (disk is shared with the host and 
 | Metric | Unit |
 |--------|------|
 | Uptime | seconds |
-| Load average 1 min | — |
-| Load average 5 min | — |
-| Load average 15 min | — |
+| Load average 1 min | None |
+| Load average 5 min | None |
+| Load average 15 min | None |
 | Process count | count |
 
 ### Temperature sensors
@@ -96,7 +96,7 @@ Your default time range can be set in **Settings → Preferences**.
 
 ## Live updates
 
-The dashboard receives metric updates via a persistent Server-Sent Events (SSE) connection to the Hub. There is no polling — data appears within seconds of the agent sending it. Each 30-second collection cycle is immediately reflected on the chart and the live stat gauges.
+The dashboard receives metric updates via a persistent Server-Sent Events (SSE) connection to the Hub. There is no polling, and data appears within seconds of the agent sending it. Each 30-second collection cycle is immediately reflected on the chart and the live stat gauges.
 
 ---
 
@@ -112,4 +112,4 @@ Each table has its own retention policy applied automatically by TimescaleDB:
 | `metrics_2h` | 90 days |
 | `metrics_8h` | 1 year |
 
-Raw data is compressed after 1 day. The dashboard selects the appropriate table automatically based on the chosen time range — no configuration needed.
+Raw data is compressed after 1 day. The dashboard selects the appropriate table automatically based on the chosen time range, with no configuration needed.
