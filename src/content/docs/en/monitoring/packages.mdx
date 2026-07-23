@@ -1,11 +1,11 @@
 ---
 title: "Package inventory & update detection"
-description: "Track every installed package across your fleet with Watchflare. Detects outdated and security-vulnerable software using 30+ package manager integrations."
+description: "Track every installed package across your fleet with Watchflare. Detects outdated packages and flags pending security updates across ~30 package manager integrations."
 ---
 
 import Callout from "@components/Callout.astro";
 
-The agent builds a package inventory of every host and sends it to the Hub. The inventory is updated daily, and any change — package added, removed, or upgraded — is recorded in the history.
+The agent builds a package inventory of every host and sends it to the Hub. The inventory is updated daily, and any change (package added, removed, or upgraded) is recorded in the history.
 
 ---
 
@@ -13,14 +13,14 @@ The agent builds a package inventory of every host and sends it to the Hub. The 
 
 **First run:** the agent collects a full inventory of all installed packages and sends it to the Hub. The Hub stores the complete list as the baseline.
 
-**Subsequent runs:** the agent compares the current state to the previous snapshot on disk and sends only the delta — packages added, removed, or with a changed version. This keeps daily payloads small regardless of how many packages are installed.
+**Subsequent runs:** the agent compares the current state to the previous snapshot on disk and sends only the delta: packages added, removed, or with a changed version. This keeps daily payloads small regardless of how many packages are installed.
 
 **Schedule:** the inventory runs once at agent startup (with a 60-second delay) and then daily at **03:00** on the monitored host.
 
 **Manual collection:** open the host's detail page, click the **Packages** tab, and click **Collect now**. The Hub dispatches a collection command to the agent on its next heartbeat (within 5 seconds). The inventory updates within a few seconds of the agent completing the scan. Use this after installing packages on a host when you don't want to wait until 03:00.
 
 <Callout type="info">
-  The **Packages** tab shows "No packages found" for the first 60 seconds after agent startup — this is normal. The first scan has not completed yet.
+  The **Packages** tab shows "No packages found" for the first 60 seconds after agent startup. This is normal, as the first scan has not completed yet.
 </Callout>
 
 ---
@@ -71,7 +71,7 @@ The agent builds a package inventory of every host and sends it to the Hub. The 
 | Nix | Nix packages |
 | CLI tools | Docker, kubectl, terraform, and other important CLI tools |
 
-Each collector self-disables if its tool is not installed on the host — only collectors with something to report are active.
+Each collector self-disables if its tool is not installed on the host, so only collectors with something to report are active.
 
 ---
 
@@ -94,7 +94,7 @@ Update checking is supported for the following package managers:
 | gem | `gem outdated` |
 | Composer | `composer outdated -g` |
 
-For package managers not listed above (including `uv`, `pipx`, `Poetry`, `Yarn`, `Cargo`, `NuGet`, `Maven`, `Nix`, `conda/mamba`, Snap, Flatpak, AppImage, MacPorts, and macOS system packages), the `available_version` field remains empty — inventory is collected but update detection is not supported. The `update_checked` flag on each package indicates whether its manager supports update detection.
+For package managers not listed above (including `uv`, `pipx`, `Poetry`, `Yarn`, `Cargo`, `NuGet`, `Maven`, `Nix`, `conda/mamba`, Snap, Flatpak, AppImage, MacPorts, and macOS system packages), the `available_version` field remains empty: inventory is collected but update detection is not supported. The `update_checked` flag on each package indicates whether its manager supports update detection.
 
 <Callout type="info">
   Arch Linux update checking requires `pacman-contrib` to be installed (`pacman -S pacman-contrib`). Without it, pacman packages will show as installed but not checked for updates.
@@ -119,4 +119,4 @@ The **History** tab on the host's Packages page shows a chronological log of all
 
 ## Global packages view
 
-The **/packages** page in the sidebar shows a deduplicated view of packages across all hosts — useful for spotting which hosts are missing a package, running an old version, or have outdated security packages.
+The **/packages** page in the sidebar shows a deduplicated view of packages across all hosts, useful for spotting which hosts are missing a package, running an old version, or have outdated security packages.
