@@ -62,7 +62,9 @@ When a threshold is breached for the configured duration, the Hub opens an **inc
 
 Incidents are visible in the **Alerts** tab and the **Incidents** section on each host's detail page, with the start time, resolution time, and the value that triggered the breach.
 
-The **/incidents** page in the sidebar shows all active and resolved incidents across every host in a single view.
+Incidents have three states: **active** (the breach is ongoing), **paused** (the host was paused while the incident was open), and **resolved**. Pausing a host suspends its open incidents instead of resolving them: they are excluded from the active list and marked with a paused badge. Resuming the host restores them to active handling without a false resolution. See [Pausing a host](/monitoring/hosts/#pausing-a-host).
+
+The **/incidents** page in the sidebar shows incidents across every host in a single view, filterable by state.
 
 ---
 

@@ -97,6 +97,7 @@ Pausing a host is useful during planned maintenance. While paused:
 - Heartbeats are ignored
 - The host does not appear as offline
 - No alerts fire
-- Metrics are not recorded
+- Metrics and package inventory are not recorded
+- Open incidents are suspended rather than resolved
 
-Resume the host when maintenance is complete.
+Resuming the host restores normal monitoring and incident handling, without falsely resolving the suspended incidents.
