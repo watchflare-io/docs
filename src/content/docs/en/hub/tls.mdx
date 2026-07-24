@@ -68,7 +68,7 @@ services:
 
 - `TLS_CA_FILE` must be the CA that signed `TLS_CERT_FILE`. This CA is returned to agents at registration and pinned on their side.
 - TLS 1.3 is mandatory. The Hub rejects connections below this version regardless of mode.
-- The server certificate CN does not need to match the Hub's hostname. It must match the `server_name` value in `agent.conf` (default: `watchflare`). Using `HostSNI("*")` on your reverse proxy avoids any CN mismatch. See [Reverse proxy](/hub/reverse-proxy/).
+- The server certificate does not need to match the Hub's hostname. The `server_name` value in `agent.conf` (default: `watchflare`) must appear in the certificate's DNS SANs (Go verifies against SANs, not the CN). Using `HostSNI("*")` on your reverse proxy avoids any name mismatch. See [Reverse proxy](/hub/reverse-proxy/).
 
 <Callout type="warn">
   If you replace the CA after agents have registered, those agents will reject the new certificate, since their pinned CA no longer matches. You will need to re-register each affected agent.

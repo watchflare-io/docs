@@ -11,13 +11,15 @@ The agent is a lightweight Go daemon installed on each host you want to monitor.
 
 ## What it does
 
-The agent runs three independent loops:
+The agent runs these loops independently:
 
 | Loop | Interval | What it does |
 |------|----------|--------------|
 | Heartbeat | 5 s | Sends a presence ping with current IP addresses |
 | Metrics | 30 s | Collects system metrics and sends them to the Hub |
 | Package inventory | 60 s after start, then daily at 03:00 | Scans installed packages, sends delta to the Hub |
+| Service inventory | 60 s after start, then every 15 min | Catalogs systemd units (Linux with systemd only) |
+| Service health | 30 s | Reports live systemd service state (Linux with systemd only) |
 
 ---
 
@@ -32,6 +34,7 @@ The agent runs three independent loops:
 | **Temperature** | CPU and other temperature sensors (storage, power management, etc.) on physical hosts |
 | **System** | Uptime, load average (1/5/15 min), process count |
 | **Containers** | Per-container CPU, memory, network (Docker/Podman, opt-in) |
+| **Services** | systemd unit inventory and live state on Linux hosts |
 | **Packages** | Installed packages, versions, and outdated detection across [~30 supported package managers](/monitoring/packages/#supported-package-managers) |
 
 The agent adapts automatically to its environment:
