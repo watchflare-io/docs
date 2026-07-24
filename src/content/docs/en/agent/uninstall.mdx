@@ -37,15 +37,28 @@ sudo watchflare-agent uninstall
 
 [1/6] Checking permissions...
   → Running as root
+
 [2/6] Removing service...
+  → Removed systemd service
+
 [3/6] Removing binary...
+  → Removed /usr/local/bin/watchflare-agent
+
 [4/6] Data and configuration...
-Remove data directory (/var/lib/watchflare)? (y/N):
-Remove configuration directory (/etc/watchflare)? (y/N):
+Remove data directory (/var/lib/watchflare)? (y/N): y
+Remove configuration directory (/etc/watchflare)? (y/N): y
+  → Removed /var/lib/watchflare
+  → Removed /etc/watchflare
+
 [5/6] Log files...
-Remove log file (/var/log/watchflare-agent.log)? (y/N):
+Remove log file (/var/log/watchflare-agent.log)? (y/N): y
+  → Removed /var/log/watchflare-agent.log
+
 [6/6] System user...
-Remove system user 'watchflare'? (y/N):
+Remove system user 'watchflare'? (y/N): y
+  → Removed user 'watchflare'
+
+=== Uninstallation Complete ===
 ```
 
 **What each prompt controls:**
