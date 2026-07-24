@@ -190,7 +190,7 @@ tail -30 $(brew --prefix)/var/log/watchflare-agent.log
 | `configuration error` (error: "config file not found...") | Agent not registered | Run `sudo watchflare-agent register --token ... --host ...` |
 | `Invalid agent credentials` | HMAC key mismatch | Re-register the agent |
 | `context deadline exceeded` | Hub unreachable or slow | Check network connectivity to Hub |
-| `send failed: clock out of sync with backend` | Agent clock differs from Hub clock by more than 5 minutes | Sync with NTP, see [Clock desync](#clock-desync-banner-on-host-detail-page) |
+| `send failed: clock out of sync with Hub` | Agent clock differs from Hub clock by more than 5 minutes | Sync with NTP, see [Clock desync](#clock-desync-banner-on-host-detail-page) |
 | `certificate signed by unknown authority` | CA mismatch, the Hub may have regenerated its CA | Re-register the agent (see [TLS](#agents-refuse-to-connect-after-hub-restart)) |
 
 ### Clock desync banner on host detail page
