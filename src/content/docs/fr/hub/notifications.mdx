@@ -1,0 +1,205 @@
+---
+title: "Canaux de notification"
+description: "Envoyez les alertes vers Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, ou l'un des 26+ services Shoutrrr. Les canaux se gèrent dans Settings > Notifications."
+---
+
+import Callout from "@components/Callout.astro";
+
+Watchflare envoie alertes et résolutions par un ou plusieurs **canaux**, via [Shoutrrr](https://shoutrrr.nickfedor.com/). Chaque canal est une URL vers une destination (webhook Discord, Incoming Webhook Slack, boîte SMTP, bot Telegram…). Tout se gère dans **Settings > Notifications**.
+
+<Callout type="info" title="Remarque">
+  Shoutrrr parle à 26+ services sans rien installer. Ci-dessous les plus courants, avec des URL à coller. Liste complète : [services Shoutrrr](https://shoutrrr.nickfedor.com/services/overview/).
+</Callout>
+
+---
+
+## Ajouter un canal
+
+1. Allez dans **Settings > Notifications**.
+2. Cliquez **Add channel**. Un tiroir s'ouvre sur le côté.
+3. Donnez un nom (ex. `Ops Discord`), collez une URL Shoutrrr, et cochez une ou plusieurs **catégories** (voir [Catégories de notification](#notification-categories)).
+4. Cliquez **Test** pour vérifier l'URL sans rien enregistrer, puis **Create**.
+
+Vous pouvez en ajouter plusieurs. Chaque canal activé reçoit, de son côté, toutes les notifications des catégories auxquelles il est abonné.
+
+---
+
+<a id="notification-categories"></a>
+
+## Catégories de notification
+
+Chaque canal s'abonne à une ou plusieurs **catégories**, via les cases du tiroir Add ou Edit. Il ne reçoit une notif que s'il est abonné à sa catégorie : supervision d'un côté, sécurité du compte de l'autre.
+
+| Catégorie | Couverture |
+|----------|----------------|
+| **Alerts** | Alertes de supervision et leurs résolutions : machine hors ligne, seuil franchi, incident refermé. |
+| **Transactional** | Compte et sécurité : nouvelle connexion, mot de passe, 2FA, changement d'e-mail. Voir [Notifications transactionnelles](#transactional-notifications). |
+
+Sans catégorie, le canal ne reçoit rien. Les deux cases peuvent être cochées.
+
+<Callout type="info" title="Remarque">
+  Le [SMTP dédié](/fr/hub/smtp/) a le même sélecteur : **Alerts** pour les alertes, **Transactional** pour le compte et la sécu. Cet expéditeur n'est pas un canal `smtp://` ajouté ici — celui-là se comporte comme n'importe quel canal Shoutrrr.
+</Callout>
+
+---
+
+<a id="transactional-notifications"></a>
+
+## Notifications transactionnelles
+
+En plus des alertes de supervision, le Hub vous prévient des changements de sécurité sur votre compte. Catégorie **Transactional** : livrée à chaque canal et à l'[expéditeur SMTP](/fr/hub/smtp/) qui y est abonné.
+
+Événements concernés :
+
+| Événement | Quand | Détails |
+|-------|---------------|------------------|
+| **New login** | Connexion réussie, y compris après un challenge 2FA | Heure, IP, appareil (user agent) |
+| **Password changed** | Mot de passe du compte modifié | Heure |
+| **Two-factor enabled** | 2FA activé | Heure |
+| **Two-factor disabled** | 2FA désactivé | Heure |
+| **Email changed** | E-mail du compte modifié. Un avis part aussi vers l'ancienne adresse | Heure, nouvelle adresse |
+| **Email confirmed** | Envoyé à la nouvelle adresse une fois qu'elle devient l'e-mail actif | Heure |
+
+Changer d'e-mail envoie deux messages : un vers l'ancienne adresse (un compte compromis ne peut pas échanger l'adresse en silence), un vers la nouvelle.
+
+<Callout type="info" title="Remarque">
+  Ces notifications partent en arrière-plan, sans garantie. Elles ne bloquent jamais l'action : si rien n'est abonné à **Transactional**, l'événement a lieu quand même, sans message.
+</Callout>
+
+<Callout type="warn" title="Attention">
+  L'IP d'une notification de connexion est celle vue par le Hub. Derrière un reverse proxy, elle n'est juste que si le proxy pose les en-têtes forwarded, et que le Hub les croit. Voir [Reverse proxy](/fr/hub/reverse-proxy/).
+</Callout>
+
+---
+
+## Formats d'URL
+
+### Discord
+
+**Format :** `discord://{token}@{webhook_id}`
+
+À partir d'une URL de webhook Discord du type `https://discord.com/api/webhooks/{webhook_id}/{token}` :
+
+- `{webhook_id}` est le premier segment après `/webhooks/`
+- `{token}` est le segment après l'ID du webhook
+
+Pour obtenir l'URL : salon Discord > **Edit Channel > Integrations > Create Webhook** > copier l'URL.
+
+---
+
+### Slack
+
+**Format :** `slack://hook:{A}-{B}-{C}@webhook`
+
+À partir d'une Incoming Webhook Slack du type `https://hooks.slack.com/services/{A}/{B}/{C}` : joignez les trois segments de chemin avec des tirets.
+
+Pour obtenir l'URL : [api.slack.com/apps](https://api.slack.com/apps), créez ou ouvrez une app, activez **Incoming Webhooks**, ajoutez un webhook à l'espace de travail.
+
+---
+
+### Telegram
+
+**Format :** `telegram://{bot_token}@telegram?chats=@{channel_or_chat_id}`
+
+**Étape 1 : créer un bot et récupérer le token**
+
+1. Ouvrez Telegram et écrivez à [@BotFather](https://t.me/BotFather).
+2. Envoyez `/newbot` et suivez les consignes.
+3. BotFather répond avec le token du bot (ex. `7123456789:AAF...`).
+
+**Étape 2 : récupérer le chat ID**
+
+1. Cherchez votre bot par son nom et envoyez-lui n'importe quel message. Il ne répondra pas : c'est ce message qui lie le chat au bot.
+2. Ouvrez `https://api.telegram.org/bot{token}/getUpdates` dans un navigateur.
+3. Dans le JSON, trouvez `result[0].message.chat.id`.
+
+<Callout type="info" title="Remarque">
+  Pour un **groupe**, ajoutez le bot comme membre puis envoyez `/start@{botname}` dans le groupe avant d'appeler `getUpdates`. Par défaut, un bot Telegram ne reçoit que les commandes (messages qui commencent par `/`) dans les groupes. Le `chat_id` d'un groupe est un nombre négatif.
+</Callout>
+
+---
+
+### Matrix
+
+**Format :** `matrix://{user}:{password}@{homeserver}/?rooms={room_id}`
+
+Utilisez un compte Matrix dédié au Hub. L'ID de salon se trouve dans les réglages avancés du salon.
+
+---
+
+### Ntfy
+
+**Format :** `ntfy://{username}:{password}@{host}/{topic}`
+
+Topic public ntfy.sh sans auth : `ntfy://ntfy.sh/{topic}`.
+
+---
+
+### Gotify
+
+**Format :** `gotify://{host}/{token}`
+
+Générez un token d'application dans votre instance Gotify sous **Apps > Create Application**.
+
+---
+
+### SMTP
+
+**Format :** `smtp://{user}:{password}@{host}:{port}/?fromAddress={from}&toAddresses={to}`
+
+Exemple Gmail (mot de passe d'application) :
+
+```
+smtp://you@gmail.com:abcdefghijklmnop@smtp.gmail.com:587/?fromAddress=you@gmail.com&toAddresses=alerts@example.com
+```
+
+Plusieurs destinataires : séparez `toAddresses` par des virgules.
+
+---
+
+### Webhook générique
+
+**Format :** `generic://{host}{path}` (ou `generic+https://...` pour forcer le HTTPS)
+
+Le Hub envoie un POST JSON avec les champs `title` et `message`. Pour tout service que Shoutrrr ne gère pas nativement.
+
+---
+
+## Tester avant d'enregistrer
+
+Le bouton **Test** du tiroir Add ou Edit envoie une notif unique avec l'URL du formulaire, **sans rien enregistrer**. Validez l'URL avant **Create** ou **Save**.
+
+Le même bouton marche sur un canal déjà enregistré : si le champ URL est vide à l'édition, le test utilise l'URL stockée.
+
+<Callout type="info" title="Remarque">
+  Un test par canal toutes les 5 secondes, avec un compte à rebours sur le bouton. Les brouillons partagent la limite, clé sur l'URL : deux URL différentes d'affilée ne sont pas bridées.
+</Callout>
+
+---
+
+## Gérer les canaux
+
+| Action | Comment |
+|--------|-----|
+| **Activer / désactiver** | Interrupteur à côté du canal |
+| **Modifier** | Icône crayon. Le tiroir s'ouvre avec le nom, les catégories, et un aperçu masqué de l'URL. Laissez le champ URL vide pour garder la valeur stockée. |
+| **Supprimer** | Icône poubelle, puis confirmer. Irréversible. |
+| **Tester** | Icône **Send** dans la ligne, ou bouton **Test** dans le tiroir. Limité par canal. |
+
+<Callout type="info" title="Remarque">
+  Les URL des canaux sont chiffrées au repos avec `NOTIFICATION_ENCRYPTION_KEY` (voir [Configuration](/fr/hub/configuration/)) et **jamais** renvoyées en clair par l'API. Le Hub n'expose qu'une forme masquée (ex. `discord://***`).
+</Callout>
+
+---
+
+## Mise à niveau depuis v0.37 ou antérieur
+
+La table `webhook_endpoints` des anciennes versions disparaît à l'upgrade. L'URL était native (URL Discord complète) ; Shoutrrr attend une forme compacte (`discord://TOKEN@WEBHOOK_ID`). Réajoutez vos destinations dans **Settings > Notifications** après l'upgrade.
+
+`SMTP_ENCRYPTION_KEY` devient `NOTIFICATION_ENCRYPTION_KEY`. Renommez-la dans le `.env` avant de démarrer v0.38 ou plus.
+
+---
+
+## Ensuite
+
+Réglez les seuils pour décider quand ça part. Voir [Règles d'alerte](/fr/hub/alerts/).

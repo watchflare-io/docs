@@ -1,0 +1,181 @@
+---
+title: "Référence de configuration du Hub"
+description: "Toutes les variables d'environnement du Hub Watchflare : secrets obligatoires, base de données, ports, mode TLS, cookies, fenêtre HMAC gRPC."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+Le Hub se configure uniquement par variables d'environnement. Avec Docker Compose, elles viennent du `.env` à côté de `docker-compose.yml`. En binaire, un `.env` à côté du binaire, ou des exports dans le shell.
+
+---
+
+## Secrets obligatoires
+
+| Variable | Longueur min. | Obligatoire | Description |
+|----------|-----------|----------|-------------|
+| `POSTGRES_PASSWORD` | Aucune | Oui | Mot de passe de l'instance TimescaleDB. Pas de longueur minimale imposée : prenez une valeur aléatoire solide. |
+| `JWT_SECRET` | 32 caractères | Oui | Signe et vérifie les cookies de session. Le Hub s'arrête au démarrage s'il manque ou s'il est trop court. |
+| `NOTIFICATION_ENCRYPTION_KEY` | 32 caractères | Pour les notifications | Chiffre les identifiants SMTP et les URL des canaux (Discord, Slack, etc.) stockés en base. Le Hub démarre sans, mais le stockage des notifications sera indisponible. S'arrête si la valeur est trop courte. |
+
+Générez les trois avec :
+
+<CodeBlock lang="bash">
+```bash
+POSTGRES_PASSWORD=$(openssl rand -base64 32)
+JWT_SECRET=$(openssl rand -base64 32)
+NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
+```
+</CodeBlock>
+
+<Callout type="danger" title="Danger">
+  Gardez ces valeurs secrètes, et une copie hors des volumes Docker. Changer `JWT_SECRET` jette toutes les sessions et casse le 2FA déjà activé (les secrets TOTP ne se déchiffrent plus : il faut les réenrôler). Changer `NOTIFICATION_ENCRYPTION_KEY` rend illisibles les identifiants e-mail : il faudra les resaisir.
+</Callout>
+
+---
+
+## Base de données
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `POSTGRES_HOST` | `localhost` | Hôte PostgreSQL. Docker Compose le force à `postgres` (nom du service). |
+| `POSTGRES_PORT` | `5432` | Port PostgreSQL |
+| `POSTGRES_USER` | `watchflare` | Utilisateur |
+| `POSTGRES_PASSWORD` | `watchflare_dev` | Mot de passe. Sans variable, le binaire retombe sur `watchflare_dev` : surchargez toujours en production. Compose l'exige via `:?`. |
+| `POSTGRES_DB` | `watchflare` | Nom de la base |
+| `POSTGRES_SSLMODE` | `disable` | Mode SSL PostgreSQL. `disable` convient quand les deux conteneurs partagent le même réseau Docker. |
+
+<Callout type="info" title="Remarque">
+  Avec le Compose de [Déployer avec Docker](/fr/hub/deploy-docker/), `POSTGRES_HOST` est déjà à `postgres` dans le fichier Compose : inutile de le mettre dans le `.env`.
+</Callout>
+
+---
+
+## Ports
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `HUB_PORT` | `8080` | **Docker uniquement.** Port exposé sur l'hôte pour HTTP et le tableau de bord. Le port interne du conteneur reste `8080`. |
+| `GRPC_PORT` | `50051` | Port gRPC des agents. Doit être joignable depuis toutes les machines surveillées. |
+
+Le port HTTP interne reste `8080`. `HUB_PORT` ne change que le port vu de l'extérieur. Exemple : `HUB_PORT=80` pour le tableau de bord sur le port 80.
+
+---
+
+## TLS
+
+Tout le gRPC avec les agents passe en TLS. Deux modes.
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `TLS_MODE` | `auto` | `auto` : le Hub génère sa CA et son certificat serveur au premier démarrage. `custom` : vous fournissez les fichiers (voir ci-dessous). |
+| `TLS_PKI_DIR` | `/var/lib/watchflare/pki` | Dossier des certificats auto-générés. Volume Docker `pki_data`. |
+
+### Certificats fournis (`TLS_MODE=custom`)
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `TLS_CERT_FILE` | Aucun | Chemin du certificat serveur (PEM) |
+| `TLS_KEY_FILE` | Aucun | Chemin de la clé privée serveur (PEM) |
+| `TLS_CA_FILE` | Aucun | Chemin du certificat CA (PEM) envoyé aux agents à l'enregistrement |
+
+<Callout type="warn" title="Attention">
+  En `TLS_MODE=custom`, la CA de `TLS_CA_FILE` part vers les agents à l'enregistrement, et chacun la fige. Nouvelle CA = réenrôler tout le parc.
+</Callout>
+
+Voir [certificats TLS](/fr/hub/tls/) pour le mode custom en détail.
+
+---
+
+## Sécurité des cookies
+
+Le Hub pose le flag `Secure` sur le cookie JWT tout seul, d'après la requête. Ces variables ne servent que si la détection automatique ne convient pas.
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `COOKIE_SECURE` | *(auto)* | Force le flag `Secure` à on ou off. `true` ou `false`. Laissez vide pour la détection automatique (recommandé). |
+| `COOKIE_DOMAIN` | *(vide)* | Votre domaine si le tableau de bord est derrière un reverse proxy avec un nom d'hôte à vous (ex. `watchflare.example.com`). |
+| `TRUSTED_PROXIES` | `127.0.0.1,::1` | Liste d'IP autorisées à poser `X-Forwarded-Proto`, séparées par des virgules. Ajoutez l'IP du reverse proxy s'il est sur une autre machine. |
+
+**Règles de détection (quand `COOKIE_SECURE` n'est pas défini) :**
+
+1. Connexion HTTPS directe → `Secure: true`
+2. `X-Forwarded-Proto: https` depuis une IP de proxy de confiance → `Secure: true`
+3. HTTP simple, sans proxy de confiance → `Secure: false`
+
+<Callout type="warn" title="Attention">
+  Tableau de bord en HTTPS derrière un reverse proxy : mettez l'IP du proxy dans `TRUSTED_PROXIES`. Sinon `Secure` reste à `false` et le navigateur jette le cookie.
+</Callout>
+
+---
+
+## Sécurité gRPC
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `GRPC_TIMESTAMP_WINDOW` | `300` | Décalage d'horloge accepté, en secondes, pour les timestamps HMAC des agents (± fenêtre). Hors fenêtre, la requête est rejetée. Défaut : ±5 minutes. |
+
+Augmentez la valeur si les agents se plaignent souvent d'horloge et que NTP n'est pas une option. La baisser resserre la fenêtre contre les rejeux.
+
+---
+
+## Environnement
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `ENV` | `development` | `production` sur les instances déployées. Gin passe en mode release (moins de debug). Compose le pose tout seul. |
+| `CORS_ORIGINS` | `http://localhost:5173` | Origines CORS, séparées par des virgules. Uniquement si le binaire Hub tourne à part du frontend, en dev. Inutile en Docker ou en install binaire (frontend embarqué). |
+
+---
+
+## Référence `.env` complète
+
+<CodeBlock filename=".env" lang="bash">
+```bash
+# ── Required secrets ────────────────────────────────────────────
+POSTGRES_PASSWORD=                  # required, generate with openssl rand -base64 32
+JWT_SECRET=                         # required, min 32 characters
+NOTIFICATION_ENCRYPTION_KEY=                # optional, min 32 characters if set
+
+# ── Database ─────────────────────────────────────────────────────
+# POSTGRES_HOST=localhost           # default: localhost (Compose sets it to 'postgres')
+# POSTGRES_PORT=5432                # default: 5432
+# POSTGRES_USER=watchflare          # default: watchflare
+# POSTGRES_DB=watchflare            # default: watchflare
+# POSTGRES_SSLMODE=disable          # default: disable
+
+# ── Ports ────────────────────────────────────────────────────────
+# HUB_PORT=8080                     # default: 8080 (Docker only)
+# GRPC_PORT=50051                   # default: 50051
+
+# ── TLS ──────────────────────────────────────────────────────────
+# TLS_MODE=auto                     # default: auto
+# TLS_PKI_DIR=/var/lib/watchflare/pki
+
+# Custom certs (TLS_MODE=custom only):
+# TLS_CERT_FILE=/etc/watchflare/tls/cert.pem
+# TLS_KEY_FILE=/etc/watchflare/tls/key.pem
+# TLS_CA_FILE=/etc/watchflare/tls/ca.pem
+
+# ── Cookie security ──────────────────────────────────────────────
+# COOKIE_DOMAIN=watchflare.example.com
+# TRUSTED_PROXIES=127.0.0.1,::1
+# COOKIE_SECURE=                    # omit for auto-detection
+
+# ── gRPC security ────────────────────────────────────────────────
+# GRPC_TIMESTAMP_WINDOW=300         # default: 300s (±5 minutes)
+
+# ── Environment ──────────────────────────────────────────────────
+# ENV=production
+```
+</CodeBlock>
+
+---
+
+## Ensuite
+
+- [Reverse proxy](/fr/hub/reverse-proxy/) : Traefik, Caddy ou Nginx devant le Hub, pour le HTTPS
+- [HTTPS et cookies](/fr/hub/https/) : flag `Secure` une fois le HTTPS en place
+- [Certificats TLS](/fr/hub/tls/) : votre CA et votre certificat serveur
+- [Notifications e-mail](/fr/hub/smtp/) : SMTP pour les alertes
+- [Canaux de notification](/fr/hub/notifications/) : Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, et 20+ autres via Shoutrrr

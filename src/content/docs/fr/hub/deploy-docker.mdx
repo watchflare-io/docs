@@ -1,0 +1,256 @@
+---
+title: "Déployer le Hub Watchflare avec Docker"
+description: "Déployez le Hub Watchflare avec Docker Compose. Fichier Compose complet, génération des secrets, TimescaleDB, volumes de données et bind mounts."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+import PageSchema from "@components/PageSchema.astro";
+
+<PageSchema schema={{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Déployer le Hub Watchflare avec Docker Compose",
+  "description": "Déployer le Hub Watchflare avec Docker Compose et TimescaleDB pour le stockage des métriques.",
+  "tool": [
+    { "@type": "HowToTool", "name": "Docker Engine 20.10+" },
+    { "@type": "HowToTool", "name": "Docker Compose v2+" }
+  ],
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Créer docker-compose.yml",
+      "text": "Enregistrez le docker-compose.yml dans un dossier dédié. Il définit le conteneur Hub et un conteneur TimescaleDB, avec des volumes nommés pour le stockage persistant."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Générer les secrets et créer le .env",
+      "text": "Générez les trois secrets obligatoires (POSTGRES_PASSWORD, JWT_SECRET, NOTIFICATION_ENCRYPTION_KEY) avec openssl rand -base64 32 et enregistrez-les dans un fichier .env dans le même dossier."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Lancer les conteneurs",
+      "text": "Exécutez 'docker compose up -d' pour démarrer les deux conteneurs. Le Hub sera disponible sur http://your-host:8080. Vérifiez avec 'docker compose ps'."
+    }
+  ]
+}} />
+
+Le Hub tient dans une image Docker : le tableau de bord est déjà dedans. À côté, un conteneur TimescaleDB garde les données.
+
+<Callout type="tip" title="Astuce">
+  Première fois ? Le [démarrage en 5 minutes](/fr/get-started/quickstart/) suffit pour être opérationnel.
+</Callout>
+
+<Callout type="info" title="Remarque">
+  Pas Docker ? Le Hub s'installe aussi en [binaire systemd sous Linux](/fr/hub/binary-install/).
+</Callout>
+
+---
+
+## Prérequis
+
+- Docker Engine 20.10+
+- Docker Compose v2+
+- Deux ports ouverts : **8080** (HTTP) et **50051** (gRPC)
+
+---
+
+## 1. Créer le fichier Compose
+
+Enregistrez ce fichier sous `docker-compose.yml` dans un dossier dédié :
+
+<CodeBlock filename="docker-compose.yml" lang="yaml">
+```yaml
+services:
+  watchflare:
+    image: ghcr.io/watchflare-io/watchflare:latest
+    container_name: watchflare
+    ports:
+      - "${HUB_PORT:-8080}:8080"
+      - "${GRPC_PORT:-50051}:50051"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-watchflare}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      - POSTGRES_DB=${POSTGRES_DB:-watchflare}
+      - POSTGRES_SSLMODE=disable
+      - GRPC_PORT=${GRPC_PORT:-50051}
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env}
+      - NOTIFICATION_ENCRYPTION_KEY=${NOTIFICATION_ENCRYPTION_KEY:?Set NOTIFICATION_ENCRYPTION_KEY in .env}
+      - TLS_MODE=${TLS_MODE:-auto}
+      - TLS_PKI_DIR=/var/lib/watchflare/pki
+      - GRPC_TIMESTAMP_WINDOW=${GRPC_TIMESTAMP_WINDOW:-300}
+      - ENV=production
+      - COOKIE_SECURE=${COOKIE_SECURE:-}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES:-127.0.0.1,::1}
+    volumes:
+      - pki_data:/var/lib/watchflare/pki
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - watchflare_net
+    restart: unless-stopped
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: watchflare-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-watchflare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-watchflare}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-watchflare}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - watchflare_net
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+  pki_data:
+    driver: local
+
+networks:
+  watchflare_net:
+    driver: bridge
+```
+</CodeBlock>
+
+---
+
+## 2. Créer le fichier `.env`
+
+Générez les trois secrets. `NOTIFICATION_ENCRYPTION_KEY` chiffre, au repos, les identifiants SMTP et les URL des canaux. Posez-la tout de suite, même sans notifications pour l'instant : Compose refuse de démarrer sans.
+
+<CodeBlock tabs={["Linux", "Windows"]} lang="bash">
+<Fragment slot="Linux">
+```bash
+printf "POSTGRES_PASSWORD=%s\nJWT_SECRET=%s\nNOTIFICATION_ENCRYPTION_KEY=%s\n" \
+  "$(openssl rand -base64 32)" \
+  "$(openssl rand -base64 32)" \
+  "$(openssl rand -base64 32)" > .env
+```
+</Fragment>
+<Fragment slot="Windows">
+```powershell
+$r = [System.Security.Cryptography.RandomNumberGenerator]
+$h = { -join ($r::GetBytes(32) | % { '{0:x2}' -f $_ }) }
+"POSTGRES_PASSWORD=$(& $h)", "JWT_SECRET=$(& $h)", "NOTIFICATION_ENCRYPTION_KEY=$(& $h)" | Set-Content .env
+```
+</Fragment>
+</CodeBlock>
+
+<Callout type="info" title="Remarque">
+  Sous macOS, prenez l'onglet Linux : `openssl` est là par défaut.
+</Callout>
+
+---
+
+## 3. Lancer les conteneurs
+
+<Shell title="bash" code={`$ docker compose up -d
+[+] Running 3/3
+ ✔ Network watchflare_watchflare_net  Created
+ ✔ Container watchflare-postgres      Started
+ ✔ Container watchflare               Started`} />
+
+Vérifiez que les deux conteneurs tournent :
+
+<CodeBlock lang="bash">
+```bash
+docker compose ps
+```
+</CodeBlock>
+
+Le Hub répond sur `http://your-host:8080`.
+
+---
+
+## Persistance des données
+
+Deux volumes Docker nommés :
+
+| Volume | Contenu |
+|--------|----------|
+| `pgdata` | Base PostgreSQL (métriques, hôtes, paquets, utilisateurs) |
+| `pki_data` | CA TLS et certificat serveur (générés au premier démarrage) |
+
+Docker s'occupe des volumes : rien à chown. Les données restent après un redémarrage ou une mise à jour d'image.
+
+### Bind mounts
+
+Par défaut, Docker range `pgdata` et `pki_data` où il veut. Pour les mettre à un chemin précis sur la machine (sauvegarde, inspection, migration), remplacez l'un, l'autre, ou les deux par un bind mount vers un dossier local.
+
+Chacun se remplace indépendamment.
+
+#### Données PKI (Hub, UID `65532`)
+
+Le conteneur Hub tourne sous l'UID `65532`. Le dossier PKI doit lui appartenir avant le démarrage :
+
+<CodeBlock lang="bash">
+```bash
+mkdir -p /your/path/pki
+sudo chown -R 65532:65532 /your/path/pki
+```
+</CodeBlock>
+
+Puis dans `docker-compose.yml` :
+
+<CodeBlock lang="yaml">
+```yaml
+# Remplacer :
+- pki_data:/var/lib/watchflare/pki
+# Par :
+- /your/path/pki:/var/lib/watchflare/pki
+```
+</CodeBlock>
+
+Retirez `pki_data` de la section `volumes:` en bas du fichier s'il ne sert plus.
+
+#### Données de la base (TimescaleDB, UID `70`)
+
+Le conteneur TimescaleDB lance PostgreSQL sous l'UID `70`. Le dossier de données doit lui appartenir :
+
+<CodeBlock lang="bash">
+```bash
+mkdir -p /your/path/pgdata
+sudo chown -R 70:70 /your/path/pgdata
+```
+</CodeBlock>
+
+Puis dans `docker-compose.yml` :
+
+<CodeBlock lang="yaml">
+```yaml
+# Remplacer :
+- pgdata:/var/lib/postgresql/data
+# Par :
+- /your/path/pgdata:/var/lib/postgresql/data
+```
+</CodeBlock>
+
+Retirez `pgdata` de la section `volumes:` en bas du fichier s'il ne sert plus.
+
+<Callout type="warn" title="Attention">
+  Ne copiez pas le dossier PostgreSQL tant que le conteneur tourne : vous obtiendriez une copie incohérente. Sauvegarde à chaud : `pg_dump`. Sinon arrêtez d'abord avec `docker compose stop`.
+</Callout>
+
+---
+
+## Ensuite
+
+- [Configurer les variables d'environnement](/fr/hub/configuration/)
+- [Mettre le Hub derrière un reverse proxy HTTPS](/fr/hub/reverse-proxy/)
+- [Utiliser vos propres certificats TLS](/fr/hub/tls/)

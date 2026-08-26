@@ -1,0 +1,184 @@
+---
+title: "Mettre à jour le Hub Watchflare"
+description: "Mettez à jour le Hub Watchflare via Docker Compose ou le binaire systemd. Sauvegarde avant upgrade, migrations automatiques, pinning de version, rollback."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+
+## Avant de mettre à jour
+
+Sauvegardez la base avant chaque mise à jour. Les migrations partent toutes seules au démarrage ; sans dump, pas de retour arrière :
+
+<CodeBlock lang="bash">
+```bash
+docker exec watchflare-postgres pg_dump -U watchflare watchflare > watchflare-pre-update.sql
+```
+</CodeBlock>
+
+En install binaire avec un TimescaleDB à part, `pg_dump` en direct :
+
+<CodeBlock lang="bash">
+```bash
+pg_dump -h localhost -U watchflare watchflare > watchflare-pre-update.sql
+```
+</CodeBlock>
+
+Lisez le [changelog](/fr/changelog/) avant : vous saurez ce qui change.
+
+---
+
+## Docker
+
+### Tirer l'image et redémarrer
+
+<CodeBlock lang="bash" autoVersion>
+```bash
+docker compose pull
+docker compose up -d
+```
+</CodeBlock>
+
+<Shell title="bash" code={`$ docker compose pull
+[+] Pulling 2/2
+ ✔ watchflare Pulled
+ ✔ postgres   Pulled
+
+$ docker compose up -d
+[+] Running 2/2
+ ✔ Container watchflare-postgres  Started
+ ✔ Container watchflare           Started`} />
+
+Le Hub lance les migrations tout seul au démarrage. Rien à faire à la main.
+
+<Callout type="info" title="Remarque">
+  Toutes les données sont dans les volumes Docker nommés (`pgdata`, `pki_data`). Une mise à jour d'image ne les touche pas.
+</Callout>
+
+### Vérifier
+
+Le nouveau conteneur a-t-il démarré proprement ?
+
+<CodeBlock lang="bash">
+```bash
+docker compose ps
+docker compose logs watchflare --tail 30
+```
+</CodeBlock>
+
+Cherchez `HTTP server starting` et `gRPC server starting`. Les migrations, s'il y en a eu, sont juste au-dessus. Ouvrez le tableau de bord : il répond, machines et métriques toujours là.
+
+### Épingler une version
+
+Par défaut, `docker-compose.yml` pointe sur `latest`. Pour figer une version, changez le tag :
+
+<CodeBlock filename="docker-compose.yml" lang="yaml" autoVersion>
+```yaml
+services:
+  watchflare:
+    image: ghcr.io/watchflare-io/watchflare:LATEST_VERSION
+```
+</CodeBlock>
+
+Puis tirez et redémarrez :
+
+<CodeBlock lang="bash">
+```bash
+docker compose pull
+docker compose up -d
+```
+</CodeBlock>
+
+En production, figer le tag évite qu'un pull automatique bascule tout seul.
+
+### Rollback (Docker)
+
+Revenir en arrière **n'est pas prévu**. Les migrations s'ajoutent, dans un seul sens. Une image plus ancienne sur une base déjà migrée peut planter, ou faire n'importe quoi.
+
+Pour rétrograder, restaurez le dump pris avant la mise à jour :
+
+<CodeBlock lang="bash">
+```bash
+# Stop the Hub
+docker compose down
+
+# Restore the database
+docker compose up -d watchflare-postgres
+docker exec -i watchflare-postgres psql -U watchflare watchflare < watchflare-pre-update.sql
+
+# Pin to the previous image version in docker-compose.yml, then start
+docker compose up -d
+```
+</CodeBlock>
+
+---
+
+<a id="binary-linux-systemd"></a>
+
+## Binaire (Linux, systemd)
+
+### Remplacer le binaire
+
+Arrêtez le service, téléchargez le nouveau binaire, redémarrez :
+
+<CodeBlock lang="bash" autoVersion>
+```bash
+sudo systemctl stop watchflare-hub
+
+TAG=LATEST_TAG
+VERSION=LATEST_VERSION
+ARCH=amd64    # or arm64
+
+curl -L "https://github.com/watchflare-io/watchflare/releases/download/${TAG}/watchflare-hub_${VERSION}_linux_${ARCH}.tar.gz" \
+  | tar xz
+sudo mv watchflare-hub /usr/local/bin/
+
+sudo systemctl start watchflare-hub
+```
+</CodeBlock>
+
+### Vérifier
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl status watchflare-hub
+journalctl -u watchflare-hub --since "1 minute ago"
+```
+</CodeBlock>
+
+Cherchez `HTTP server starting` et `gRPC server starting`. Le binaire lance les migrations embarquées tout seul au démarrage.
+
+### Rollback (binaire)
+
+Arrêtez le service, restaurez le dump, réinstallez l'ancien binaire, redémarrez :
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl stop watchflare-hub
+
+# Restore the database: use psql directly, or docker exec if TimescaleDB is in Docker
+psql -h localhost -U watchflare watchflare < watchflare-pre-update.sql
+# docker exec -i watchflare-postgres psql -U watchflare watchflare < watchflare-pre-update.sql
+
+# Reinstall the previous binary version (same download command, with the old tag)
+TAG=v0.35.0   # the version you are rolling back to
+VERSION=${TAG#v}
+ARCH=amd64
+curl -L "https://github.com/watchflare-io/watchflare/releases/download/${TAG}/watchflare-hub_${VERSION}_linux_${ARCH}.tar.gz" \
+  | tar xz
+sudo mv watchflare-hub /usr/local/bin/
+
+sudo systemctl start watchflare-hub
+```
+</CodeBlock>
+
+---
+
+## Compatibilité des agents
+
+Pas besoin de mettre à jour les agents en même temps. Le Hub reste compatible avec les agents plus anciens d'une mineure à l'autre. Le [changelog](/fr/changelog/) signale une rupture de protocole s'il y en a une.
+
+Les agents se mettent à jour chacun de leur côté. Voir [Mettre à jour l'Agent](/fr/agent/update/).
+
+Variables d'environnement après une mise à jour : [référence de configuration](/fr/hub/configuration/).

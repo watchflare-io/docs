@@ -1,0 +1,99 @@
+---
+title: "Notifications e-mail (SMTP)"
+description: "Réglez le SMTP dans Watchflare Settings pour envoyer les alertes par e-mail. Chiffrement, auth, stockage AES-256-GCM, message de test."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+Watchflare envoie les alertes par e-mail. Le SMTP se règle dans **Settings**, pas dans les variables d'environnement — sauf `NOTIFICATION_ENCRYPTION_KEY`, à poser avant de démarrer le Hub.
+
+Pour Discord, Slack, Telegram, Matrix, Ntfy, Gotify, HTTP et le reste via Shoutrrr : [Canaux de notification](/fr/hub/notifications/).
+
+---
+
+## Prérequis
+
+Il vous faut un serveur ou un relais SMTP. En pratique :
+
+- le relais de votre hébergeur
+- un service d'e-mail transactionnel (Postmark, Mailgun, Resend, SendGrid)
+- un serveur mail chez vous
+- Gmail SMTP avec un [mot de passe d'application](https://support.google.com/accounts/answer/185833) (obligatoire si la validation en deux étapes est activée)
+
+Vérifiez que `NOTIFICATION_ENCRYPTION_KEY` est dans le `.env`. Le mot de passe saisi dans Settings est chiffré avec cette clé avant d'être stocké :
+
+<CodeBlock filename=".env" lang="bash">
+```bash
+NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
+```
+</CodeBlock>
+
+---
+
+## Configuration
+
+**Settings → Notifications**, puis :
+
+| Champ | Description |
+|-------|-------------|
+| **Host** | Nom d'hôte SMTP (ex. `smtp.example.com`) |
+| **Port** | Port SMTP (voir le tableau de chiffrement) |
+| **Username** | Identifiant SMTP |
+| **Password** | Mot de passe SMTP. Stocké chiffré en AES-256-GCM. |
+| **From address** | Expéditeur (ex. `watchflare@example.com`) |
+| **From name** | Nom affiché (ex. `Watchflare`) |
+| **Encryption** | `starttls`, `tls` ou `none` |
+| **Auth type** | `plain` ou `login`, selon le fournisseur |
+| **HELO name** | Nom envoyé dans HELO/EHLO. Vide = défaut du système. |
+| **Categories** | Ce que cet expéditeur envoie : **Alerts**, **Transactional**, ou les deux. Défaut : Alerts. |
+
+### Catégories
+
+Les cases décident ce que le SMTP a le droit d'envoyer :
+
+- **Alerts** : alertes de supervision et leurs résolutions.
+- **Transactional** : compte et sécurité (connexion, mot de passe, 2FA, changement d'e-mail).
+
+Aucune case cochée : le SMTP reste configuré mais n'envoie rien. Même logique pour tous les canaux ; voir [Catégories de notification](/fr/hub/notifications/#notification-categories).
+
+### Chiffrement
+
+| Mode | Port typique | Description |
+|------|-------------|-------------|
+| `starttls` | `587` | Connexion en clair, puis STARTTLS. C'est le défaut à prendre. |
+| `tls` | `465` | TLS dès la connexion. |
+| `none` | `25` | Pas de chiffrement. Uniquement sur un réseau interne de confiance. |
+
+### Auth
+
+| Type | Quand |
+|------|-------------|
+| `plain` | Le plus courant. Identifiant et mot de passe sur la connexion déjà chiffrée. |
+| `login` | AUTH LOGIN, plus ancien. Certains serveurs d'entreprise n'ont que ça. |
+
+---
+
+## Tester
+
+Avant d'activer les alertes, cliquez **Send test email** dans Settings. Un message part vers l'e-mail de votre compte : connexion et identifiants sont bons.
+
+<Callout type="tip" title="Astuce">
+  Si le test échoue, alignez le port sur le mode de chiffrement, et vérifiez que le SMTP accepte l'IP du Hub. Certains fournisseurs demandent une allowlist.
+</Callout>
+
+---
+
+## Stockage du mot de passe
+
+Chiffrement au repos : **AES-256-GCM**, clé `NOTIFICATION_ENCRYPTION_KEY` du `.env`. L'API ne renvoie jamais le mot de passe. Le tableau de bord dit seulement s'il y en a un de stocké.
+
+<Callout type="warn" title="Attention">
+  Si vous changez `NOTIFICATION_ENCRYPTION_KEY` et redémarrez, le mot de passe stocké n'est plus lisible. Il faudra le resaisir dans Settings.
+</Callout>
+
+---
+
+## Ensuite
+
+SMTP en place : activez les alertes sur vos machines. Voir [Alertes](/fr/hub/alerts/).

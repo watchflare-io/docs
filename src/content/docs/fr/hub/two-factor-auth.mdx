@@ -1,0 +1,75 @@
+---
+title: "Authentification à deux facteurs (2FA)"
+description: "Activez le 2FA TOTP sur votre compte Watchflare. Mise en place, connexion, codes de secours, désactivation."
+---
+
+import Callout from "@components/Callout.astro";
+
+Watchflare gère le **2FA TOTP** (mot de passe à usage unique basé sur le temps, RFC 6238). Une fois activé, il faut le mot de passe **et** un code à 6 chiffres d'une appli d'authentification.
+
+---
+
+## Applis compatibles
+
+Toute appli TOTP convient :
+
+- [Proton Authenticator](https://proton.me/authenticator) et [Proton Pass](https://proton.me/pass)
+- [2FAS](https://2fas.com/)
+- [Bitwarden Authenticator](https://bitwarden.com/products/authenticator/)
+- [1Password](https://1password.com/)
+- [Authy](https://authy.com/)
+- Google Authenticator
+- et bien d'autres.
+
+---
+
+## Activer le 2FA
+
+1. **Votre nom d'utilisateur → Account**.
+2. Sous **Two-Factor Authentication**, cliquez **Set up 2FA**.
+3. Scannez le QR code, ou copiez la clé secrète et saisissez-la à la main.
+4. Entrez le code à 6 chiffres de l'appli pour confirmer.
+5. **Rangez vos codes de secours.** Watchflare en génère 8, chacun à usage unique. Ils servent si vous perdez l'appli.
+
+<Callout type="warn" title="Attention">
+  Les codes de secours ne s'affichent qu'une fois. Sans appli et sans codes, le compte n'est plus récupérable.
+</Callout>
+
+---
+
+## Connexion
+
+Avec le 2FA :
+
+1. E-mail et mot de passe sur la page de connexion.
+2. Un écran de challenge s'affiche. Entrez le code à 6 chiffres.
+3. Ou **Use a backup code**, puis l'un des codes enregistrés.
+
+Le challenge tient **5 minutes**. Au-delà, recommencez.
+
+---
+
+## Codes de secours
+
+Hexadécimal, 10 caractères, majuscules (ex. `A3F7C2E1B0`). Un code ne sert qu'une fois.
+
+Vous en avez 8 après l'activation. Pour tout remplacer :
+
+1. **Votre nom d'utilisateur → Account**.
+2. Sous **Two-Factor Authentication**, **Regenerate backup codes**.
+3. Un code TOTP à 6 chiffres pour confirmer.
+4. Les nouveaux s'affichent une fois : enregistrez-les tout de suite.
+
+<Callout type="warn" title="Attention">
+  Régénérer invalide tous les anciens codes.
+</Callout>
+
+---
+
+## Désactiver le 2FA
+
+1. **Votre nom d'utilisateur → Account**.
+2. Sous **Two-Factor Authentication**, **Disable 2FA**.
+3. Un code TOTP à 6 chiffres **ou** un code de secours.
+
+Ensuite, codes de secours et secret TOTP sont effacés pour de bon.

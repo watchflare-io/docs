@@ -15,7 +15,7 @@ Guides, reference pages, and architecture concepts covering:
 - PKI, TLS 1.3, and HMAC-SHA256 security model
 - Configuration reference for all environment variables
 
-Site chrome (navigation, search, home) is available in **English** and **French**. The Get Started guides have French pages; other `/fr/...` URLs fall back to English until translated.
+Site chrome (navigation, search, home) is available in **English** and **French**. Get Started and Hub have French pages; other `/fr/...` URLs fall back to English until translated.
 
 ## Stack
 

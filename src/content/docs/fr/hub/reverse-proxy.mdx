@@ -1,0 +1,280 @@
+---
+title: "Configuration du reverse proxy"
+description: "Placez Traefik, Nginx ou Caddy devant le Hub Watchflare. Reverse proxy HTTP pour le tableau de bord, passthrough TCP pour le port gRPC."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+Le Hub ouvre deux ports. Ils ne se proxifient pas de la même façon :
+
+| Port | Protocole | Type de proxy |
+|------|----------|------------|
+| `8080` | HTTP | Reverse proxy classique : c'est ici qu'on termine le TLS |
+| `50051` | gRPC / TLS 1.3 | **Passthrough TCP, sans terminer le TLS** |
+
+<Callout type="warn" title="Attention">
+  Le gRPC doit passer en TCP, TLS intact. Les agents figent la CA du Hub à l'enregistrement. Un autre certificat sur le proxy, et plus aucun agent ne se connecte.
+</Callout>
+
+---
+
+## Traefik
+
+**Testé :** ✅ Traefik v3
+
+Deux routes : HTTP pour le tableau de bord, TCP passthrough pour le gRPC.
+
+### Config statique
+
+<CodeBlock filename="traefik.yml" lang="yaml">
+```yaml
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+  grpc:
+    address: ":50051"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: you@example.com
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+```
+</CodeBlock>
+
+Redémarrez Traefik après un changement de config statique. La config dynamique se recharge toute seule.
+
+### Config dynamique
+
+<CodeBlock filename="rules.d/watchflare.yml" lang="yaml">
+```yaml
+http:
+  routers:
+    watchflare-http:
+      entryPoints: [web]
+      rule: "Host(`watchflare.example.com`)"
+      middlewares: [redirect-https]
+      service: watchflare-http
+
+    watchflare-https:
+      entryPoints: [websecure]
+      rule: "Host(`watchflare.example.com`)"
+      tls:
+        certResolver: letsencrypt
+      service: watchflare-http
+
+  middlewares:
+    redirect-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    watchflare-http:
+      loadBalancer:
+        servers:
+          - url: "http://HUB_IP:8080"
+
+tcp:
+  routers:
+    watchflare-grpc:
+      entryPoints: [grpc]
+      rule: "HostSNI(`*`)"
+      tls:
+        passthrough: true
+      service: watchflare-grpc
+
+  services:
+    watchflare-grpc:
+      loadBalancer:
+        servers:
+          - address: "HUB_IP:50051"
+```
+</CodeBlock>
+
+Remplacez `HUB_IP` par l'IP ou le nom d'hôte du serveur Hub, et `watchflare.example.com` par votre domaine.
+
+### Labels Docker Compose
+
+Si Traefik et le Hub sont dans le même Compose :
+
+<CodeBlock filename="docker-compose.yml" lang="yaml">
+```yaml
+services:
+  traefik:
+    image: traefik:v3
+    ports:
+      - "80:80"
+      - "443:443"
+      - "50051:50051"
+    command:
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.grpc.address=:50051"
+      - "--certificatesresolvers.letsencrypt.acme.email=you@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+  watchflare:
+    labels:
+      - "traefik.enable=true"
+      # HTTP → HTTPS
+      - "traefik.http.routers.watchflare.rule=Host(`watchflare.example.com`)"
+      - "traefik.http.routers.watchflare.entrypoints=websecure"
+      - "traefik.http.routers.watchflare.tls.certresolver=letsencrypt"
+      - "traefik.http.services.watchflare.loadbalancer.server.port=8080"
+      # gRPC TCP passthrough
+      - "traefik.tcp.routers.watchflare-grpc.entrypoints=grpc"
+      - "traefik.tcp.routers.watchflare-grpc.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.watchflare-grpc.tls.passthrough=true"
+      - "traefik.tcp.services.watchflare-grpc.loadbalancer.server.port=50051"
+```
+</CodeBlock>
+
+---
+
+## Nginx
+
+**Testé :** ⚠️ Non testé, config d'après la documentation Nginx
+
+Nginx a besoin du module `stream` pour le passthrough TCP du port gRPC (`--with-stream` à la compilation, présent dans la plupart des distros Linux).
+
+<CodeBlock filename="nginx.conf" lang="nginx">
+```nginx
+# HTTPS reverse proxy (dashboard)
+server {
+    listen 443 ssl;
+    server_name watchflare.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/watchflare.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/watchflare.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://HUB_IP:8080;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Required for SSE (real-time dashboard updates)
+        proxy_http_version 1.1;
+        proxy_set_header   Connection "";
+        proxy_buffering    off;
+        proxy_cache        off;
+        proxy_read_timeout 86400s;
+    }
+}
+
+server {
+    listen 80;
+    server_name watchflare.example.com;
+    return 301 https://$host$request_uri;
+}
+
+# TCP passthrough (gRPC, do not terminate TLS)
+stream {
+    server {
+        listen 50051;
+        proxy_pass HUB_IP:50051;
+    }
+}
+```
+</CodeBlock>
+
+Le bloc `stream {}` doit être à la racine de `nginx.conf`, pas dans un `http {}`.
+
+<Callout type="warn" title="Attention">
+  Dans le bloc HTTP : `proxy_http_version 1.1`, `proxy_set_header Connection ""` et `proxy_buffering off` — les trois. Sans ça, le flux SSE (statut et métriques en direct) reste dans un buffer, et le tableau de bord ne bouge plus.
+</Callout>
+
+---
+
+## Caddy
+
+**Testé :** ⚠️ Non testé, config d'après la documentation Caddy
+
+Caddy gère le HTTPS et le renouvellement des certificats tout seul. Pour le passthrough TCP du gRPC, il faut le plugin [caddy-l4](https://github.com/mholt/caddy-l4).
+
+**HTTP (tableau de bord).** Caddyfile standard, pas de plugin :
+
+<CodeBlock filename="Caddyfile" lang="plaintext">
+```plaintext
+watchflare.example.com {
+    reverse_proxy HUB_IP:8080
+}
+```
+</CodeBlock>
+
+**Passthrough TCP gRPC.** Il faut caddy-l4. Ajoutez un bloc `layer4` en JSON, ou construisez Caddy avec `xcaddy` et le plugin. Syntaxe : [documentation caddy-l4](https://github.com/mholt/caddy-l4).
+
+---
+
+## Pourquoi `HostSNI("*")`
+
+Pendant le handshake TLS, l'agent envoie un SNI égal à `server_name` dans `agent.conf` — par défaut `watchflare`, le CN du certificat généré par le Hub. Une règle `HostSNI("watchflare")` devrait coller à cette valeur au caractère près.
+
+`HostSNI("*")` évite les décalages si le CN change (par ex. `TLS_MODE=custom` avec un autre CN). C'est sûr : le port `50051` ne sert qu'au gRPC Watchflare. La sécu vient du TLS 1.3 et du HMAC par requête, pas du filtrage SNI.
+
+---
+
+## Limitation de débit
+
+Le tableau de bord est une SPA : un chargement à froid tire des dizaines d'assets depuis `/_app/immutable/*` en parallèle, davantage sur les pages lourdes. Si le proxy limite le débit, le burst doit absorber un chargement complet. Un burst trop bas répond `429` sur une partie des fichiers : le navigateur affiche `NS_ERROR_CORRUPTED_CONTENT`, la page échoue, le tableau de bord montre « Internal Error ».
+
+<Callout type="warn" title="Attention">
+  Compter les requêtes sur des assets immutables n'apporte presque rien, et casse facilement le tableau de bord. Burst généreux (quelques centaines), ou limitez seulement les chemins d'API.
+</Callout>
+
+Les chiffres ci-dessous sont des exemples. Dimensionnez selon le poids de vos pages et le nombre de clients. Rien n'est imposé.
+
+Pour Traefik, c'est le `burst` du middleware `rateLimit` :
+
+<CodeBlock filename="rules.d/watchflare.yml" lang="yaml">
+```yaml
+http:
+  middlewares:
+    watchflare-ratelimit:
+      rateLimit:
+        average: 300 # example, tune to your setup
+        burst: 300   # example, tune to your setup
+```
+</CodeBlock>
+
+Pour Nginx, `limit_req` avec un `burst` suffisant pour un chargement complet (`nodelay` pour servir le burst tout de suite, sans file) :
+
+<CodeBlock filename="nginx.conf" lang="nginx">
+```nginx
+# http {} context
+limit_req_zone $binary_remote_addr zone=watchflare:10m rate=300r/s; # example
+
+# inside the location block
+location / {
+    limit_req zone=watchflare burst=300 nodelay; # example, tune to your setup
+    proxy_pass http://HUB_IP:8080;
+    # ... your other proxy_set_header / SSE settings
+}
+```
+</CodeBlock>
+
+Caddy n'a pas de limitation de débit intégrée : rien à régler par défaut. Si vous en ajoutez une via plugin, soyez généreux ou bornez-la aux chemins d'API — même principe.
+
+---
+
+## Après le setup
+
+Une fois le HTTPS en place, mettez à jour le `.env` pour que les cookies de session portent bien `Secure` :
+
+<CodeBlock filename=".env" lang="bash">
+```bash
+COOKIE_DOMAIN=watchflare.example.com
+```
+</CodeBlock>
+
+Détail cookies et vérif : [configuration HTTPS](/fr/hub/https/).
