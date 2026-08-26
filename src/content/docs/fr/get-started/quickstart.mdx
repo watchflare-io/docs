@@ -1,0 +1,201 @@
+---
+title: "Démarrage rapide"
+description: "Déployez le Hub avec Docker Compose et enrôlez votre premier agent. Cinq étapes, zéro option : de l'installation aux métriques en moins de 5 minutes."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+
+Ce guide vous emmène du déploiement du Hub à la connexion du premier agent, en passant par la création du compte admin.
+
+**Prérequis :** Docker et Docker Compose v2+ (Linux, macOS ou Windows).
+
+---
+
+## 1. Déployer le Hub
+
+Créez un dossier et placez-vous dedans :
+
+<CodeBlock lang="bash">
+```bash
+mkdir watchflare && cd watchflare
+```
+</CodeBlock>
+
+Enregistrez ce fichier sous `docker-compose.yml` :
+
+<CodeBlock filename="docker-compose.yml" lang="yaml">
+```yaml
+services:
+  watchflare:
+    image: ghcr.io/watchflare-io/watchflare:latest
+    container_name: watchflare
+    ports:
+      - "${HUB_PORT:-8080}:8080"
+      - "${GRPC_PORT:-50051}:50051"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-watchflare}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      - POSTGRES_DB=${POSTGRES_DB:-watchflare}
+      - POSTGRES_SSLMODE=disable
+      - GRPC_PORT=${GRPC_PORT:-50051}
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env}
+      - NOTIFICATION_ENCRYPTION_KEY=${NOTIFICATION_ENCRYPTION_KEY:?Set NOTIFICATION_ENCRYPTION_KEY in .env}
+      - TLS_MODE=${TLS_MODE:-auto}
+      - TLS_PKI_DIR=/var/lib/watchflare/pki
+      - GRPC_TIMESTAMP_WINDOW=${GRPC_TIMESTAMP_WINDOW:-300}
+      - ENV=production
+      - COOKIE_SECURE=${COOKIE_SECURE:-}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES:-127.0.0.1,::1}
+    volumes:
+      - pki_data:/var/lib/watchflare/pki
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - watchflare_net
+    restart: unless-stopped
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: watchflare-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-watchflare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-watchflare}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-watchflare}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - watchflare_net
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+  pki_data:
+    driver: local
+
+networks:
+  watchflare_net:
+    driver: bridge
+```
+</CodeBlock>
+
+Dans le même dossier, créez un `.env` avec les trois secrets obligatoires :
+
+<CodeBlock tabs={["Linux", "Windows"]} lang="bash">
+<Fragment slot="Linux">
+```bash
+printf "POSTGRES_PASSWORD=%s\nJWT_SECRET=%s\nNOTIFICATION_ENCRYPTION_KEY=%s\n" \
+  "$(openssl rand -base64 32)" \
+  "$(openssl rand -base64 32)" \
+  "$(openssl rand -base64 32)" > .env
+```
+</Fragment>
+<Fragment slot="Windows">
+```powershell
+$r = [System.Security.Cryptography.RandomNumberGenerator]
+$h = { -join ($r::GetBytes(32) | % { '{0:x2}' -f $_ }) }
+"POSTGRES_PASSWORD=$(& $h)", "JWT_SECRET=$(& $h)", "NOTIFICATION_ENCRYPTION_KEY=$(& $h)" | Set-Content .env
+```
+</Fragment>
+</CodeBlock>
+
+<Callout type="info" title="Remarque">
+  Sous macOS, prenez l'onglet Linux : `openssl` est là par défaut.
+</Callout>
+
+Lancez les conteneurs :
+
+<Shell title="bash" code={`$ docker compose up -d
+[+] Running 3/3
+ ✔ Network watchflare_watchflare_net  Created
+ ✔ Container watchflare-postgres      Started
+ ✔ Container watchflare               Started`} />
+
+<Callout type="info" title="Remarque">
+  Au premier démarrage, le Hub génère tout seul une autorité de certification TLS auto-signée.
+  C'est elle qui sécurise le gRPC avec les agents. Rien à configurer à la main.
+</Callout>
+
+Quelques secondes plus tard, le Hub répond sur `http://your-host:8080`.
+
+---
+
+## 2. Créer le compte admin
+
+Ouvrez `http://your-host:8080` dans le navigateur. Sur une install neuve, vous atterrissez directement sur la page de création de compte. Saisissez votre e-mail et un mot de passe solide.
+
+---
+
+## 3. Ajouter un hôte
+
+1. Dans la barre latérale, cliquez **Hosts**, puis **Add host**.
+2. Donnez un nom (par ex. `web-01`). L'adresse IP est facultative : le Hub prévient si l'agent se connecte depuis une autre IP. Laissez vide, ou cochez **Allow registration from any IP** pour désactiver ce contrôle.
+3. Cliquez **Create Host**.
+4. Copiez le jeton d'enregistrement affiché :
+
+<Shell title="watchflare · enrollment token" pairs={[
+  ["token",  "wf_reg_7f2a9c3e8b4d1a6c5e09f3b2a178e4d9"],
+]} />
+
+<Callout type="warn" title="Attention">
+  Le jeton expire au bout de 24 heures. Installez l'agent avant.
+</Callout>
+
+---
+
+## 4. Installer l'agent
+
+Sur la machine à surveiller, lancez l'installeur en une ligne. Remplacez les valeurs par l'IP de votre Hub et le jeton de l'étape précédente.
+
+<CodeBlock tabs={["Linux", "macOS"]} lang="bash">
+<Fragment slot="Linux">
+```bash
+curl -sSL https://get.watchflare.io | sudo bash -s -- \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</Fragment>
+<Fragment slot="macOS">
+```bash
+curl -sSL https://get.watchflare.io/brew | bash -s -- \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</Fragment>
+</CodeBlock>
+
+<Callout type="warn" title="Attention">
+  Remplacez `wf_reg_YOUR_TOKEN` par le jeton de l'étape précédente, et `YOUR_HUB_IP` par l'IP ou le nom d'hôte du Hub.
+</Callout>
+
+L'installeur enregistre l'agent, écrit la config et démarre le service tout seul.
+
+---
+
+## 5. Voir l'hôte passer en ligne
+
+Retournez sur la liste **Hosts** dans le navigateur. Le statut passe de **pending** à **online** dans les 5 secondes après le démarrage de l'agent.
+
+Vous pouvez ensuite ouvrir les métriques temps réel et les graphiques d'historique. L'inventaire des paquets fait un premier scan 60 secondes après le démarrage de l'agent, puis tous les jours à 03:00.
+
+---
+
+## Ensuite
+
+- [Installer l'agent sur d'autres machines](/fr/agent/install/linux/) (Linux ou macOS)
+- [Passer le Hub en HTTPS derrière un reverse proxy](/fr/hub/reverse-proxy/) (Caddy ou Nginx)
+- [Configurer les alertes](/fr/hub/alerts/) (seuils CPU, mémoire, disque, charge, température, plus hôte hors ligne)
+- [Lire les variables d'environnement du Hub](/fr/hub/configuration/) (ports, modes TLS, cookies)
