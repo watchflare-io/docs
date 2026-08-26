@@ -1,0 +1,393 @@
+---
+title: "Dépannage"
+description: "Le Hub ne démarre pas, l'agent ne remonte pas, trous dans les graphiques, paquets absents, CA qui a changé. Quoi regarder, quoi faire."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import PageSchema from "@components/PageSchema.astro";
+
+<PageSchema schema={{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Le Hub s'arrête au démarrage, par où commencer ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Les journaux. JWT_SECRET absent ou plus court que 32 caractères, NOTIFICATION_ENCRYPTION_KEY trop courte, ou PostgreSQL injoignable. Posez JWT_SECRET=$(openssl rand -base64 32) dans le .env ou hub.env, et vérifiez la base."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le tableau de bord ne répond pas. Que vérifier ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le conteneur ou le service tourne-t-il ? Le port 8080 (ou HUB_PORT) est-il ouvert ? Docker : docker compose ps. Binaire : sudo systemctl status watchflare-hub."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "L'hôte reste pending après l'installation de l'agent. Pourquoi ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le jeton d'enregistrement expire au bout de 24 heures. Sur la page de l'hôte, menu ⋯ → Regenerate token, puis relancez l'installeur avec le nouveau jeton."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "L'hôte reste offline alors que l'agent tourne. Où chercher ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Les journaux de l'agent. IP ou port du Hub faux (connection refused), agent pas enrôlé (configuration error), clé HMAC qui ne correspond pas (Invalid agent credentials), horloge décalée (send failed: clock out of sync). Vérifiez agent.conf et NTP."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "La bannière Clock desync s'affiche. Comment la faire partir ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Plus de 5 minutes d'écart entre l'agent et le Hub. NTP : timedatectl status, puis sudo systemctl restart systemd-timesyncd. La bannière disparaît au premier heartbeat valide."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Les métriques n'arrivent pas sur une machine venant d'être enrôlée. C'est normal ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le premier lot part dans les 30 secondes. Après une minute, toujours rien : cherchez une erreur de connexion dans les journaux de l'agent."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Il y a des trous dans les graphiques. D'où ça vient ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "L'agent n'a pas pu envoyer. Soit le Hub était injoignable et le WAL (10 Mo par défaut) a saturé, soit wal_enabled = false. Montez wal_max_size_mb, ou réactivez le WAL, puis redémarrez l'agent."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "La température reste à 0. Est-ce un bug ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Non. La collecte ne tourne que sur une machine physique. VM et conteneurs Docker n'ont pas de capteur."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Disque et réseau n'apparaissent pas. Pourquoi ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "L'agent dans un conteneur Docker ne les remonte pas. Posez-le sur l'OS hôte. S'il y est déjà, les journaux doivent dire environment detected type=Physical Host."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "L'onglet Containers n'est pas là. Que manque-t-il ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Il n'apparaît qu'après activation et un premier lot reçu. container_metrics = true dans agent.conf, watchflare dans le groupe docker, Docker qui tourne, agent redémarré après le changement de groupe."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "L'onglet Packages est vide juste après l'installation. Combien attendre ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le premier scan part 60 secondes après le démarrage. Attendez 90 secondes. Pour ne pas attendre : Collect now sur la page de l'hôte."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Après un redémarrage du Hub, plus aucun agent ne se connecte. Que s'est-il passé ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le Hub a probablement régénéré sa CA (souvent après suppression de server.pem). Les agents ont figé l'ancienne. Arrêtez l'agent, retirez agent.conf et ca.pem, réenrôlez avec un jeton neuf, redémarrez."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le port gRPC ne passe pas derrière le reverse proxy. Pourquoi ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le 50051 doit transiter en TCP, sans terminaison TLS. Les agents figent la CA du Hub. Un autre certificat sur le proxy, et plus personne ne se connecte. Guides Traefik, Nginx et Caddy dans Reverse proxy."
+      }
+    }
+  ]
+}} />
+
+## Hub
+
+### Le Hub s'arrête au démarrage
+
+Ouvrez les journaux :
+
+<CodeBlock tabs={["Docker", "Binaire (systemd)"]} lang="bash">
+<Fragment slot="Docker">
+```bash
+docker compose logs watchflare
+```
+</Fragment>
+<Fragment slot="Binaire (systemd)">
+```bash
+journalctl -u watchflare-hub -n 50
+```
+</Fragment>
+</CodeBlock>
+
+| Message | Cause | Quoi faire |
+|-------------|-------|-----|
+| `JWT_SECRET is required in environment variables` | `JWT_SECRET` absent | `JWT_SECRET=$(openssl rand -base64 32)` dans `.env` ou `hub.env` |
+| `JWT_SECRET too short current_length=X required=32` | Moins de 32 caractères | `openssl rand -base64 32` |
+| `NOTIFICATION_ENCRYPTION_KEY too short` | Clé posée, trop courte | Une nouvelle, ou retirez-la (optionnelle hors Compose) |
+| `failed to connect to database` | PostgreSQL injoignable | Docker : `POSTGRES_HOST=postgres` dans le Compose, pas seulement le `.env`. Binaire : `POSTGRES_HOST` dans `hub.env`. |
+
+### Le tableau de bord ne répond pas
+
+**Docker**
+- `docker compose ps` : le conteneur tourne
+- Port exposé : `8080` par défaut. `HUB_PORT=80` dans le `.env` pour le 80
+- Firewall : `8080` (ou `HUB_PORT`) ouvert
+
+**Binaire**
+- `sudo systemctl status watchflare-hub`
+- Écoute sur `8080` par défaut : ouvrez-le
+- `journalctl -u watchflare-hub -n 30`
+
+### Cookie sans flag Secure, HTTPS pourtant en place
+
+[HTTPS et cookies](/fr/hub/https/). Presque toujours : l'IP du reverse proxy n'est pas dans `TRUSTED_PROXIES`.
+
+---
+
+## Agent
+
+### L'hôte reste `pending`
+
+Le jeton expire **24 heures** après sa création.
+
+Page de l'hôte → **⋯ → Regenerate token**, puis relancez l'installeur avec le nouveau.
+
+<a id="host-stays-offline-after-agent-starts"></a>
+
+### L'hôte reste `offline`
+
+Journaux :
+
+<CodeBlock lang="bash">
+```bash
+# Linux
+journalctl -u watchflare-agent -n 30
+
+# macOS
+tail -30 $(brew --prefix)/var/log/watchflare-agent.log
+```
+</CodeBlock>
+
+| Message | Cause | Quoi faire |
+|-------------|-------|-----|
+| `connect: connection refused` | Mauvaise IP ou mauvais port, ou `50051` filtré | `server_host` / `server_port` dans `agent.conf` ; firewall |
+| `configuration error` (error: "config file not found...") | Pas encore enrôlé | `sudo watchflare-agent register --token ... --host ...` |
+| `Invalid agent credentials` | Clé HMAC qui ne correspond pas | Réenrôler |
+| `context deadline exceeded` | Hub injoignable ou trop lent | Réseau jusqu'au Hub |
+| `send failed: clock out of sync with Hub` | Plus de 5 min d'écart | NTP, [bannière Clock desync](#clock-desync-banner-on-host-detail-page) |
+| `certificate signed by unknown authority` | CA changée côté Hub | Réenrôler, [TLS](#agents-refuse-to-connect-after-hub-restart) |
+
+<a id="clock-desync-banner-on-host-detail-page"></a>
+
+### Bannière Clock desync
+
+Plus de 5 minutes d'écart. Le Hub refuse tout le gRPC de cet agent.
+
+NTP sur la machine :
+
+<CodeBlock lang="bash">
+```bash
+# Linux : état
+timedatectl status
+
+# Linux : resynchroniser tout de suite
+sudo systemctl restart systemd-timesyncd
+```
+</CodeBlock>
+
+La bannière part au premier heartbeat valide.
+
+### `configuration error` au démarrage
+
+Le binaire est installé, pas enrôlé. Le journal dit `configuration error` / `config file not found...` :
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent register \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</CodeBlock>
+
+---
+
+## Métriques
+
+### Rien sur une machine venant d'être enrôlée
+
+Premier lot : 30 secondes. Après une minute, toujours vide : [l'hôte est-il `offline` ?](#host-stays-offline-after-agent-starts)
+
+### Trous dans les graphiques
+
+L'agent n'envoyait plus. Deux cas.
+
+**Hub injoignable, WAL saturé**
+
+Le journal local tient 10 Mo par défaut (~3 000 points). Au-delà, les plus anciens tombent.
+
+```
+WARN   WAL exceeds max size, truncating  max_mb=10
+WARN   WAL exceeds max size on startup, truncating  max_mb=10
+```
+
+Montez `wal_max_size_mb` dans `agent.conf`, redémarrez. Voir [`wal_max_size_mb`](/fr/agent/configuration/#write-ahead-log).
+
+**WAL désactivé**
+
+`wal_enabled = false` : rien n'est écrit en local. Un envoi raté est perdu.
+
+```
+ERROR  send failed, metrics lost (WAL disabled)  error="..."
+```
+
+Remettez `wal_enabled = true`, redémarrez.
+
+### Température à 0 en permanence
+
+Uniquement les **machines physiques**. Pas de capteur sur :
+- une VM
+- un conteneur Docker
+
+Attendu. [Métriques système](/fr/monitoring/metrics/#cpu).
+
+### Pas de disque, pas de réseau
+
+L'agent **dans** Docker ne les remonte pas. Posez-le sur l'OS.
+
+Déjà sur l'hôte, et le disque manque ? Vérifiez qu'il n'est pas pris pour un conteneur :
+
+<CodeBlock lang="bash">
+```bash
+journalctl -u watchflare-agent -n 5
+# cherchez : environment detected  type="Physical Host"
+```
+</CodeBlock>
+
+### Pas d'onglet Containers
+
+Il n'existe qu'une fois les métriques activées **et** un lot reçu.
+
+1. `container_metrics = true` dans `agent.conf`
+2. `groups watchflare` : groupe `docker`
+3. `docker ps` : Docker tourne
+4. `sudo systemctl restart watchflare-agent` après le groupe
+
+[Métriques Docker/Podman](/fr/agent/docker-metrics/).
+
+---
+
+## Inventaire de paquets
+
+### **Packages** vide juste après l'installation
+
+Le premier scan part **60 secondes** après le démarrage. Attendez 90 secondes.
+
+Sans attendre : page de l'hôte → **Packages** → **Collect now**.
+
+### Rien n'a bougé depuis hier
+
+Le passage quotidien : **03:00, heure de la machine**. Hors ligne à cette heure : reporté au lendemain.
+
+Même bouton : **Packages** → **Collect now**.
+
+Erreurs :
+
+<CodeBlock lang="bash">
+```bash
+journalctl -u watchflare-agent -n 50 | grep -i package
+```
+</CodeBlock>
+
+### Il manque des paquets
+
+Un collecteur ne tourne que si l'outil est là. `npm` absent du `PATH` de `watchflare` : silence.
+
+Qui a tourné :
+
+<CodeBlock lang="bash">
+```bash
+WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
+```
+</CodeBlock>
+
+---
+
+## Alertes et notifications
+
+### Aucun e-mail
+
+1. SMTP en place : **Settings → Notifications**
+2. **Send test email**
+3. Fenêtre de durée : le seuil doit tenir **toute** la durée (5 min par défaut)
+4. L'adresse dans **Settings → Notifications** est la bonne
+
+### L'e-mail de test échoue
+
+| Erreur | Cause probable | Quoi faire |
+|-------|-------------|-----|
+| `connection refused` | Mauvais hôte ou port | 587 STARTTLS, 465 TLS |
+| `authentication failed` | Mauvais identifiants | Resaisir |
+| `TLS handshake error` | Mauvais mode | `starttls` à la place de `tls`, ou l'inverse |
+
+<Callout type="info" title="Remarque">
+  Gmail et d'autres veulent un **mot de passe d'application**, pas celui du compte. Le mot de passe normal est refusé même s'il est le bon.
+</Callout>
+
+### Les canaux restent muets
+
+1. **Test** à côté du canal, **Settings > Notifications**. Erreur = URL ou destination injoignable
+2. Interrupteur allumé
+3. Même fenêtre de durée que pour l'e-mail
+4. URL Shoutrrr du service : [Canaux de notification](/fr/hub/notifications/)
+5. Le Hub écrit les échecs en `ERROR`. Un canal silencieux : journaux du Hub
+
+---
+
+## TLS et certificats
+
+<a id="agents-refuse-to-connect-after-hub-restart"></a>
+
+### Plus aucun agent après un redémarrage du Hub
+
+Souvent : `server.pem` retiré pour forcer un renouvellement. Le Hub a refait **la CA et** le certificat serveur. Les agents ont figé l'ancienne CA.
+
+Réenrôlez chaque machine touchée :
+
+<CodeBlock lang="bash">
+```bash
+# Linux
+sudo systemctl stop watchflare-agent
+sudo rm /etc/watchflare/agent.conf /etc/watchflare/ca.pem
+sudo watchflare-agent register --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP
+sudo systemctl start watchflare-agent
+```
+</CodeBlock>
+
+<Callout type="warn" title="Attention">
+  Mode `auto` : on ne renouvelle pas le serveur tout seul. Retirer `ca.pem` ou `server.pem` régénère les deux. Tout le parc à réenrôler. [Certificats TLS](/fr/hub/tls/).
+</Callout>
+
+### Le `50051` ne passe pas le reverse proxy
+
+TCP **sans** terminaison TLS. Les agents figent la CA du Hub. Un certificat du proxy à la place : plus personne.
+
+Traefik, Nginx, Caddy : [Reverse proxy](/fr/hub/reverse-proxy/).

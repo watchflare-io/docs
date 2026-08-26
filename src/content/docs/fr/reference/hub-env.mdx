@@ -1,0 +1,95 @@
+---
+title: "Variables d'environnement du Hub"
+description: "Table de poche : toutes les variables du Hub, défauts et longueurs. Le détail est dans la référence de configuration."
+---
+
+import CodeBlock from "@components/CodeBlock.astro";
+
+Rien d'autre que des variables d'environnement. Compose : fichier `.env` à côté de `docker-compose.yml`.
+
+Explications, pièges, fichier complet : [Référence de configuration](/fr/hub/configuration/).
+
+---
+
+## Trois secrets
+
+| Variable | Longueur min. | Description |
+|----------|-----------|-------------|
+| `POSTGRES_PASSWORD` | Aucune | Mot de passe TimescaleDB. Le binaire retombe sur `watchflare_dev` si elle manque : pas en production. Compose l'exige (`:?`). |
+| `JWT_SECRET` | 32 caractères | Cookies de session et secrets TOTP. **Absente ou trop courte : le Hub refuse de démarrer.** La changer jette les sessions et casse le 2FA. |
+| `NOTIFICATION_ENCRYPTION_KEY` | 32 caractères | Chiffre SMTP et URL des canaux, au repos. Sur le binaire, on peut s'en passer (plus de stockage de notifications). **Dans le Compose, elle est obligatoire** (`:?`), même sans canal prévu. Posée mais trop courte : le Hub s'arrête. |
+
+---
+
+## Base
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `POSTGRES_HOST` | `localhost` | Hôte PostgreSQL. Compose : `postgres`. |
+| `POSTGRES_PORT` | `5432` | Port |
+| `POSTGRES_USER` | `watchflare` | Utilisateur |
+| `POSTGRES_PASSWORD` | `watchflare_dev` | Mot de passe |
+| `POSTGRES_DB` | `watchflare` | Base |
+| `POSTGRES_SSLMODE` | `disable` | SSL PostgreSQL |
+
+---
+
+## Ports
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `HUB_PORT` | `8080` | Docker. Port HTTP vu de l'extérieur. Dedans, toujours `8080`. |
+| `GRPC_PORT` | `50051` | gRPC des agents |
+
+---
+
+## TLS
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `TLS_MODE` | `auto` | `auto` : CA et certificat fabriqués par le Hub. `custom` : vos fichiers. |
+| `TLS_PKI_DIR` | `/var/lib/watchflare/pki` | Certificats auto-générés (`auto`) |
+| `TLS_CERT_FILE` | Aucun | Certificat serveur (`custom`) |
+| `TLS_KEY_FILE` | Aucun | Clé privée serveur (`custom`) |
+| `TLS_CA_FILE` | Aucun | CA envoyée aux agents à l'enrôlement (`custom`) |
+
+---
+
+## Cookies
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `COOKIE_SECURE` | *(auto)* | Force `Secure` (`true` / `false`). Vide = détection automatique, c'est le bon choix. |
+| `COOKIE_DOMAIN` | *(vide)* | Votre domaine, derrière un reverse proxy |
+| `TRUSTED_PROXIES` | `127.0.0.1,::1` | IP autorisées à poser `X-Forwarded-Proto` |
+
+---
+
+## gRPC
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `GRPC_TIMESTAMP_WINDOW` | `300` | Fenêtre HMAC en secondes (±). Dehors : requête rejetée. |
+
+---
+
+## Environnement
+
+| Variable | Défaut | Description |
+|----------|---------|-------------|
+| `ENV` | `development` | Mettez `production` une fois déployé. Gin passe en release. Compose le pose. |
+| `CORS_ORIGINS` | `http://localhost:5173` | Origines CORS. Inutile dès que le frontend est embarqué (Docker, binaire). |
+
+---
+
+## Les trois lignes à poser
+
+<CodeBlock filename=".env" lang="bash">
+```bash
+POSTGRES_PASSWORD=$(openssl rand -base64 32)
+JWT_SECRET=$(openssl rand -base64 32)
+NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
+```
+</CodeBlock>
+
+Tout le reste a déjà une valeur. Un Compose standard n'a besoin que de ça.
