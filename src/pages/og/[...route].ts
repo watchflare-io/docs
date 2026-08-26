@@ -11,7 +11,7 @@ const pages: Record<string, { title: string; description: string }> = {};
 pages["fr/changelog"] = {
   title: "Changelog",
   description:
-    "Historique complet des versions de Watchflare Hub et Agent. Nouvelles fonctionnalités, corrections des bugs et mises à jour importantes. Mis à jour à chaque nouvelle version depuis la v0.27.0.",
+    "Historique des versions de Watchflare Hub et de l'Agent : nouvelles fonctionnalités, correctifs, et modifications importantes. Mis à jour à chaque version depuis la v0.27.0.",
 };
 
 // MDX content pages

@@ -16,8 +16,9 @@ import "@fontsource/jetbrains-mono/600.css";
 import "@styles/tokens.css";
 import "@styles/global.css";
 import "@styles/docs.css";
+import Callout from "@components/Callout.astro";
 import { SITE_URL, SITE_NAME } from "@consts";
-import { useTranslations } from "@i18n/utils";
+import { localePrefix, useTranslations } from "@i18n/utils";
 
 interface Heading {
     depth: number;
@@ -34,25 +35,35 @@ interface Props {
     lastUpdatedISO?: string;
 }
 
-const { title, description, headings = [], isFallback = false, datePublishedISO, lastUpdatedISO } = Astro.props;
+const {
+    title,
+    description,
+    headings = [],
+    isFallback = false,
+    datePublishedISO,
+    lastUpdatedISO,
+} = Astro.props;
 
 const canonicalURL = SITE_URL + Astro.url.pathname;
 const ogTitle = `${title} — ${SITE_NAME}`;
 const lang = Astro.currentLocale === "fr" ? "fr" : "en";
-const ogSlug = lang === 'fr' ? 'fr/changelog' : 'changelog';
+const ogSlug = lang === "fr" ? "fr/changelog" : "changelog";
 const ogImage = `${SITE_URL}/og/${ogSlug}.png`;
 const t = useTranslations(Astro.currentLocale, Astro.url.pathname);
+const prefix = localePrefix(Astro.currentLocale, Astro.url.pathname);
 
 const ldJson = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "TechArticle",
-    "headline": ogTitle,
-    ...(description ? { "description": description } : {}),
-    "url": canonicalURL,
-    "inLanguage": isFallback ? "en" : lang,
-    ...(datePublishedISO ? { "datePublished": datePublishedISO } : {}),
-    ...(lastUpdatedISO ? { "dateModified": lastUpdatedISO } : {}),
-}).replace(/</g, '\\u003C').replace(/>/g, '\\u003E');
+    headline: ogTitle,
+    ...(description ? { description: description } : {}),
+    url: canonicalURL,
+    inLanguage: isFallback ? "en" : lang,
+    ...(datePublishedISO ? { datePublished: datePublishedISO } : {}),
+    ...(lastUpdatedISO ? { dateModified: lastUpdatedISO } : {}),
+})
+    .replace(/</g, "\\u003C")
+    .replace(/>/g, "\\u003E");
 ---
 
 <!doctype html>
@@ -64,10 +75,22 @@ const ldJson = JSON.stringify({
         {description && <meta name="description" content={description} />}
         <link rel="canonical" href={canonicalURL} />
         <link rel="alternate" hreflang="en" href={`${SITE_URL}/changelog/`} />
-        <link rel="alternate" hreflang="fr" href={`${SITE_URL}/fr/changelog/`} />
-        <link rel="alternate" hreflang="x-default" href={`${SITE_URL}/changelog/`} />
+        <link
+            rel="alternate"
+            hreflang="fr"
+            href={`${SITE_URL}/fr/changelog/`}
+        />
+        <link
+            rel="alternate"
+            hreflang="x-default"
+            href={`${SITE_URL}/changelog/`}
+        />
         <meta property="og:title" content={ogTitle} />
-        {description && <meta property="og:description" content={description} />}
+        {
+            description && (
+                <meta property="og:description" content={description} />
+            )
+        }
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalURL} />
         <meta property="og:site_name" content={SITE_NAME} />
@@ -76,14 +99,31 @@ const ldJson = JSON.stringify({
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content={SITE_NAME} />
-        <meta property="og:locale" content={lang === "fr" ? "fr_FR" : "en_US"} />
+        <meta
+            property="og:locale"
+            content={lang === "fr" ? "fr_FR" : "en_US"}
+        />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:image" content={ogImage} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon-32x32.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/favicon-16x16.png"
+        />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
+        />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#2d5a24" />
         {isFallback && <meta name="robots" content="noindex, follow" />}
@@ -96,22 +136,80 @@ const ldJson = JSON.stringify({
         <Header />
         <Search />
 
-        {headings.length > 0 && (
-            <div class="doc__mobile-bar cl-mobile-bar">
-                <MobileTOC headings={headings} />
-            </div>
-        )}
+        {
+            headings.length > 0 && (
+                <div class="doc__mobile-bar cl-mobile-bar">
+                    <MobileTOC headings={headings} />
+                </div>
+            )
+        }
 
-        <div class:list={["cl-layout", { "cl-layout--no-toc": headings.length === 0 }]}>
+        <div
+            class:list={[
+                "cl-layout",
+                { "cl-layout--no-toc": headings.length === 0 },
+            ]}
+        >
             <main class="cl-main" id="main-content">
-                {isFallback && (
-                    <div class="doc__fallback-notice" role="note">
-                        {t('doc.fallbackNotice')}
-                    </div>
-                )}
+                {
+                    isFallback && (
+                        <div class="doc__fallback-notice" role="note">
+                            {t("doc.fallbackNotice")}
+                        </div>
+                    )
+                }
                 <h1 class="cl-title">{title}</h1>
                 {description && <p class="cl-lede">{description}</p>}
                 <div class="doc__prose">
+                    {
+                        lang === "fr" ? (
+                            <p>
+                                Le Hub et l'Agent partagent un même numéro de
+                                version et sont publiés simultanément. Les notes
+                                de mise à jour complètes, les binaires signés et
+                                les archives sont publiés sur{" "}
+                                <a href="https://github.com/watchflare-io/watchflare/releases">
+                                    GitHub Releases
+                                </a>
+                                . Pour mettre à jour votre installation,
+                                consultez les sections{" "}
+                                <a href={`${prefix}/hub/update/`}>
+                                    Mettre à jour le Hub
+                                </a>{" "}
+                                ou{" "}
+                                <a href={`${prefix}/agent/update/`}>
+                                    Mettre à jour l'Agent
+                                </a>
+                                .
+                            </p>
+                        ) : (
+                            <p>
+                                Hub and Agent share a single version number and
+                                are released together. Full release notes,
+                                signed binaries, and archives are published on{" "}
+                                <a href="https://github.com/watchflare-io/watchflare/releases">
+                                    GitHub Releases
+                                </a>
+                                . To update your installation, see{" "}
+                                <a href={`${prefix}/hub/update/`}>
+                                    Update the Hub
+                                </a>{" "}
+                                or{" "}
+                                <a href={`${prefix}/agent/update/`}>
+                                    Update the Agent
+                                </a>
+                                .
+                            </p>
+                        )
+                    }
+                    {
+                        lang === "fr" && (
+                            <Callout type="info" title="Remarque">
+                                Les notes de version ci-dessous sont uniquement
+                                disponibles en anglais.
+                            </Callout>
+                        )
+                    }
                     <slot />
                 </div>
             </main>
