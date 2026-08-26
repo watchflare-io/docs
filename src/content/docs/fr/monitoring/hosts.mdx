@@ -1,0 +1,105 @@
+---
+title: "Hôtes et statut"
+description: "Cinq statuts, ajout et suppression d'une machine, page de détail : métriques, alertes, inventaire de paquets."
+---
+
+import Callout from "@components/Callout.astro";
+
+**Hosts** liste tout le parc. Statut, dernière vue, métriques, version d'agent : le Hub pousse les changements en SSE, la page ne se recharge pas.
+
+---
+
+## Les cinq statuts
+
+| Statut | Signification |
+|--------|---------|
+| `pending` | Créé dans le tableau de bord, jeton pas encore utilisé |
+| `online` | Heartbeat reçu dans les 15 dernières secondes |
+| `offline` | Plus aucun heartbeat depuis plus de 15 secondes |
+| `paused` | Supervision coupée à la main. Heartbeats ignorés, pas d'alerte hors ligne |
+| `expired` | Jeton périmé (24 h) avant que l'agent s'enrôle |
+
+Un agent qui s'arrête : l'hôte passe de `online` à `offline` en 15 à 25 secondes (timeout 15 s, contrôle toutes les 10 s).
+
+---
+
+## Ajouter une machine
+
+1. **Add host**, en haut à droite de **Hosts**.
+2. Un nom.
+3. L'IP est facultative. Si vous en mettez une, le Hub prévient quand l'agent se connecte depuis ailleurs.
+4. Copiez le jeton, puis [installez l'agent](/fr/agent/install/linux/).
+
+Le jeton expire au bout de **24 heures**. Au-delà, statut `expired`. Un nouveau jeton se fabrique depuis la page de l'hôte.
+
+---
+
+## Page de détail
+
+Cliquez une ligne. Vous avez :
+
+- Tout en haut : nom, IP, OS, architecture, modèle CPU, RAM, uptime, version de l'agent
+- Jauges CPU, mémoire, disque — un point toutes les 30 secondes
+- Graphiques d'historique, sur la plage choisie
+- Onglet **Packages** : paquets installés et historique
+- Onglet **Containers** : métriques par conteneur, si elles sont activées
+- Onglet **Alerts** : incidents en cours et règles de cette machine
+- Section **Incidents** : historique
+
+---
+
+## Menu ⋯
+
+Sur la page de l'hôte :
+
+| Action | Effet |
+|--------|-------------|
+| **Rename** | Changer le nom affiché |
+| **Pause** | Couper la supervision, pas d'alerte hors ligne |
+| **Resume** | Reprendre après une pause |
+| **Update IP** | Enregistrer la nouvelle IP attendue |
+| **Dismiss IP mismatch** | Garder l'IP configurée, masquer l'écart |
+| **Dismiss reactivation** | Retirer le badge **Reactivated** |
+| **Regenerate token** | Nouveau jeton, pour réenrôler l'agent |
+| **Delete** | Effacer l'hôte et tout ce qui va avec (métriques, paquets, alertes) |
+
+---
+
+## Écart d'IP
+
+Une IP posée à la création : le Hub vérifie que l'agent arrive depuis cette adresse. Réseau changé, machine migrée : avertissement **IP mismatch**.
+
+Dans le menu **⋯** :
+- **Update IP** enregistre la nouvelle adresse et retire l'avertissement.
+- **Dismiss IP mismatch** garde l'ancienne IP, masque seulement l'avertissement.
+
+---
+
+## Réactivation
+
+Réinstaller l'agent sans supprimer l'hôte : le Hub reconnaît l'UUID déjà en base et rattache la machine à l'enregistrement existant. Pas de doublon. C'est la **réactivation**.
+
+Un badge **Reactivated** s'affiche. Une fois que c'est bien la machine attendue, **Dismiss reactivation** (menu **⋯**) le retire.
+
+---
+
+## Horloge décalée
+
+Plus de 5 minutes d'écart entre l'agent et le Hub : les requêtes gRPC sont refusées, bannière **Clock desync**.
+
+NTP doit tourner sur la machine (`timedatectl status` sous Linux). La bannière part toute seule au premier heartbeat valide.
+
+---
+
+<a id="pausing-a-host"></a>
+
+## Mettre en pause
+
+Pour une maintenance prévue. Pendant ce temps :
+- Les heartbeats ne comptent plus
+- L'hôte ne passe pas `offline`
+- Aucune alerte
+- Ni métriques ni inventaire
+- Les incidents ouverts sont **suspendus**, pas refermés
+
+**Resume** reprend la supervision. Les incidents suspendus restent ouverts : pas de fausse résolution.

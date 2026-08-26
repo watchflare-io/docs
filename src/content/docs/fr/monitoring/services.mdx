@@ -1,0 +1,66 @@
+---
+title: "Services systemd"
+description: "Unités systemd sur Linux : activées au boot ou actives, état, failed. Lecture D-Bus, sans systemctl."
+---
+
+import Callout from "@components/Callout.astro";
+
+Linux + systemd : l'agent dit quelles unités `.service` existent, si elles démarrent au boot, et si elles tournent. Onglet **Services** de la machine : ce qui doit tourner, ce qui est `failed`, le catalogue.
+
+<Callout type="info" title="Remarque">
+  **Linux avec systemd seulement.** macOS, Windows, Linux sans systemd : l'onglet **Services** reste vide.
+</Callout>
+
+---
+
+## Quelles unités
+
+Deux critères, l'union : **activée au boot**, ou **active maintenant**. Un service prévu pour durer, ou un qui tourne à cet instant.
+
+`disabled` et `inactive` en même temps : absent de la liste. Paquet installé, jamais lancé — ça n'apporte rien.
+
+Une instance de template (`systemd-fsck@dev-BOOT.service`) reprend l'activation du template (`systemd-fsck@.service`).
+
+---
+
+## Lecture D-Bus
+
+L'agent parle à systemd via **D-Bus**, sous l'utilisateur `watchflare`. Pas de `systemctl`, pas de journal, pas de root.
+
+**Inventaire** — nom, description, enabled : 60 s après le démarrage, puis toutes les **15 min**. Le Hub remplace le catalogue à chaque envoi.
+
+**Santé** — `active`, `failed`, etc. : toutes les **30 s**, poussé en SSE. Un service qui sort de l'ensemble (disabled, arrêté) disparaît en moins de 30 s.
+
+<Callout type="info" title="Remarque">
+  **Services** reste vide pendant une minute après le démarrage : le premier inventaire n'est pas encore là.
+</Callout>
+
+---
+
+## L'onglet Services
+
+Page de l'hôte, onglet **Services**. Chaque ligne :
+
+| Colonne | Contenu |
+|--------|-------------|
+| **Name** | Nom de l'unité (`nginx.service`). Survol : la description. |
+| **Enabled** | Unit file : `enabled`, `disabled`, `static`, `masked`… Un `-` si l'unité n'a pas de fichier (transitoire). |
+| **State** | `active`, `inactive` ou `failed`. |
+| **Substate** | `running`, `exited`, `dead`, `failed`… |
+| **Updated** | Dernière collecte. Vert tant que l'hôte remonte, ambre s'il s'arrête. Survol : date et heure. |
+
+Les `failed` sont mis en avant. Clic sur **State** : ils passent en haut. L'en-tête donne le total et le nombre de `failed`. Recherche par nom, tri sur n'importe quelle colonne, colonnes affichées au choix.
+
+---
+
+## Délais
+
+État : **30 s**, tout de suite à l'écran.
+
+Enabled, description, nouvelle unité : au plus tard **15 min**, ou au redémarrage de l'agent.
+
+Sortie de l'ensemble : **30 s**, au rapport de santé suivant.
+
+<Callout type="tip" title="Astuce">
+  Toutes les **Updated** à l'ambre alors que l'hôte est `online` ? L'agent ne remonte plus. Vérifiez `watchflare-agent` sur la machine.
+</Callout>

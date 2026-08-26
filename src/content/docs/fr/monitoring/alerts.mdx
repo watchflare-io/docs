@@ -1,0 +1,97 @@
+---
+title: "Alertes et notifications"
+description: "Incidents dans le tableau de bord : seuils, fenêtre de 5 minutes, états active / paused / resolved, canaux de notification."
+---
+
+import Callout from "@components/Callout.astro";
+
+Une métrique au-dessus du seuil, ou une machine hors ligne : Watchflare ouvre un incident et prévient. Contrôle toutes les 30 secondes. Seuils par défaut pour tout le parc ; une machine peut avoir les siens, onglet **Alerts**.
+
+Les types et les options : [règles d'alerte du Hub](/fr/hub/alerts/).
+
+<Callout type="info" title="Remarque">
+  L'e-mail demande un SMTP. **Settings → Notifications**. Voir [Notifications e-mail](/fr/hub/smtp/).
+</Callout>
+
+---
+
+## Ce qui peut alerter
+
+| Alerte | Condition | Unité |
+|-------|--------------|------|
+| **Host offline** | Plus de heartbeat depuis 15 secondes | Aucune |
+| **CPU usage** | CPU au-dessus du seuil | % |
+| **Memory usage** | Mémoire au-dessus du seuil | % |
+| **Disk usage** | Disque au-dessus du seuil | % |
+| **Load average (1 min)** | Charge 1 min au-dessus du seuil | Aucune |
+| **Load average (5 min)** | Charge 5 min au-dessus du seuil | Aucune |
+| **Load average (15 min)** | Charge 15 min au-dessus du seuil | Aucune |
+| **Temperature** | Température CPU au-dessus du seuil | °C |
+
+---
+
+## Où régler les seuils
+
+**Settings → Alerts** : défauts pour tout le parc, y compris les nouvelles machines.
+
+Pour une machine :
+1. Sa page de détail
+2. Onglet **Alerts**
+3. Types et seuils
+4. Enregistré tout de suite
+
+Les règles de la machine l'emportent.
+
+---
+
+## Fenêtre de durée
+
+Chaque règle a une **durée** (5 minutes par défaut). Le seuil doit rester franchi pendant toute la fenêtre. Un pic de vingt secondes ne suffit pas : pas d'incident, pas de notification.
+
+---
+
+## Incidents
+
+La fenêtre tenue : le Hub ouvre un **incident**.
+
+1. Une notification à l'**ouverture**.
+2. Une autre à la **résolution** (revenu sous le seuil, ou machine de retour).
+
+Onglet **Alerts** et section **Incidents** de l'hôte : début, fin, valeur qui a fait sauter le seuil.
+
+Trois états : **active** (toujours au-dessus), **paused** (hôte mis en pause pendant l'incident), **resolved**. **Pause** sur l'hôte **suspend** les incidents, au lieu de les refermer. Ils sortent de la liste active, badge paused. **Resume** les reprend tels quels. Voir [Mettre en pause](/fr/monitoring/hosts/#pausing-a-host).
+
+**/incidents** dans la barre : tout le parc, filtrable par état.
+
+---
+
+## Machine hors ligne
+
+**Host offline** part quand plus aucun heartbeat n'arrive depuis 15 secondes. Un heartbeat toutes les 5 secondes : environ trois manqués, et la machine passe `offline`.
+
+Retour d'un heartbeat : l'incident se referme tout seul.
+
+<Callout type="tip" title="Astuce">
+  Maintenance prévue : mettez l'hôte en pause, les alertes hors ligne ne partiront pas. Voir [Mettre en pause](/fr/monitoring/hosts/#pausing-a-host).
+</Callout>
+
+---
+
+## Température
+
+Uniquement les **machines physiques**. VM et conteneurs Docker : pas de capteurs, une alerte température ne partira jamais.
+
+---
+
+## Où partent les notifications
+
+Un ou plusieurs canaux : Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, HTTP, et le reste via [Shoutrrr](https://shoutrrr.nickfedor.com/). Tout se règle dans **Settings > Notifications**.
+
+Dans chaque message :
+- Nom de l'hôte et type d'alerte
+- Valeur et seuil
+- Heure d'ouverture ou de résolution
+
+**E-mail.** SMTP obligatoire. **Send test email** avant de compter dessus. Voir [Notifications e-mail](/fr/hub/smtp/).
+
+**Canaux.** Même contenu, n'importe quelle destination Shoutrrr. Voir [Canaux de notification](/fr/hub/notifications/).

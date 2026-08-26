@@ -1,0 +1,99 @@
+---
+title: "Métriques des conteneurs"
+description: "CPU, mémoire et réseau par conteneur, Docker et Podman. Onglet hôte, vue parc, Live et Stale."
+---
+
+import Callout from "@components/Callout.astro";
+
+CPU, mémoire, réseau **par conteneur** — Docker ou Podman. Rien n'est collecté tant que ce n'est pas activé sur l'agent.
+
+---
+
+<a id="enabling-container-metrics"></a>
+
+## L'activer
+
+Procédure complète : [Métriques Docker/Podman](/fr/agent/docker-metrics/).
+
+En bref :
+- **À l'installation :** `--containers` sur l'installeur ou `register`.
+- **Déjà installé :** `watchflare` dans le groupe `docker`, `container_metrics = true` dans `agent.conf`, redémarrage du service.
+
+---
+
+## Ce que l'agent remonte
+
+Uniquement les conteneurs **en cours d'exécution**, au même rythme que le système (30 s) :
+
+| Métrique | Description |
+|--------|-------------|
+| **CPU %** | Usage CPU, rapporté à tous les cœurs |
+| **Memory used** | Consommation actuelle |
+| **Memory limit** | Limite du conteneur, si elle est posée |
+| **Network RX** | Débit entrant (octets/s) |
+| **Network TX** | Débit sortant (octets/s) |
+
+Nom + image pour identifier. Un conteneur arrêté n'apparaît pas.
+
+<Callout type="info" title="Remarque">
+  Ces points partent tels quels, **sans passer par le WAL**. Hub injoignable : cette période est perdue. CPU, mémoire, disque et le reste du système restent dans le journal, rejoués à la reconnexion.
+</Callout>
+
+---
+
+## Onglet Containers
+
+Sur la page de l'hôte. L'onglet n'existe que si `container_metrics = true` et qu'au moins un lot est arrivé.
+
+Vous y voyez :
+- Le tableau des conteneurs en cours, CPU et mémoire du moment
+- Les graphiques (CPU, mémoire, réseau) sur la plage choisie
+
+Mêmes plages que le système. Voir [Métriques système](/fr/monitoring/metrics/#time-ranges-and-resolution).
+
+---
+
+## Vue parc
+
+**Containers** dans la barre latérale : une ligne par conteneur, toutes les machines. Pour trouver où tourne une image, comparer les ressources, ou voir ce qui tournait sur un hôte hors ligne.
+
+Trois cartes :
+
+| Carte | Signification |
+|------|---------|
+| **Containers** | Combien de conteneurs sont suivis |
+| **Live** | L'hôte est `online` et remonte |
+| **Stale** | L'hôte est hors ligne. Dernier état connu, plus forcément vrai |
+
+**Live** / **Stale** jugent l'**hôte**, pas le processus. L'hôte passe hors ligne : les lignes restent, marquées **Stale**. Elles ne sont pas retirées.
+
+### Filtres
+
+- **Search** : nom ou image.
+- **Host** : une machine.
+- **Runtime** : Docker, Podman, etc.
+- **Liveness** : **Live** ou **Stale**.
+
+Clic sur une ligne : tiroir avec l'image complète, les ports, la santé, les valeurs.
+
+<Callout type="info" title="Remarque">
+  Rafraîchissement toutes les 60 s, à part du SSE de la page hôte. Pas de conteneur arrêté. Pas d'hôte sans [métriques conteneurs](#enabling-container-metrics).
+</Callout>
+
+---
+
+## Prérequis
+
+- Docker Engine 23.0+ (API v1.44+) ou Podman avec un socket API compatible
+- Utilisateur `watchflare` dans le groupe `docker` (Linux)
+- Socket Docker `/var/run/docker.sock`, ou Podman `/run/podman/podman.sock`
+
+<Callout type="info" title="Remarque">
+  macOS (Docker Desktop ou Colima) : l'agent tourne sous le compte Homebrew. Ce compte voit déjà le socket. Pas de groupe à changer.
+</Callout>
+
+---
+
+## Agent dans un conteneur
+
+L'agent installé **dans** Docker ne voit pas le socket. Posez-le sur l'OS hôte, pas dans un conteneur applicatif.
