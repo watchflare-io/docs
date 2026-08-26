@@ -175,8 +175,8 @@ sudo systemctl start watchflare-hub
 
 ## Agent compatibility
 
-Agents do not need to be updated at the same time as the Hub. The Hub maintains backwards compatibility with older agents across minor versions. Check the [changelog](/changelog/) for any breaking changes that affect the agent protocol.
+The Hub and agent share a single version number and are released together. You do not have to update agents at the same time: the Hub stays compatible with older agents across minor versions. Check the [changelog](/changelog/) if a release notes a protocol break.
 
-Agents update independently. See [Update the Agent](/agent/update/).
+Agents update on their own schedule. See [Update the Agent](/agent/update/).
 
 To review or change Hub environment variables after an update, see the [Hub configuration reference](/hub/configuration/).

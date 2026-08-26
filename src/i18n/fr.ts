@@ -47,6 +47,7 @@ const fr: Translations = {
   'search.empty': 'Aucun résultat pour',
   'search.result': 'résultat',
   'search.results': 'résultats',
+  'search.resultsLabel': 'Résultats de recherche',
   'search.of': 'sur',
 
   // Fallback notice

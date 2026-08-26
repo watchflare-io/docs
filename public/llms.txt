@@ -36,10 +36,10 @@ Watchflare is a self-hosted alternative to cloud monitoring services like Datado
 Deploy the Hub with Docker Compose (5-minute quickstart at https://docs.watchflare.io/get-started/quickstart/), then install the agent on each host to monitor with a one-line curl command.
 
 **Does Watchflare require internet access?**
-No. The Hub and agents communicate only within your network. No external services are contacted.
+No internet is required for monitoring. The Hub and agents talk only on your network. Installers and `watchflare-agent update` fetch binaries from `get.watchflare.io` (and the GitHub API for version checks). Air-gapped installs can copy binaries by hand.
 
 **What database does Watchflare use?**
-TimescaleDB (PostgreSQL with time-series extensions). Metrics are stored in a hypertable partitioned by time, with continuous aggregates for efficient dashboard queries. Default retention is 30 days.
+TimescaleDB (PostgreSQL with time-series extensions). Metrics are stored in a hypertable partitioned by time, with continuous aggregates for dashboard queries. Raw samples are kept 24 hours; 10-minute aggregates 14 days; 15-minute 30 days; 2-hour 90 days; 8-hour aggregates 1 year.
 
 **How many hosts can Watchflare monitor?**
 Watchflare is designed to scale horizontally. The agent is lightweight (~10 MB binary, minimal CPU/memory footprint) and multiple agents can connect to a single Hub.
@@ -89,3 +89,6 @@ Yes. Watchflare is AGPL-3.0-licensed open-source software. This documentation si
 
 ## Changelog
 - [Release History](https://docs.watchflare.io/changelog/)
+
+## Full text
+- [llms-full.txt](https://docs.watchflare.io/llms-full.txt): complete English documentation in one file

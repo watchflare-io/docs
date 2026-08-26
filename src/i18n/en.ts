@@ -45,6 +45,7 @@ const en = {
   'search.empty': 'No results for',
   'search.result': 'result',
   'search.results': 'results',
+  'search.resultsLabel': 'Search results',
   'search.of': 'of',
 
   // Fallback notice

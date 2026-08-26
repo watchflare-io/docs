@@ -1,6 +1,6 @@
 {
   "name": "watchflare-docs",
-  "description": "Documentation site for Watchflare — self-hosted host monitoring",
+  "description": "Documentation site for Watchflare — this package version is the docs site, not Hub/Agent",
   "private": true,
   "packageManager": "pnpm@10.29.3",
   "type": "module",

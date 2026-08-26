@@ -33,13 +33,13 @@ sudo watchflare-agent update
 ```
 </CodeBlock>
 
-<Shell title="bash" code={`Watchflare Agent v0.35.0
+<Shell title="bash" code={`Watchflare Agent v0.40.0
 
 Checking for updates...
-Update available: v0.35.0 → v0.36.0
+Update available: v0.40.0 → v0.40.1
 
-Downloading v0.36.0...
-✓ Updated to v0.36.0
+Downloading v0.40.1...
+✓ Updated to v0.40.1
 ✓ Service restarted`} />
 
 Savoir s'il y a quelque chose de nouveau, sans l'installer :
@@ -88,7 +88,7 @@ watchflare-agent version
 Sortie :
 
 ```
-Watchflare Agent v0.36.0
+Watchflare Agent v0.40.1
 ```
 
 La même version apparaît sur la page de l'hôte, dans le Hub.
@@ -97,6 +97,6 @@ La même version apparaît sur la page de l'hôte, dans le Hub.
 
 ## Compatibilité Hub / Agent
 
-Les deux ont leur propre numéro de version. Un écart d'une mineure (Hub v0.34, agent v0.33) fonctionne en général. Si le Hub ajoute une métrique ou un RPC, les agents plus anciens l'ignorent et continuent de remonter le reste.
+Le Hub et l'Agent ont le même numéro de version. Ils sont publiés en même temps. Un agent plus ancien continue de parler à un Hub plus récent d'une mineure à l'autre : les métriques ou RPC inconnus sont simplement omis. Le [changelog](/fr/changelog/) signale un changement incompatible s'il y en a un.
 
 Gardez tout de même les agents à jour : correctifs et nouveaux collecteurs.

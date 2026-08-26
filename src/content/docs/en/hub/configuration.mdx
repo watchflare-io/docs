@@ -15,7 +15,7 @@ The Hub is configured entirely through environment variables. When deployed with
 | Variable | Min length | Required | Description |
 |----------|-----------|----------|-------------|
 | `POSTGRES_PASSWORD` | None | Yes | Password for the TimescaleDB instance. No minimum length is enforced, but use a strong random value. |
-| `JWT_SECRET` | 32 chars | Yes | Signs and verifies user session cookies. Hub exits on startup if missing or too short. |
+| `JWT_SECRET` | 32 chars | Yes | Signs user session cookies and encrypts TOTP secrets for 2FA. Hub exits on startup if missing or too short. |
 | `NOTIFICATION_ENCRYPTION_KEY` | 32 chars | For notifications | Encrypts SMTP credentials and notification channel URLs (Discord, Slack, etc.) stored in the database. Hub starts without it but notification storage will be unavailable. Exits if set but too short. |
 
 Generate all three with:

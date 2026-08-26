@@ -15,7 +15,7 @@ Le Hub se configure uniquement par variables d'environnement. Avec Docker Compos
 | Variable | Longueur min. | Obligatoire | Description |
 |----------|-----------|----------|-------------|
 | `POSTGRES_PASSWORD` | Aucune | Oui | Mot de passe de l'instance TimescaleDB. Pas de longueur minimale imposée : prenez une valeur aléatoire solide. |
-| `JWT_SECRET` | 32 caractères | Oui | Signe et vérifie les cookies de session. Le Hub s'arrête au démarrage s'il manque ou s'il est trop court. |
+| `JWT_SECRET` | 32 caractères | Oui | Signe les cookies de session et chiffre les secrets TOTP. Le Hub s'arrête au démarrage s'il manque ou s'il est trop court. |
 | `NOTIFICATION_ENCRYPTION_KEY` | 32 caractères | Pour les notifications | Chiffre les identifiants SMTP et les URL des canaux (Discord, Slack, etc.) stockés en base. Le Hub démarre sans, mais le stockage des notifications sera indisponible. S'arrête si la valeur est trop courte. |
 
 Générez les trois avec :

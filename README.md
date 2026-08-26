@@ -59,3 +59,5 @@ Without a French MDX file, `/fr/...` serves the English page with a fallback not
 
 [MIT](LICENSE) — documentation and site source code only.
 The Watchflare application itself is licensed under [AGPL-3.0](https://github.com/watchflare-io/watchflare/blob/main/LICENSE).
+
+The `version` field in `package.json` is this documentation site, not Watchflare Hub or Agent.
