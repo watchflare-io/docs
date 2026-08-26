@@ -16,8 +16,8 @@ Explications, pièges, fichier complet : [Référence de configuration](/fr/hub/
 | Variable | Longueur min. | Description |
 |----------|-----------|-------------|
 | `POSTGRES_PASSWORD` | Aucune | Mot de passe TimescaleDB. Le binaire retombe sur `watchflare_dev` si elle manque : pas en production. Compose l'exige (`:?`). |
-| `JWT_SECRET` | 32 caractères | Cookies de session et secrets TOTP. **Absente ou trop courte : le Hub refuse de démarrer.** La changer jette les sessions et casse le 2FA. |
-| `NOTIFICATION_ENCRYPTION_KEY` | 32 caractères | Chiffre SMTP et URL des canaux, au repos. Sur le binaire, on peut s'en passer (plus de stockage de notifications). **Dans le Compose, elle est obligatoire** (`:?`), même sans canal prévu. Posée mais trop courte : le Hub s'arrête. |
+| `JWT_SECRET` | 32 caractères | Signe les cookies de session et chiffre les secrets TOTP. **Absente ou trop courte : le Hub refuse de démarrer.** La changer invalide les sessions et désactive le 2FA des comptes déjà inscrits. |
+| `NOTIFICATION_ENCRYPTION_KEY` | 32 caractères | Chiffre SMTP et URL des canaux, au repos. Facultative sur le binaire : le stockage des notifications est alors désactivé. **Dans le Compose, elle est obligatoire** (`:?`), même sans canal prévu. Posée mais trop courte : le Hub s'arrête. |
 
 ---
 
@@ -59,7 +59,7 @@ Explications, pièges, fichier complet : [Référence de configuration](/fr/hub/
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `COOKIE_SECURE` | *(auto)* | Force `Secure` (`true` / `false`). Vide = détection automatique, c'est le bon choix. |
+| `COOKIE_SECURE` | *(auto)* | Force `Secure` (`true` / `false`). Ne pas poser la variable = détection automatique, c'est le bon choix. |
 | `COOKIE_DOMAIN` | *(vide)* | Votre domaine, derrière un reverse proxy |
 | `TRUSTED_PROXIES` | `127.0.0.1,::1` | IP autorisées à poser `X-Forwarded-Proto` |
 
@@ -77,8 +77,8 @@ Explications, pièges, fichier complet : [Référence de configuration](/fr/hub/
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `ENV` | `development` | Mettez `production` une fois déployé. Gin passe en release. Compose le pose. |
-| `CORS_ORIGINS` | `http://localhost:5173` | Origines CORS. Inutile dès que le frontend est embarqué (Docker, binaire). |
+| `ENV` | `development` | Mettez `production` une fois déployé. Gin passe en mode production. Compose le pose. |
+| `CORS_ORIGINS` | `http://localhost:5173` | Origines CORS. Inutile dès que l'interface est embarquée (Docker, binaire). |
 
 ---
 

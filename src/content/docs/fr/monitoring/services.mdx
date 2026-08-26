@@ -1,11 +1,11 @@
 ---
 title: "Services systemd"
-description: "Unités systemd sur Linux : activées au boot ou actives, état, failed. Lecture D-Bus, sans systemctl."
+description: "Unités systemd sur Linux : activées au démarrage ou actives, état, failed. Lecture D-Bus, sans systemctl."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Linux + systemd : l'agent dit quelles unités `.service` existent, si elles démarrent au boot, et si elles tournent. Onglet **Services** de la machine : ce qui doit tourner, ce qui est `failed`, le catalogue.
+Linux + systemd : l'agent dit quelles unités `.service` existent, si elles démarrent au démarrage, et si elles tournent. Onglet **Services** de la machine : ce qui doit tourner, ce qui est `failed`, le catalogue.
 
 <Callout type="info" title="Remarque">
   **Linux avec systemd seulement.** macOS, Windows, Linux sans systemd : l'onglet **Services** reste vide.
@@ -15,11 +15,11 @@ Linux + systemd : l'agent dit quelles unités `.service` existent, si elles dém
 
 ## Quelles unités
 
-Deux critères, l'union : **activée au boot**, ou **active maintenant**. Un service prévu pour durer, ou un qui tourne à cet instant.
+Deux critères, l'union : **activée au démarrage**, ou **active maintenant**. Un service prévu pour durer, ou un qui tourne à cet instant.
 
 `disabled` et `inactive` en même temps : absent de la liste. Paquet installé, jamais lancé — ça n'apporte rien.
 
-Une instance de template (`systemd-fsck@dev-BOOT.service`) reprend l'activation du template (`systemd-fsck@.service`).
+Une instance de template (`systemd-fsck@dev-BOOT.service`) hérite de l'état enabled du template (`systemd-fsck@.service`).
 
 ---
 
@@ -29,7 +29,7 @@ L'agent parle à systemd via **D-Bus**, sous l'utilisateur `watchflare`. Pas de 
 
 **Inventaire** — nom, description, enabled : 60 s après le démarrage, puis toutes les **15 min**. Le Hub remplace le catalogue à chaque envoi.
 
-**Santé** — `active`, `failed`, etc. : toutes les **30 s**, poussé en SSE. Un service qui sort de l'ensemble (disabled, arrêté) disparaît en moins de 30 s.
+**Santé** — `active`, `failed`, etc. : toutes les **30 s**, poussé en SSE. Un service qui quitte l'ensemble suivi (non enabled et désormais arrêté) disparaît en 30 s.
 
 <Callout type="info" title="Remarque">
   **Services** reste vide pendant une minute après le démarrage : le premier inventaire n'est pas encore là.
@@ -47,7 +47,7 @@ Page de l'hôte, onglet **Services**. Chaque ligne :
 | **Enabled** | Unit file : `enabled`, `disabled`, `static`, `masked`… Un `-` si l'unité n'a pas de fichier (transitoire). |
 | **State** | `active`, `inactive` ou `failed`. |
 | **Substate** | `running`, `exited`, `dead`, `failed`… |
-| **Updated** | Dernière collecte. Vert tant que l'hôte remonte, ambre s'il s'arrête. Survol : date et heure. |
+| **Updated** | Dernière collecte. Vert tant que l'hôte remonte des données, ambre s'il arrête de remonter. Survol : date et heure. |
 
 Les `failed` sont mis en avant. Clic sur **State** : ils passent en haut. L'en-tête donne le total et le nombre de `failed`. Recherche par nom, tri sur n'importe quelle colonne, colonnes affichées au choix.
 

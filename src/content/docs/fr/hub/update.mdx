@@ -1,6 +1,6 @@
 ---
 title: "Mettre à jour le Hub Watchflare"
-description: "Mettez à jour le Hub Watchflare via Docker Compose ou le binaire systemd. Sauvegarde avant upgrade, migrations automatiques, pinning de version, rollback."
+description: "Mettez à jour le Hub Watchflare via Docker Compose ou le binaire systemd. Sauvegarde avant mise à jour, migrations automatiques, version figée, retour arrière."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -17,7 +17,7 @@ docker exec watchflare-postgres pg_dump -U watchflare watchflare > watchflare-pr
 ```
 </CodeBlock>
 
-En install binaire avec un TimescaleDB à part, `pg_dump` en direct :
+En installation binaire avec un TimescaleDB à part, `pg_dump` en direct :
 
 <CodeBlock lang="bash">
 ```bash
@@ -69,7 +69,7 @@ docker compose logs watchflare --tail 30
 
 Cherchez `HTTP server starting` et `gRPC server starting`. Les migrations, s'il y en a eu, sont juste au-dessus. Ouvrez le tableau de bord : il répond, machines et métriques toujours là.
 
-### Épingler une version
+### Figer une version
 
 Par défaut, `docker-compose.yml` pointe sur `latest`. Pour figer une version, changez le tag :
 
@@ -92,22 +92,22 @@ docker compose up -d
 
 En production, figer le tag évite qu'un pull automatique bascule tout seul.
 
-### Rollback (Docker)
+### Retour arrière (Docker)
 
-Revenir en arrière **n'est pas prévu**. Les migrations s'ajoutent, dans un seul sens. Une image plus ancienne sur une base déjà migrée peut planter, ou faire n'importe quoi.
+Revenir à une image plus ancienne **n'est pas pris en charge**. Les migrations s'ajoutent, dans un seul sens. Une image plus ancienne sur une base déjà migrée peut échouer, ou se comporter de façon inattendue.
 
-Pour rétrograder, restaurez le dump pris avant la mise à jour :
+Pour un retour arrière, restaurez le dump pris avant la mise à jour :
 
 <CodeBlock lang="bash">
 ```bash
-# Stop the Hub
+# Arrêter le Hub
 docker compose down
 
-# Restore the database
+# Restaurer la base
 docker compose up -d watchflare-postgres
 docker exec -i watchflare-postgres psql -U watchflare watchflare < watchflare-pre-update.sql
 
-# Pin to the previous image version in docker-compose.yml, then start
+# Figer l'ancienne version d'image dans docker-compose.yml, puis démarrer
 docker compose up -d
 ```
 </CodeBlock>
@@ -149,7 +149,7 @@ journalctl -u watchflare-hub --since "1 minute ago"
 
 Cherchez `HTTP server starting` et `gRPC server starting`. Le binaire lance les migrations embarquées tout seul au démarrage.
 
-### Rollback (binaire)
+### Retour arrière (binaire)
 
 Arrêtez le service, restaurez le dump, réinstallez l'ancien binaire, redémarrez :
 
@@ -177,7 +177,7 @@ sudo systemctl start watchflare-hub
 
 ## Compatibilité des agents
 
-Le Hub et l'Agent ont le même numéro de version et sont publiés en même temps. Pas besoin de mettre à jour les agents au même moment : le Hub reste compatible avec les agents plus anciens d'une mineure à l'autre. Le [changelog](/fr/changelog/) signale un changement incompatible s'il y en a un.
+Le Hub et l'Agent ont le même numéro de version et sont publiés en même temps. Pas besoin de mettre à jour les agents au même moment : le Hub reste compatible avec les agents plus anciens, d'une version mineure à l'autre. Le [changelog](/fr/changelog/) signale un changement incompatible s'il y en a un.
 
 Les agents se mettent à jour chacun de leur côté. Voir [Mettre à jour l'Agent](/fr/agent/update/).
 

@@ -58,7 +58,7 @@ Le Hub ne lit explicitement qu'un en-tête :
 |--------|-------|---------|
 | `X-Forwarded-Proto` | `https` | **Obligatoire.** C'est lui qui déclenche le flag `Secure`. |
 | `Host` | `watchflare.example.com` | Recommandé. Usage habituel derrière un proxy. |
-| `X-Real-IP` | IP client | Recommandé. Sert au framework pour l'IP du visiteur. |
+| `X-Real-IP` | IP client | Recommandé. Sert à résoudre l'IP du visiteur. |
 | `X-Forwarded-For` | IP client | Recommandé. Pareil. |
 
 Config Caddy, Nginx, Traefik : [Reverse proxy](/fr/hub/reverse-proxy/).

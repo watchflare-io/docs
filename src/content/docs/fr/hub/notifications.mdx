@@ -5,7 +5,7 @@ description: "Envoyez les alertes vers Discord, Slack, Telegram, Matrix, Ntfy, G
 
 import Callout from "@components/Callout.astro";
 
-Watchflare envoie alertes et résolutions par un ou plusieurs **canaux**, via [Shoutrrr](https://shoutrrr.nickfedor.com/). Chaque canal est une URL vers une destination (webhook Discord, Incoming Webhook Slack, boîte SMTP, bot Telegram…). Tout se gère dans **Settings > Notifications**.
+Watchflare envoie alertes et résolutions par un ou plusieurs **canaux**, via [Shoutrrr](https://shoutrrr.nickfedor.com/). Chaque canal est une URL Shoutrrr vers une seule destination (webhook Discord, Incoming Webhook Slack, boîte SMTP, bot Telegram…). Tout se gère dans **Settings > Notifications**.
 
 <Callout type="info" title="Remarque">
   Shoutrrr parle à 26+ services sans rien installer. Ci-dessous les plus courants, avec des URL à coller. Liste complète : [services Shoutrrr](https://shoutrrr.nickfedor.com/services/overview/).
@@ -28,7 +28,7 @@ Vous pouvez en ajouter plusieurs. Chaque canal activé reçoit, de son côté, t
 
 ## Catégories de notification
 
-Chaque canal s'abonne à une ou plusieurs **catégories**, via les cases du tiroir Add ou Edit. Il ne reçoit une notif que s'il est abonné à sa catégorie : supervision d'un côté, sécurité du compte de l'autre.
+Chaque canal s'abonne à une ou plusieurs **catégories**, via les cases du tiroir Add ou Edit. Il ne reçoit une notification que s'il est abonné à sa catégorie : supervision d'un côté, sécurité du compte de l'autre.
 
 | Catégorie | Couverture |
 |----------|----------------|
@@ -38,7 +38,7 @@ Chaque canal s'abonne à une ou plusieurs **catégories**, via les cases du tiro
 Sans catégorie, le canal ne reçoit rien. Les deux cases peuvent être cochées.
 
 <Callout type="info" title="Remarque">
-  Le [SMTP dédié](/fr/hub/smtp/) a le même sélecteur : **Alerts** pour les alertes, **Transactional** pour le compte et la sécu. Cet expéditeur n'est pas un canal `smtp://` ajouté ici — celui-là se comporte comme n'importe quel canal Shoutrrr.
+  Le [SMTP dédié](/fr/hub/smtp/) a le même sélecteur : **Alerts** pour les alertes, **Transactional** pour le compte et la sécurité. Cet expéditeur n'est pas un canal `smtp://` ajouté ici — celui-là se comporte comme n'importe quel canal Shoutrrr.
 </Callout>
 
 ---
@@ -53,7 +53,7 @@ En plus des alertes de supervision, le Hub vous prévient des changements de sé
 
 | Événement | Quand | Détails |
 |-------|---------------|------------------|
-| **New login** | Connexion réussie, y compris après un challenge 2FA | Heure, IP, appareil (user agent) |
+| **New login** | Connexion réussie, y compris après une étape 2FA | Heure, IP, appareil (user agent) |
 | **Password changed** | Mot de passe du compte modifié | Heure |
 | **Two-factor enabled** | 2FA activé | Heure |
 | **Two-factor disabled** | 2FA désactivé | Heure |
@@ -63,11 +63,11 @@ En plus des alertes de supervision, le Hub vous prévient des changements de sé
 Changer d'e-mail envoie deux messages : un vers l'ancienne adresse (un compte compromis ne peut pas échanger l'adresse en silence), un vers la nouvelle.
 
 <Callout type="info" title="Remarque">
-  Ces notifications partent en arrière-plan, sans garantie. Elles ne bloquent jamais l'action : si rien n'est abonné à **Transactional**, l'événement a lieu quand même, sans message.
+  Ces notifications partent en arrière-plan, sans garantie. Elles ne bloquent jamais l'action, et un échec d'envoi ne la fait pas échouer non plus : si rien n'est abonné à **Transactional**, l'événement a lieu quand même, sans message.
 </Callout>
 
 <Callout type="warn" title="Attention">
-  L'IP d'une notification de connexion est celle vue par le Hub. Derrière un reverse proxy, elle n'est juste que si le proxy pose les en-têtes forwarded, et que le Hub les croit. Voir [Reverse proxy](/fr/hub/reverse-proxy/).
+  L'IP d'une notification de connexion est celle vue par le Hub. Derrière un reverse proxy, elle n'est exacte que si le proxy pose les en-têtes forwarded, et que le Hub est configuré pour leur faire confiance. Voir [Reverse proxy](/fr/hub/reverse-proxy/).
 </Callout>
 
 ---
@@ -131,7 +131,7 @@ Utilisez un compte Matrix dédié au Hub. L'ID de salon se trouve dans les régl
 
 **Format :** `ntfy://{username}:{password}@{host}/{topic}`
 
-Topic public ntfy.sh sans auth : `ntfy://ntfy.sh/{topic}`.
+Topic public ntfy.sh sans authentification : `ntfy://ntfy.sh/{topic}`.
 
 ---
 
@@ -167,7 +167,7 @@ Le Hub envoie un POST JSON avec les champs `title` et `message`. Pour tout servi
 
 ## Tester avant d'enregistrer
 
-Le bouton **Test** du tiroir Add ou Edit envoie une notif unique avec l'URL du formulaire, **sans rien enregistrer**. Validez l'URL avant **Create** ou **Save**.
+Le bouton **Test** du tiroir Add ou Edit envoie une notification unique avec l'URL du formulaire, **sans rien enregistrer**. Validez l'URL avant **Create** ou **Save**.
 
 Le même bouton marche sur un canal déjà enregistré : si le champ URL est vide à l'édition, le test utilise l'URL stockée.
 
@@ -194,7 +194,7 @@ Le même bouton marche sur un canal déjà enregistré : si le champ URL est vid
 
 ## Mise à niveau depuis v0.37 ou antérieur
 
-La table `webhook_endpoints` des anciennes versions disparaît à l'upgrade. L'URL était native (URL Discord complète) ; Shoutrrr attend une forme compacte (`discord://TOKEN@WEBHOOK_ID`). Réajoutez vos destinations dans **Settings > Notifications** après l'upgrade.
+La table `webhook_endpoints` des anciennes versions disparaît à la mise à niveau. L'URL était native (URL Discord complète) ; Shoutrrr attend une forme compacte (`discord://TOKEN@WEBHOOK_ID`). Réajoutez vos destinations dans **Settings > Notifications** après la mise à niveau.
 
 `SMTP_ENCRYPTION_KEY` devient `NOTIFICATION_ENCRYPTION_KEY`. Renommez-la dans le `.env` avant de démarrer v0.38 ou plus.
 

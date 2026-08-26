@@ -30,7 +30,7 @@ Un point toutes les 30 secondes, envoyé au Hub. La page de l'hôte l'affiche to
 
 | Métrique | Unité | Notes |
 |--------|------|-------|
-| Used | octets | Mémoire vraiment utilisée |
+| Used | octets | Mémoire active (pas buffers ni cache) |
 | Available | octets | Disponible pour les applis, sans passer par le swap |
 | Buffers | octets | Cache buffers du noyau. Linux uniquement. |
 | Cached | octets | Page cache. Linux uniquement. |
@@ -42,7 +42,7 @@ Un point toutes les 30 secondes, envoyé au Hub. La page de l'hôte l'affiche to
 | Total | octets |
 | Used | octets |
 
-Pas de swap dans un conteneur.
+Les métriques swap ne sont pas remontées dans un conteneur.
 
 ### Disque
 

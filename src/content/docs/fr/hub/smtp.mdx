@@ -1,6 +1,6 @@
 ---
 title: "Notifications e-mail (SMTP)"
-description: "Réglez le SMTP dans Watchflare Settings pour envoyer les alertes par e-mail. Chiffrement, auth, stockage AES-256-GCM, message de test."
+description: "Réglez le SMTP dans Watchflare Settings pour envoyer les alertes par e-mail. Chiffrement, authentification, stockage AES-256-GCM, message de test."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -61,11 +61,11 @@ Aucune case cochée : le SMTP reste configuré mais n'envoie rien. Même logique
 
 | Mode | Port typique | Description |
 |------|-------------|-------------|
-| `starttls` | `587` | Connexion en clair, puis STARTTLS. C'est le défaut à prendre. |
+| `starttls` | `587` | Connexion en clair, puis passage en TLS via STARTTLS. C'est le défaut à prendre. |
 | `tls` | `465` | TLS dès la connexion. |
 | `none` | `25` | Pas de chiffrement. Uniquement sur un réseau interne de confiance. |
 
-### Auth
+### Authentification
 
 | Type | Quand |
 |------|-------------|
@@ -76,10 +76,10 @@ Aucune case cochée : le SMTP reste configuré mais n'envoie rien. Même logique
 
 ## Tester
 
-Avant d'activer les alertes, cliquez **Send test email** dans Settings. Un message part vers l'e-mail de votre compte : connexion et identifiants sont bons.
+Avant d'activer les alertes, cliquez **Send test email** dans Settings. Un message part vers l'e-mail de votre compte, pour confirmer que la connexion et les identifiants fonctionnent.
 
 <Callout type="tip" title="Astuce">
-  Si le test échoue, alignez le port sur le mode de chiffrement, et vérifiez que le SMTP accepte l'IP du Hub. Certains fournisseurs demandent une allowlist.
+  Si le test échoue, alignez le port sur le mode de chiffrement, et vérifiez que le SMTP accepte l'IP du Hub. Certains fournisseurs demandent une liste d'IP autorisées.
 </Callout>
 
 ---

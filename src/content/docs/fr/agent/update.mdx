@@ -25,7 +25,7 @@ brew services restart watchflare-agent
 
 ## Linux
 
-La commande `update` est dans le binaire. Elle interroge l'API GitHub, télécharge depuis `get.watchflare.io`, vérifie le SHA-256, puis confie le remplacement à un service systemd qui a les droits : le binaire est remplacé, le service redémarre.
+La commande `update` est dans le binaire. Elle interroge l'API GitHub pour la dernière version, télécharge le binaire depuis `get.watchflare.io`, vérifie la somme SHA-256, puis confie le remplacement à un service systemd qui a les droits : le binaire est remplacé, le service redémarre.
 
 <CodeBlock lang="bash">
 ```bash
@@ -42,7 +42,7 @@ Downloading v0.40.1...
 ✓ Updated to v0.40.1
 ✓ Service restarted`} />
 
-Savoir s'il y a quelque chose de nouveau, sans l'installer :
+Vérifier si une mise à jour est disponible, sans l'installer :
 
 <CodeBlock lang="bash">
 ```bash
@@ -71,9 +71,9 @@ brew services restart watchflare-agent
 
 ## Mises à jour depuis le tableau de bord (Linux)
 
-Sous Linux, un path unit systemd peut enchaîner tout seul. Page de l'hôte → **Update agent**. Le Hub envoie l'ordre au heartbeat suivant. L'agent télécharge, installe, redémarre. Rien à faire sur la machine.
+Sous Linux, les mises à jour automatiques passent par un path unit systemd. Page de l'hôte → **Update agent**. Le Hub envoie l'ordre au heartbeat suivant. L'agent télécharge, installe, redémarre. Rien à faire sur la machine.
 
-La page de chaque hôte affiche la version de l'agent. Les versions en retard sont signalées.
+La page de chaque hôte affiche la version de l'agent. Les hôtes en retard de version sont signalés.
 
 ---
 
@@ -97,6 +97,6 @@ La même version apparaît sur la page de l'hôte, dans le Hub.
 
 ## Compatibilité Hub / Agent
 
-Le Hub et l'Agent ont le même numéro de version. Ils sont publiés en même temps. Un agent plus ancien continue de parler à un Hub plus récent d'une mineure à l'autre : les métriques ou RPC inconnus sont simplement omis. Le [changelog](/fr/changelog/) signale un changement incompatible s'il y en a un.
+Le Hub et l'Agent ont le même numéro de version. Ils sont publiés en même temps. Un agent plus ancien continue de parler à un Hub plus récent, d'une version mineure à l'autre : les métriques ou RPC inconnus sont simplement omis. Le [changelog](/fr/changelog/) signale un changement incompatible s'il y en a un.
 
 Gardez tout de même les agents à jour : correctifs et nouveaux collecteurs.

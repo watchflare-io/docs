@@ -1,11 +1,11 @@
 ---
 title: "Architecture et sécurité"
-description: "Comment s'emboîtent les composants Watchflare : les agents remontent en gRPC/TLS 1.3 vers le Hub, qui stocke dans TimescaleDB et pousse les mises à jour au navigateur via SSE."
+description: "Comment les composants de Watchflare s'articulent entre eux : les agents transmettent leurs données via gRPC/TLS 1.3 au Hub, qui stocke les métriques dans TimescaleDB et diffuse des mises à jour en temps réel via SSE."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Watchflare tient en quatre blocs : les agents, le Hub, une base time-series, et un tableau de bord dans le navigateur, alimenté par Server-Sent Events.
+Watchflare tient en quatre blocs : les agents, le Hub, une base de séries temporelles, et un tableau de bord accessible via un navigateur, alimenté par Server-Sent Events (SSE).
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -30,34 +30,34 @@ Watchflare tient en quatre blocs : les agents, le Hub, une base time-series, et 
 
 ### Hub
 
-Le Hub est un binaire Go unique. Le frontend est embarqué. Deux ports :
+Le Hub est un seul binaire Go : l'interface est embarquée, deux ports ouverts :
 
-- **`:8080`** — API HTTP, tableau de bord, flux SSE
-- **`:50051`** — serveur gRPC : heartbeats, métriques et inventaire de paquets
+- **`:8080`** : API HTTP, tableau de bord web et flux SSE
+- **`:50051`** : serveur gRPC — heartbeats, métriques et inventaire des paquets
 
-À ses côtés, **TimescaleDB** (PostgreSQL avec extensions time-series) assure le stockage. Les deux tournent en conteneurs Docker.
+Le Hub tourne avec une instance **TimescaleDB** (PostgreSQL avec extensions time-series) pour le stockage. Les deux se déploient en conteneurs Docker.
 
 ### Agent
 
-L'agent est un démon Go léger, installé sur chaque machine surveillée. Il ne parle qu'en sortie : aucun port ouvert en entrée. Sous Linux, utilisateur système dédié (`watchflare`). Sous macOS, Homebrew le lance sous le compte courant.
+L'agent est un démon Go léger, sur chaque hôte surveillé. Il n'ouvre aucun port : il n'établit que des connexions sortantes. Sous Linux, utilisateur système `watchflare`. Sous macOS, Homebrew, compte courant.
 
-Cinq boucles, indépendantes :
+L'agent fait tourner ces boucles indépendamment :
 
 | Boucle | Intervalle | Rôle |
 |------|----------|--------------|
-| Heartbeat | 5 s | Signal de présence, avec les IP actuelles |
-| Métriques | 30 s | Collecte et envoi des métriques système |
-| Inventaire des paquets | 60 s après le démarrage, puis tous les jours à 03:00 | Scan des paquets, envoi du delta |
-| Inventaire des services | 60 s après le démarrage, puis toutes les 15 min | Catalogue des unités systemd (Linux + systemd uniquement) |
-| Santé des services | 30 s | État des services systemd (Linux + systemd uniquement) |
+| Heartbeat | 5 s | Envoie un ping de présence avec les adresses IP actuelles |
+| Métriques | 30 s | Collecte et envoie les métriques système |
+| Inventaire des paquets | 60 s après le démarrage, puis quotidiennement à 03 h 00 | Analyse les paquets installés, envoie les modifications |
+| Inventaire des services | 60 s après le démarrage, puis toutes les 15 min | Répertorie les unités systemd (Linux avec systemd uniquement) |
+| État des services | 30 s | Signale l'état en temps réel des services systemd (Linux avec systemd uniquement) |
 
 ### Base de données
 
-TimescaleDB range les métriques dans une hypertable découpée automatiquement par le temps. Des agrégats continus précalculent des intervalles de 10 min, 15 min, 2 h et 8 h. Sur les plages longues, le tableau de bord lit ces agrégats, pas les lignes brutes.
+TimescaleDB stocke les métriques dans une « hypertable » automatiquement partitionnée par intervalle de temps. Les agrégats continus précalculent des tranches de 10 minutes, 15 minutes, 2 heures et 8 heures. Le Hub interroge ces agrégats plutôt que les lignes brutes pour les plages de temps plus longues.
 
 ### Tableau de bord
 
-Le frontend (SvelteKit) tient une connexion SSE persistante vers le Hub. Statut des hôtes, métriques, agrégats : tout arrive en événements. La page n'interroge jamais le serveur.
+L'interface (SvelteKit) tient une connexion SSE persistante vers le Hub. Statut des hôtes, métriques, agrégats : tout arrive en événements. Pas d'interrogation périodique.
 
 ---
 
@@ -78,7 +78,7 @@ SyncWorker (every 5min):
   flush cache (status, last_seen, IPs) ──▶  database
 ```
 
-À chaque heartbeat, le Hub met à jour le cache mémoire et envoie tout de suite un événement SSE au tableau de bord. Pas d'écriture en base à ce moment-là. Les identifiants sont vérifiés en une seule lecture. Toutes les 5 minutes, le SyncWorker recopie statut, horodatages et IP vers la base. Si le StaleChecker ne voit plus de heartbeat depuis plus de 15 s, il marque l'agent hors ligne dans le cache et diffuse l'événement immédiatement.
+À chaque heartbeat, le Hub met à jour le cache mémoire et envoie tout de suite un événement SSE au tableau de bord. Pas d'écriture en base à ce moment-là. Les identifiants sont vérifiés en une seule lecture. Toutes les 5 minutes, le SyncWorker recopie statut, horodatages et IP vers la base. Si le StaleChecker ne voit plus de heartbeat depuis plus de 15 s, il marque l'agent hors ligne dans le cache et diffuse l'événement hors ligne directement, sans passer par la base.
 
 ### Collecte des métriques
 
@@ -94,7 +94,7 @@ Hub:
   → SSE metrics_update → browser
 ```
 
-Si le Hub est injoignable, les métriques s'accumulent dans le journal d'écriture anticipée (WAL) de l'agent. Dès que la connexion revient, tout le journal est rejoué dans l'ordre, avant les nouvelles mesures.
+Si le Hub est injoignable, les métriques s'accumulent dans le WAL de l'agent. À la prochaine connexion réussie, les points en attente sont rejoués dans l'ordre, puis les nouvelles métriques partent.
 
 ### Inventaire des paquets
 
@@ -104,7 +104,7 @@ Agent (60s after start, then daily at 03:00):
   Next runs  → delta only       → Hub processes added/removed/updated
 ```
 
-Après le premier inventaire complet, seuls les écarts partent. Les envois quotidiens restent petits, même avec des milliers de paquets.
+Après le premier inventaire complet, seules les modifications partent. Les envois quotidiens restent petits, quel que soit le nombre de paquets.
 
 ### Services systemd (Linux)
 
@@ -114,11 +114,11 @@ Agent (systemd hosts only):
   Health (every 30s)                              → live unit state   → SSE → browser
 ```
 
-L'agent lit systemd via D-Bus, en utilisateur sans privilèges — jamais via `systemctl`. La boucle de santé retire en moins de 30 secondes un service qui sort de l'ensemble suivi. Voir [services systemd](/fr/monitoring/services/).
+L'agent lit systemd via D-Bus, en utilisateur sans privilèges — jamais via `systemctl`. La boucle de santé retire en moins de 30 secondes un service qui n'est plus suivi. Voir [services systemd](/fr/monitoring/services/).
 
 ### Enregistrement d'un agent
 
-Une seule fois, pour établir la confiance entre l'agent et le Hub :
+L'enregistrement n'a lieu qu'une fois : il établit la confiance entre l'agent et le Hub.
 
 ```
 1. Admin creates a host in the dashboard
@@ -139,9 +139,9 @@ Une seule fois, pour établir la confiance entre l'agent et le Hub :
 ## Modèle de sécurité
 
 - **TLS 1.3** sur tout le trafic agent ↔ Hub
-- **HMAC-SHA256** sur chaque requête gRPC (`agent_id` + horodatage + contenu). Hors d'une fenêtre de ±5 minutes, la requête est rejetée.
-- **Épinglage de la CA.** À l'enregistrement, l'agent fige le certificat CA du Hub. Tout certificat signé par une autre CA est refusé.
-- **Agent sans privilèges.** Sous Linux : utilisateur `watchflare`, pas de shell, pas de home, écriture limitée à son répertoire de données. Sous macOS : Homebrew, compte courant.
+- **HMAC-SHA256** signe chaque requête gRPC (`agent_id` + horodatage + payload). Hors d'une fenêtre de ±5 minutes, la requête est rejetée.
+- **Épinglage de la CA.** À l'enrôlement, l'agent épingle le certificat CA du Hub. Tout certificat qui n'est pas signé par cette CA est refusé.
+- **Agent sans privilèges.** Sous Linux : utilisateur `watchflare`, pas de shell, pas de répertoire home, écriture limitée à son répertoire de données. Sous macOS : Homebrew, compte courant.
 - **Jetons à usage unique.** Stockés en empreintes SHA-256. La valeur en clair s'affiche une fois, elle n'est jamais enregistrée.
 
 <Callout type="info" title="Remarque">

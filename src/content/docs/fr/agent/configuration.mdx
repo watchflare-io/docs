@@ -1,6 +1,6 @@
 ---
 title: "Configurer l'Agent Watchflare"
-description: "Tous les champs de agent.conf : connexion Hub, TLS, intervalles, journal d'écriture anticipée, journaux, variables d'environnement."
+description: "Tous les champs de agent.conf : connexion Hub, TLS, intervalles heartbeat et métriques, WAL, journaux, variables d'environnement."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -71,15 +71,15 @@ container_metrics = false
 
 | Champ | Type | Description |
 |-------|------|-------------|
-| `agent_id` | string | UUID attribué par le Hub à l'enregistrement |
+| `agent_id` | string | UUID attribué par le Hub à l'enrôlement |
 | `agent_key` | string | Clé HMAC pour signer les requêtes gRPC |
 
 ### TLS
 
 | Champ | Type | Défaut | Description |
 |-------|------|---------|-------------|
-| `ca_cert_file` | string | Aucun | Chemin du certificat CA du Hub, écrit à l'enregistrement |
-| `server_name` | string | `"watchflare"` | Nom présenté au TLS. Écrit à l'enregistrement d'après la réponse du Hub. Doit correspondre au CN du certificat. |
+| `ca_cert_file` | string | Aucun | Chemin du certificat CA du Hub, écrit à l'enrôlement |
+| `server_name` | string | `"watchflare"` | Nom du serveur pour la validation du certificat TLS. Écrit à l'enrôlement d'après la réponse du Hub. Doit correspondre au CN du certificat. |
 
 ### Intervalles de collecte
 
@@ -103,7 +103,7 @@ container_metrics = false
 | Champ | Type | Défaut | Description |
 |-------|------|---------|-------------|
 | `log_file` | string | `""` | Chemin du fichier de journal. Vide : stdout, récupéré par systemd ou launchd. |
-| `log_level` | string | `"info"` | Niveau : `debug`, `info`, `warn`, `error`. Pour forcer le debug : `WATCHFLARE_DEBUG=1`. |
+| `log_level` | string | `"info"` | Niveau : `debug`, `info`, `warn`, `error`. Pour forcer le débogage : `WATCHFLARE_DEBUG=1`. |
 
 ### Métriques conteneurs
 
@@ -115,14 +115,14 @@ container_metrics = false
 
 ## Variables d'environnement
 
-Quatre variables pour changer les chemins ou le niveau de journal. Homebrew les pose tout seul sous macOS. Vous n'avez généralement rien à exporter.
+Quatre variables pour changer les chemins ou le niveau de journal. Le wrapper du service Homebrew les pose sous macOS. Vous n'avez généralement rien à exporter.
 
 | Variable | Description |
 |----------|-------------|
 | `WATCHFLARE_CONFIG_DIR` | Dossier de config (`/etc/watchflare` sous Linux) |
 | `WATCHFLARE_DATA_DIR` | Dossier de données (`/var/lib/watchflare` sous Linux) |
 | `WATCHFLARE_LOG_FILE` | Chemin du fichier de journal |
-| `WATCHFLARE_DEBUG` | `1` force le niveau debug, quel que soit `log_level` |
+| `WATCHFLARE_DEBUG` | `1` force le niveau `debug`, quel que soit `log_level` |
 
 ---
 

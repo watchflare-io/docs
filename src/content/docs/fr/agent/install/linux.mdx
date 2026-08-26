@@ -41,7 +41,7 @@ Dans le tableau de bord : **Hosts → Add host**. Copiez le jeton d'enregistreme
 
 ---
 
-## Une seule commande (recommandé)
+## Une seule commande (recommandée)
 
 Une ligne pose le binaire, enrôle l'agent auprès du Hub, et démarre le service systemd :
 
@@ -54,7 +54,7 @@ curl -sSL https://get.watchflare.io | sudo bash -s -- \
 ```
 </CodeBlock>
 
-Remplacez `YOUR_HUB_IP` par l'IP ou le nom d'hôte du Hub, et `wf_reg_YOUR_TOKEN` par le jeton copié dans le tableau de bord.
+Remplacez `YOUR_HUB_IP` par l'IP ou le nom d'hôte du Hub, et `wf_reg_YOUR_TOKEN` par le jeton complet copié dans le tableau de bord.
 
 Ce que fait l'installeur :
 1. Vérifie que vous êtes root
@@ -114,7 +114,7 @@ Ce que fait l'installeur :
 
 Installation successful!`} />
 
-Dans **Hosts**, le statut passe de **pending** à **online** en moins de 5 secondes.
+Dans **Hosts**, le statut passe de **pending** à **online** dans les 5 secondes après le démarrage du service.
 
 <Callout type="warn" title="Attention">
   Le jeton expire au bout de 24 heures. Installez avant.
@@ -130,7 +130,7 @@ Dans **Hosts**, le statut passe de **pending** à **online** en moins de 5 secon
 
 Installer maintenant, enrôler plus tard.
 
-**1. Installer sans enregistrer**
+**1. Installer sans enrôler**
 
 <CodeBlock lang="bash">
 ```bash
@@ -138,7 +138,7 @@ curl -sSL https://get.watchflare.io | sudo bash
 ```
 </CodeBlock>
 
-**2. Enrôler quand le Hub est prêt**
+**2. Enrôler quand vous êtes prêt**
 
 <CodeBlock lang="bash">
 ```bash
@@ -167,8 +167,8 @@ sudo systemctl status watchflare-agent     # état
 sudo systemctl start watchflare-agent      # démarrer
 sudo systemctl stop watchflare-agent       # arrêter
 sudo systemctl restart watchflare-agent    # redémarrer
-sudo systemctl enable watchflare-agent     # au boot
-sudo systemctl disable watchflare-agent    # plus au boot
+sudo systemctl enable watchflare-agent     # au démarrage
+sudo systemctl disable watchflare-agent    # plus au démarrage
 journalctl -u watchflare-agent -f          # suivre les journaux
 ```
 </CodeBlock>
@@ -183,14 +183,14 @@ journalctl -u watchflare-agent -f          # suivre les journaux
 | `/etc/watchflare/agent.conf` | Config (identifiants) | root:watchflare | 640 |
 | `/etc/watchflare/ca.pem` | Certificat CA du Hub | root:watchflare | 640 |
 | `/var/lib/watchflare/` | Données | watchflare:watchflare | 750 |
-| `/var/lib/watchflare/metrics.wal` | Journal d'écriture anticipée | watchflare:watchflare | 640 |
+| `/var/lib/watchflare/metrics.wal` | WAL | watchflare:watchflare | 640 |
 | `/var/lib/watchflare/packages.state.json` | État de l'inventaire des paquets | watchflare:watchflare | 640 |
 | `/etc/systemd/system/watchflare-agent.service` | Unité systemd | root:root | 644 |
 | `/var/log/watchflare-agent.log` | Journaux | watchflare:watchflare | 644 |
 
 ---
 
-## Changer de Hub
+## Réenrôler
 
 Pour pointer vers un autre Hub, ou après avoir supprimé puis recréé l'hôte dans le tableau de bord :
 
@@ -227,7 +227,7 @@ sudo restorecon -Rv /var/lib/watchflare
 | `permission denied` | Mauvais propriétaire | Vérifiez `ls -la /etc/watchflare/` |
 | `connection refused` | Mauvais hôte/port, ou firewall | Le port 50051 est-il joignable depuis cette machine ? |
 | `Invalid agent credentials` | Clé qui ne correspond pas | Réenrôlez l'agent |
-| L'hôte reste hors ligne après le démarrage | Horloge décalée | NTP doit tourner : le Hub refuse un écart de plus de ±5 min |
+| L'hôte reste **offline** après le démarrage | Horloge décalée | NTP doit tourner : le Hub refuse un horodatage hors fenêtre de ±5 min |
 
 Les journaux :
 

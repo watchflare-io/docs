@@ -6,7 +6,7 @@ description: "Retirez le Hub Watchflare (Docker ou binaire systemd). Sauvegarde 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-Avant de retirer le Hub, décidez si vous gardez les données. Tout — historique, machines enrôlées, utilisateurs, règles d'alerte, certificats TLS, inventaire de paquets — tient dans deux volumes Docker : `pgdata` (TimescaleDB) et `pki_data` (PKI).
+Avant de retirer le Hub, décidez si vous gardez les données. Tout — historique des métriques, machines enrôlées, utilisateurs, règles d'alerte, certificats TLS, inventaire de paquets — tient dans deux volumes Docker : `pgdata` (TimescaleDB) et `pki_data` (PKI).
 
 ## Sauvegarder d'abord
 
@@ -33,7 +33,7 @@ docker run --rm -v pki_data:/data -v $(pwd):/backup alpine \
 
 ## Arrêter et retirer les conteneurs
 
-Arrête et retire conteneurs et réseau, mais **garde les données** (base et certificats restent dans les volumes) :
+Cette commande arrête et retire les conteneurs et le réseau, mais **garde les données** (base et certificats restent dans les volumes) :
 
 <CodeBlock lang="bash">
 ```bash
@@ -56,7 +56,7 @@ docker compose down -v
 </CodeBlock>
 
 <Callout type="danger" title="Danger">
-  Effacement définitif : historique, machines enrôlées, utilisateurs, inventaire, règles d'alerte, certificats TLS. Les agents de ce Hub ne pourront plus se connecter. Il faudra les réenrôler sur une nouvelle install.
+  Effacement définitif : historique, machines enrôlées, utilisateurs, inventaire, règles d'alerte, certificats TLS. Les agents de ce Hub ne pourront plus se connecter. Il faudra les réenrôler sur une nouvelle installation.
 </Callout>
 
 Contenu de chaque volume :
@@ -116,7 +116,7 @@ Les deux commandes ne doivent rien renvoyer.
 
 ---
 
-## Install binaire (Linux, systemd)
+## Installation binaire (Linux, systemd)
 
 ### Sauvegarder
 
@@ -181,6 +181,6 @@ sudo ufw delete allow 50051/tcp
 
 ## Désinstaller les agents
 
-Retirer le Hub ne touche pas aux agents sur les machines surveillées. Leur service continuera d'essayer de se reconnecter. Pour les retirer :
+Retirer le Hub ne touche pas aux agents sur les machines surveillées. Leur service continuera d'essayer de se reconnecter jusqu'à l'arrêt. Pour les retirer :
 
 - [Désinstaller sous Linux ou macOS](/fr/agent/uninstall/)

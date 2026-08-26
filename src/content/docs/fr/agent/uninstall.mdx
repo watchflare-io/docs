@@ -65,7 +65,7 @@ Remove system user 'watchflare'? (y/N): y
 
 | Question | Ce qui part | Répondre N pour… |
 |--------|----------------|--------------|
-| Dossier de données | WAL, état des paquets | Garder le journal de métriques |
+| Dossier de données | WAL, état des paquets | Garder le WAL |
 | Dossier de config | `agent.conf`, `ca.pem` | Garder les identifiants d'enrôlement |
 | Fichier de journal | `/var/log/watchflare-agent.log` | Garder les journaux pour dépanner |
 | Utilisateur système | utilisateur `watchflare` | Le garder si vous réinstallez bientôt |
@@ -73,7 +73,7 @@ Remove system user 'watchflare'? (y/N): y
 **N** sur la config : `agent.conf` et `ca.pem` restent. Réinstallez plus tard avec le même `agent_id` / `agent_key` : l'agent se reconnecte, sans nouveau jeton.
 
 <Callout type="info" title="Remarque">
-  Désinstaller l'agent ne retire pas l'hôte du Hub. Il passe hors ligne sur [Hosts](/fr/monitoring/hosts/). Supprimez-le dans le tableau de bord si vous n'en avez plus besoin.
+  Désinstaller l'agent ne retire pas l'hôte du Hub. Il passe **offline** sur [Hosts](/fr/monitoring/hosts/). Supprimez-le dans le tableau de bord si vous n'en avez plus besoin.
 </Callout>
 
 ### Vérifier sous Linux
@@ -131,7 +131,7 @@ Retirer l'agent ne retire pas l'hôte du Hub. Pour le supprimer :
 1. Ouvrez la page de l'hôte.
 2. Menu **⋯** → **Delete host**.
 
-Ça purge l'historique de métriques, l'inventaire de paquets et les règles d'alerte.
+Supprimer l'hôte efface de la base l'historique de métriques, l'inventaire de paquets et les règles d'alerte.
 
 ---
 
@@ -139,7 +139,7 @@ Retirer l'agent ne retire pas l'hôte du Hub. Pour le supprimer :
 
 Pour remettre l'agent sur la même machine, sans nouveau jeton :
 
-1. Répondez **N** à toutes les questions (Linux), ou ne lancez pas les `rm -rf` (macOS).
+1. Répondez **N** aux questions données/config (Linux), ou ne lancez pas les `rm -rf` (macOS).
 2. Réinstallez le binaire.
 3. L'agent reprend `agent_id`, `agent_key` et `ca.pem` : il se reconnecte tout seul.
 

@@ -1,6 +1,6 @@
 ---
 title: "Déployer le Hub Watchflare avec Docker"
-description: "Déployez le Hub Watchflare avec Docker Compose. Fichier Compose complet, génération des secrets, TimescaleDB, volumes de données et bind mounts."
+description: "Déployez le Hub Watchflare avec Docker Compose. Fichier Compose complet, génération des secrets, TimescaleDB, volumes de données et montages bind."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -189,9 +189,9 @@ Deux volumes Docker nommés :
 
 Docker s'occupe des volumes : rien à chown. Les données restent après un redémarrage ou une mise à jour d'image.
 
-### Bind mounts
+### Montages bind
 
-Par défaut, Docker range `pgdata` et `pki_data` où il veut. Pour les mettre à un chemin précis sur la machine (sauvegarde, inspection, migration), remplacez l'un, l'autre, ou les deux par un bind mount vers un dossier local.
+Par défaut, Docker range `pgdata` et `pki_data` où il veut. Pour les mettre à un chemin précis sur la machine (sauvegarde, inspection, migration), remplacez l'un, l'autre, ou les deux par un montage bind vers un dossier local.
 
 Chacun se remplace indépendamment.
 

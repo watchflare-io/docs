@@ -16,10 +16,10 @@ Avec `TLS_MODE=auto`, le Hub fabrique au premier démarrage une autorité de cer
 
 ```
 pki_data/
-├── ca.pem       # CA certificate, sent to agents at registration
-├── ca.key       # CA private key
-├── server.pem   # Server certificate, signed by the CA
-└── server.key   # Server private key
+├── ca.pem       # certificat CA, envoyé aux agents à l'enrôlement
+├── ca.key       # clé privée CA
+├── server.pem   # certificat serveur, signé par la CA
+└── server.key   # clé privée serveur
 ```
 
 Les deux certificats sont en **ECDSA P-256**.
@@ -29,10 +29,10 @@ Les deux certificats sont en **ECDSA P-256**.
 | CA | `watchflare CA` | 10 ans |
 | Serveur | `watchflare` | 5 ans |
 
-À l'enregistrement, le Hub envoie la CA à l'agent. L'agent la fige pour la suite : rien à copier à la main. Sous Linux : `/etc/watchflare/ca.pem`. Sous macOS : `$(brew --prefix)/etc/watchflare/ca.pem`.
+À l'enrôlement, le Hub envoie la CA à l'agent. L'agent l'épingle pour la suite : rien à copier à la main. Sous Linux : `/etc/watchflare/ca.pem`. Sous macOS : `$(brew --prefix)/etc/watchflare/ca.pem`.
 
 <Callout type="warn" title="Attention">
-  En mode auto, CA et certificat serveur sont toujours régénérés ensemble. Impossible de renouveler le serveur tout seul. Si vous supprimez `server.pem` pour forcer un renouvellement, la CA change aussi : il faut réenrôler tous les agents.
+  En mode auto, CA et certificat serveur sont toujours régénérés ensemble. Impossible de renouveler le certificat serveur isolément. Si vous supprimez `server.pem` pour forcer un renouvellement, la CA change aussi : il faut réenrôler tous les agents.
 </Callout>
 
 ---
@@ -66,12 +66,12 @@ services:
 
 ### Contraintes
 
-- `TLS_CA_FILE` doit être la CA qui a signé `TLS_CERT_FILE`. C'est cette CA que les agents reçoivent à l'enregistrement et qu'ils figent.
+- `TLS_CA_FILE` doit être la CA qui a signé `TLS_CERT_FILE`. C'est cette CA que les agents reçoivent à l'enrôlement et qu'ils épinglent.
 - TLS 1.3 est obligatoire. En dessous, le Hub coupe, quel que soit le mode.
 - Le certificat serveur n'a pas à porter le nom d'hôte du Hub. En revanche, `server_name` dans `agent.conf` (défaut : `watchflare`) doit figurer dans les SAN DNS — Go vérifie les SAN, pas le CN. Un `HostSNI("*")` sur le reverse proxy évite les décalages de nom. Voir [Reverse proxy](/fr/hub/reverse-proxy/).
 
 <Callout type="warn" title="Attention">
-  Si vous changez de CA après l'enrôlement, les agents refusent le nouveau certificat : ce n'est plus la CA qu'ils ont figée. Il faudra réenrôler chaque machine concernée.
+  Si vous changez de CA après l'enrôlement, les agents refusent le nouveau certificat : ce n'est plus la CA qu'ils ont épinglée. Il faudra réenrôler chaque machine concernée.
 </Callout>
 
 ---
@@ -91,4 +91,4 @@ docker exec watchflare openssl x509 -in /var/lib/watchflare/pki/server.pem -noou
 
 ## Port gRPC et reverse proxies
 
-Le port gRPC (`50051`) ne doit **pas** voir son TLS terminé par un reverse proxy. Les agents ont figé la CA du Hub : un certificat d'une autre CA est rejeté. Passez le proxy en passthrough TCP. Voir [Reverse proxy](/fr/hub/reverse-proxy/).
+Le port gRPC (`50051`) ne doit **pas** voir son TLS terminé par un reverse proxy. Les agents ont épinglé la CA du Hub : un certificat d'une autre CA est rejeté. Passez le proxy en passthrough TCP. Voir [Reverse proxy](/fr/hub/reverse-proxy/).

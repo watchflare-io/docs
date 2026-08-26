@@ -55,7 +55,7 @@ Les règles par hôte priment. Un serveur de base peut avoir un seuil CPU plus h
 
 Chaque règle a une **durée** (5 minutes par défaut). Le seuil doit rester dépassé pendant toute cette fenêtre avant qu'un incident s'ouvre et qu'une notification parte. Un pic de quelques secondes ne suffit pas.
 
-Si la métrique redescend avant la fin, rien ne part.
+Si la métrique redescend avant la fin, aucun incident n'est ouvert et aucune notification ne part.
 
 ---
 
@@ -72,12 +72,12 @@ L'onglet **Alerts** de chaque hôte liste les incidents : début, fin, seuil, et
 
 ## Machine hors ligne
 
-`host_down` part quand aucun heartbeat n'est arrivé depuis plus de 15 secondes. Le stale checker tourne toutes les 10 secondes ; une machine passe hors ligne après environ 3 heartbeats manqués (un toutes les 5 secondes).
+`host_down` part quand aucun heartbeat n'est arrivé depuis plus de 15 secondes. Le contrôle des hôtes inactifs tourne toutes les 10 secondes ; une machine passe hors ligne après environ 3 heartbeats consécutifs manqués (un toutes les 5 secondes).
 
 L'incident se referme tout seul au heartbeat suivant.
 
 <Callout type="tip" title="Astuce">
-  Une coupure de moins de 15 secondes ne déclenche pas `host_down`. Un ou deux heartbeats manqués passent inaperçus.
+  Une coupure de moins de 15 secondes ne déclenche pas `host_down`. Un ou deux heartbeats manqués sont absorbés avant le passage hors ligne.
 </Callout>
 
 ---

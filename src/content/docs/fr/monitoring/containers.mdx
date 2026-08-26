@@ -36,7 +36,7 @@ Uniquement les conteneurs **en cours d'exécution**, au même rythme que le syst
 Nom + image pour identifier. Un conteneur arrêté n'apparaît pas.
 
 <Callout type="info" title="Remarque">
-  Ces points partent tels quels, **sans passer par le WAL**. Hub injoignable : cette période est perdue. CPU, mémoire, disque et le reste du système restent dans le journal, rejoués à la reconnexion.
+  Ces points partent tels quels, **sans passer par le WAL**. Hub injoignable : cette période est perdue. CPU, mémoire, disque et le reste du système restent dans le WAL, rejoués à la reconnexion.
 </Callout>
 
 ---
@@ -65,7 +65,7 @@ Trois cartes :
 | **Live** | L'hôte est `online` et remonte |
 | **Stale** | L'hôte est hors ligne. Dernier état connu, plus forcément vrai |
 
-**Live** / **Stale** jugent l'**hôte**, pas le processus. L'hôte passe hors ligne : les lignes restent, marquées **Stale**. Elles ne sont pas retirées.
+**Live** / **Stale** jugent l'**hôte**, pas le conteneur. L'hôte passe hors ligne : les lignes restent, marquées **Stale**. Elles ne sont pas retirées.
 
 ### Filtres
 
@@ -77,7 +77,7 @@ Trois cartes :
 Clic sur une ligne : tiroir avec l'image complète, les ports, la santé, les valeurs.
 
 <Callout type="info" title="Remarque">
-  Rafraîchissement toutes les 60 s, à part du SSE de la page hôte. Pas de conteneur arrêté. Pas d'hôte sans [métriques conteneurs](#enabling-container-metrics).
+  La liste se met à jour toutes les 60 secondes : le navigateur redemande les données, indépendamment du flux SSE de la page hôte. L'agent ne remonte que les conteneurs en cours : un arrêté n'apparaît jamais. Uniquement les hôtes avec [métriques conteneurs](#enabling-container-metrics).
 </Callout>
 
 ---
@@ -89,11 +89,11 @@ Clic sur une ligne : tiroir avec l'image complète, les ports, la santé, les va
 - Socket Docker `/var/run/docker.sock`, ou Podman `/run/podman/podman.sock`
 
 <Callout type="info" title="Remarque">
-  macOS (Docker Desktop ou Colima) : l'agent tourne sous le compte Homebrew. Ce compte voit déjà le socket. Pas de groupe à changer.
+  macOS (Docker Desktop ou Colima) : l'agent tourne sous l'utilisateur courant (celui qui a lancé le service Homebrew). Ce compte voit déjà le socket. Pas de groupe à changer.
 </Callout>
 
 ---
 
 ## Agent dans un conteneur
 
-L'agent installé **dans** Docker ne voit pas le socket. Posez-le sur l'OS hôte, pas dans un conteneur applicatif.
+L'agent installé **dans** un conteneur ne voit pas le socket. Posez-le sur l'OS hôte.

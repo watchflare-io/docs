@@ -1,6 +1,6 @@
 ---
 title: "Démarrage rapide"
-description: "Déployez le Hub avec Docker Compose et enrôlez votre premier agent. Cinq étapes, zéro option : de l'installation aux métriques en moins de 5 minutes."
+description: "Déployez le Hub avec Docker Compose et enrôlez votre premier agent. Cinq étapes, zéro configuration optionnelle : de l'installation aux métriques en moins de 5 minutes."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -133,7 +133,7 @@ Quelques secondes plus tard, le Hub répond sur `http://your-host:8080`.
 
 ## 2. Créer le compte admin
 
-Ouvrez `http://your-host:8080` dans le navigateur. Sur une install neuve, vous atterrissez directement sur la page de création de compte. Saisissez votre e-mail et un mot de passe solide.
+Ouvrez `http://your-host:8080` dans le navigateur. Sur une installation neuve, vous atterrissez directement sur la page de création de compte. Saisissez votre e-mail et un mot de passe solide.
 
 ---
 
@@ -149,7 +149,7 @@ Ouvrez `http://your-host:8080` dans le navigateur. Sur une install neuve, vous a
 ]} />
 
 <Callout type="warn" title="Attention">
-  Le jeton expire au bout de 24 heures. Installez l'agent avant.
+  Le jeton expire au bout de 24 heures. Installez l'agent avant qu'il n'expire.
 </Callout>
 
 ---
@@ -189,7 +189,7 @@ L'installeur enregistre l'agent, écrit la config et démarre le service tout se
 
 Retournez sur la liste **Hosts** dans le navigateur. Le statut passe de **pending** à **online** dans les 5 secondes après le démarrage de l'agent.
 
-Vous pouvez ensuite ouvrir les métriques temps réel et les graphiques d'historique. L'inventaire des paquets fait un premier scan 60 secondes après le démarrage de l'agent, puis tous les jours à 03:00.
+Vous pouvez ensuite ouvrir les métriques temps réel et les graphiques d'historique. L'inventaire des paquets fait une première analyse 60 secondes après le démarrage de l'agent, puis tous les jours à 03:00.
 
 ---
 
@@ -198,4 +198,4 @@ Vous pouvez ensuite ouvrir les métriques temps réel et les graphiques d'histor
 - [Installer l'agent sur d'autres machines](/fr/agent/install/linux/) (Linux ou macOS)
 - [Passer le Hub en HTTPS derrière un reverse proxy](/fr/hub/reverse-proxy/) (Caddy ou Nginx)
 - [Configurer les alertes](/fr/hub/alerts/) (seuils CPU, mémoire, disque, charge, température, plus hôte hors ligne)
-- [Lire les variables d'environnement du Hub](/fr/hub/configuration/) (ports, modes TLS, cookies)
+- [Lire les variables d'environnement du Hub](/fr/hub/configuration/) (ports, modes TLS, sécurité des cookies)

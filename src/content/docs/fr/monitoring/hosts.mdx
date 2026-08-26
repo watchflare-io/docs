@@ -19,7 +19,7 @@ import Callout from "@components/Callout.astro";
 | `paused` | Supervision coupée à la main. Heartbeats ignorés, pas d'alerte hors ligne |
 | `expired` | Jeton périmé (24 h) avant que l'agent s'enrôle |
 
-Un agent qui s'arrête : l'hôte passe de `online` à `offline` en 15 à 25 secondes (timeout 15 s, contrôle toutes les 10 s).
+Plus aucun heartbeat : l'hôte passe de `online` à `offline` en 15 à 25 secondes (délai 15 s, contrôle toutes les 10 s).
 
 ---
 
@@ -77,7 +77,7 @@ Dans le menu **⋯** :
 
 ## Réactivation
 
-Réinstaller l'agent sans supprimer l'hôte : le Hub reconnaît l'UUID déjà en base et rattache la machine à l'enregistrement existant. Pas de doublon. C'est la **réactivation**.
+Réinstaller l'agent sans supprimer l'hôte : même UUID sur le disque, le Hub réutilise l'enrôlement existant. Pas de doublon. C'est la **réactivation**.
 
 Un badge **Reactivated** s'affiche. Une fois que c'est bien la machine attendue, **Dismiss reactivation** (menu **⋯**) le retire.
 
@@ -99,7 +99,7 @@ Pour une maintenance prévue. Pendant ce temps :
 - Les heartbeats ne comptent plus
 - L'hôte ne passe pas `offline`
 - Aucune alerte
-- Ni métriques ni inventaire
+- Ni métriques ni inventaire de paquets
 - Les incidents ouverts sont **suspendus**, pas refermés
 
 **Resume** reprend la supervision. Les incidents suspendus restent ouverts : pas de fausse résolution.

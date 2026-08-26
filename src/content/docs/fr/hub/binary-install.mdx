@@ -7,7 +7,7 @@ import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 import Shell from "@components/Shell.astro";
 
-Le Hub est un binaire Linux tout prêt (x86_64 et arm64). Ici on l'installe en service systemd, TimescaleDB dans Docker.
+Le Hub est un binaire Linux tout prêt (x86_64 et arm64). Ici vous l'installez en service systemd, TimescaleDB dans Docker.
 
 <Callout type="tip" title="Astuce">
   Vous préférez les conteneurs ? [Docker Compose](/fr/hub/deploy-docker/) : cinq minutes, rien à bricoler à la main.
@@ -26,7 +26,7 @@ Le Hub est un binaire Linux tout prêt (x86_64 et arm64). Ici on l'installe en s
 
 ## 1. Démarrer TimescaleDB
 
-Le Hub stocke tout dans TimescaleDB. Le plus simple : le Compose fourni.
+Le Hub a besoin de TimescaleDB pour le stockage. Le plus simple : le Compose fourni.
 
 ```bash
 curl -O https://raw.githubusercontent.com/watchflare-io/watchflare/main/docker-compose-postgres.yml
@@ -102,8 +102,8 @@ NOTIFICATION_ENCRYPTION_KEY=your-32-char-secret
 ENV=production
 TRUSTED_PROXIES=127.0.0.1,::1
 
-# TLS_MODE=auto         # default, auto-generates a self-signed CA for gRPC
-# COOKIE_SECURE=true    # enable if the Hub is behind an HTTPS reverse proxy
+# TLS_MODE=auto         # défaut : génère une CA auto-signée pour le gRPC
+# COOKIE_SECURE=true    # à activer si le Hub est derrière un reverse proxy HTTPS
 # COOKIE_DOMAIN=watchflare.example.com
 ```
 </CodeBlock>
@@ -173,4 +173,4 @@ Procédure complète, dump et retour arrière compris : [Mettre à jour le Hub](
 
 ---
 
-Le binaire Hub existe aussi pour macOS (arm64/amd64). L'install en service macOS n'est pas documentée. En local, lancez le binaire à la main, ou passez par [Docker Compose](/fr/hub/deploy-docker/).
+Le binaire Hub existe aussi pour macOS (arm64/amd64). L'installation en service macOS n'est pas documentée. En local, lancez le binaire à la main, ou passez par [Docker Compose](/fr/hub/deploy-docker/).

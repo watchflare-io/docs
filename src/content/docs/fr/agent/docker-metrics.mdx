@@ -8,7 +8,7 @@ import CodeBlock from "@components/CodeBlock.astro";
 
 L'agent peut remonter CPU, mémoire et réseau **par conteneur**, Docker ou Podman. Désactivé par défaut : il faut le socket du runtime, et le dire explicitement.
 
-**Prérequis :** Docker Engine 23.0+ (API v1.44+), ou Podman avec le socket `/run/podman/podman.sock`.
+**Prérequis :** Docker Engine 23.0+ (API v1.44+), ou Podman avec un socket API compatible (`/run/podman/podman.sock`).
 
 ---
 
@@ -25,7 +25,7 @@ curl -sSL https://get.watchflare.io | sudo bash -s -- \
 ```
 </CodeBlock>
 
-Ou à l'enregistrement à la main :
+Ou à l'enrôlement à la main :
 
 <CodeBlock lang="bash">
 ```bash
@@ -36,7 +36,7 @@ sudo watchflare-agent register \
 ```
 </CodeBlock>
 
-`--containers` écrit `container_metrics = true` dans `agent.conf` et ajoute `watchflare` au groupe `docker`.
+`--containers` écrit `container_metrics = true` dans `agent.conf` et ajoute tout seul `watchflare` au groupe `docker`.
 
 ---
 
@@ -76,9 +76,9 @@ sudo systemctl restart watchflare-agent
 
 ## macOS
 
-Sous macOS (Docker Desktop ou Colima), l'agent tourne sous le compte qui a lancé Homebrew. Ce compte voit déjà le socket Docker : pas de groupe à modifier.
+Sous macOS (Docker Desktop ou Colima), l'agent tourne sous le compte qui a démarré le service Homebrew. Ce compte voit déjà le socket Docker : pas de groupe à modifier.
 
-`--containers` à l'enregistrement :
+`--containers` à l'enrôlement :
 
 <CodeBlock lang="bash">
 ```bash
@@ -112,7 +112,7 @@ brew services restart watchflare-agent
 Même intervalle que les métriques système (30 secondes par défaut). Affichage : onglet **Containers** de la page de l'hôte.
 
 <Callout type="info" title="Remarque">
-  Les métriques de conteneurs partent telles quelles, **sans passer par le WAL**. Si le Hub est injoignable, ces points-là sont perdus. CPU, mémoire, disque et le reste du système restent dans le journal et sont rejoués à la reconnexion.
+  Les métriques de conteneurs sont des instantanés, **sans passer par le WAL**. Si le Hub est injoignable, ces points-là sont perdus. CPU, mémoire, disque et le reste du système restent dans le WAL et sont rejoués à la reconnexion.
 </Callout>
 
 ---
@@ -127,7 +127,7 @@ journalctl -u watchflare-agent -n 30
 ```
 </CodeBlock>
 
-Les chiffres apparaissent dans l'onglet **Containers** en moins de 30 secondes. Pour le détail : `WATCHFLARE_DEBUG=1`.
+Les métriques apparaissent dans l'onglet **Containers** de la page de l'hôte dans les 30 premières secondes. Pour les journaux de collecte : passez `WATCHFLARE_DEBUG=1`.
 
 Si l'onglet reste vide :
 1. `watchflare` est bien dans le groupe `docker` : `groups watchflare`

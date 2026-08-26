@@ -11,16 +11,16 @@ Sur chaque machine, l'agent recense les paquets installés et les envoie au Hub.
 
 ## Comment ça se passe
 
-**Au démarrage.** Inventaire complet, mémorisé comme référence.
+**Premier passage.** Inventaire complet, envoyé au Hub, gardé comme référence.
 
-**Ensuite.** Comparaison avec le fichier local. Seul le delta part : ajoutés, retirés, version changée. Même un serveur avec des milliers de paquets n'envoie presque rien.
+**Ensuite.** Comparaison avec le fichier local. Seul le delta part : ajoutés, retirés, version changée. Quel que soit le nombre de paquets, l'envoi quotidien reste petit.
 
 **Quand.** 60 secondes après le lancement, puis tous les jours à **03:00** (heure de la machine).
 
-**Sans attendre 03:00.** Onglet **Packages**, bouton **Collect now**. L'ordre part au heartbeat suivant (moins de 5 s). Dès que le scan finit, la liste se met à jour. Pratique juste après un upgrade.
+**Sans attendre 03:00.** Onglet **Packages**, bouton **Collect now**. Le Hub envoie l'ordre au heartbeat suivant (dans les 5 s). Dès que l'analyse finit, la liste se met à jour. Pratique juste après avoir installé ou retiré des paquets.
 
 <Callout type="info" title="Remarque">
-  **Packages** affiche "No packages found" pendant une minute : le premier scan n'a pas encore fini. C'est normal.
+  **Packages** affiche "No packages found" pendant une minute : le premier inventaire n'a pas encore fini. C'est normal.
 </Callout>
 
 ---
@@ -121,4 +121,4 @@ Onglet **History** de **Packages** : journal dans l'ordre, filtrable par type et
 
 ## Tout le parc
 
-**/packages** dans la barre latérale fusionne les inventaires. Un paquet, toutes les machines : qui ne l'a pas, qui est en retard, qui a un correctif de sécurité en attente.
+**/packages** dans la barre latérale : vue dédoublonnée sur tout le parc. Un paquet, toutes les machines : qui ne l'a pas, qui est en retard, qui a un correctif de sécurité en attente.

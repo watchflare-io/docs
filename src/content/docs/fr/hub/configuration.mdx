@@ -1,6 +1,6 @@
 ---
 title: "Référence de configuration du Hub"
-description: "Toutes les variables d'environnement du Hub Watchflare : secrets obligatoires, base de données, ports, mode TLS, cookies, fenêtre HMAC gRPC."
+description: "Toutes les variables d'environnement du Hub Watchflare : secrets obligatoires, base de données, ports, mode TLS, cookies, fenêtre d'horodatage gRPC."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -16,7 +16,7 @@ Le Hub se configure uniquement par variables d'environnement. Avec Docker Compos
 |----------|-----------|----------|-------------|
 | `POSTGRES_PASSWORD` | Aucune | Oui | Mot de passe de l'instance TimescaleDB. Pas de longueur minimale imposée : prenez une valeur aléatoire solide. |
 | `JWT_SECRET` | 32 caractères | Oui | Signe les cookies de session et chiffre les secrets TOTP. Le Hub s'arrête au démarrage s'il manque ou s'il est trop court. |
-| `NOTIFICATION_ENCRYPTION_KEY` | 32 caractères | Pour les notifications | Chiffre les identifiants SMTP et les URL des canaux (Discord, Slack, etc.) stockés en base. Le Hub démarre sans, mais le stockage des notifications sera indisponible. S'arrête si la valeur est trop courte. |
+| `NOTIFICATION_ENCRYPTION_KEY` | 32 caractères | Pour les notifications | Chiffre les identifiants SMTP et les URL des canaux (Discord, Slack, etc.) stockés en base. Le Hub démarre sans, mais le stockage des notifications sera indisponible. Si la variable est définie et trop courte, le Hub s'arrête. |
 
 Générez les trois avec :
 
@@ -77,10 +77,10 @@ Tout le gRPC avec les agents passe en TLS. Deux modes.
 |----------|---------|-------------|
 | `TLS_CERT_FILE` | Aucun | Chemin du certificat serveur (PEM) |
 | `TLS_KEY_FILE` | Aucun | Chemin de la clé privée serveur (PEM) |
-| `TLS_CA_FILE` | Aucun | Chemin du certificat CA (PEM) envoyé aux agents à l'enregistrement |
+| `TLS_CA_FILE` | Aucun | Chemin du certificat CA (PEM) envoyé aux agents à l'enrôlement |
 
 <Callout type="warn" title="Attention">
-  En `TLS_MODE=custom`, la CA de `TLS_CA_FILE` part vers les agents à l'enregistrement, et chacun la fige. Nouvelle CA = réenrôler tout le parc.
+  En `TLS_MODE=custom`, la CA de `TLS_CA_FILE` part vers les agents à l'enrôlement, et chacun l'épingle. Nouvelle CA = réenrôler tout le parc.
 </Callout>
 
 Voir [certificats TLS](/fr/hub/tls/) pour le mode custom en détail.
@@ -93,7 +93,7 @@ Le Hub pose le flag `Secure` sur le cookie JWT tout seul, d'après la requête. 
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `COOKIE_SECURE` | *(auto)* | Force le flag `Secure` à on ou off. `true` ou `false`. Laissez vide pour la détection automatique (recommandé). |
+| `COOKIE_SECURE` | *(auto)* | Force le flag `Secure`. Accepte `true` ou `false`. Ne la définissez pas pour la détection automatique (recommandé). |
 | `COOKIE_DOMAIN` | *(vide)* | Votre domaine si le tableau de bord est derrière un reverse proxy avec un nom d'hôte à vous (ex. `watchflare.example.com`). |
 | `TRUSTED_PROXIES` | `127.0.0.1,::1` | Liste d'IP autorisées à poser `X-Forwarded-Proto`, séparées par des virgules. Ajoutez l'IP du reverse proxy s'il est sur une autre machine. |
 
@@ -115,7 +115,7 @@ Le Hub pose le flag `Secure` sur le cookie JWT tout seul, d'après la requête. 
 |----------|---------|-------------|
 | `GRPC_TIMESTAMP_WINDOW` | `300` | Décalage d'horloge accepté, en secondes, pour les timestamps HMAC des agents (± fenêtre). Hors fenêtre, la requête est rejetée. Défaut : ±5 minutes. |
 
-Augmentez la valeur si les agents se plaignent souvent d'horloge et que NTP n'est pas une option. La baisser resserre la fenêtre contre les rejeux.
+Augmentez la valeur si les agents échouent souvent avec des avertissements de décalage d'horloge, et que NTP n'est pas une option. La baisser resserre la fenêtre contre les rejeux.
 
 ---
 
@@ -123,8 +123,8 @@ Augmentez la valeur si les agents se plaignent souvent d'horloge et que NTP n'es
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `ENV` | `development` | `production` sur les instances déployées. Gin passe en mode release (moins de debug). Compose le pose tout seul. |
-| `CORS_ORIGINS` | `http://localhost:5173` | Origines CORS, séparées par des virgules. Uniquement si le binaire Hub tourne à part du frontend, en dev. Inutile en Docker ou en install binaire (frontend embarqué). |
+| `ENV` | `development` | `production` sur les instances déployées. Gin passe en mode release (moins de traces de débogage). Compose le pose tout seul. |
+| `CORS_ORIGINS` | `http://localhost:5173` | Origines CORS, séparées par des virgules. Uniquement si le binaire Hub tourne à part de l'interface, en dev. Inutile en Docker ou en installation binaire (interface embarquée). |
 
 ---
 
@@ -160,7 +160,7 @@ NOTIFICATION_ENCRYPTION_KEY=                # optional, min 32 characters if set
 # ── Cookie security ──────────────────────────────────────────────
 # COOKIE_DOMAIN=watchflare.example.com
 # TRUSTED_PROXIES=127.0.0.1,::1
-# COOKIE_SECURE=                    # omit for auto-detection
+# COOKIE_SECURE                     # ne pas poser la variable (détection automatique)
 
 # ── gRPC security ────────────────────────────────────────────────
 # GRPC_TIMESTAMP_WINDOW=300         # default: 300s (±5 minutes)

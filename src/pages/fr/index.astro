@@ -31,7 +31,7 @@ const cards = [
         href: "/fr/hub/alerts/",
         title: "Configurer les alertes",
         description:
-            "Définissez des seuils CPU, mémoire, disque, charge et température par hôte. Connectez un canal de notification pour être prévenu avant qu'un problème ne devienne une panne.",
+            "Définissez des seuils CPU, mémoire, disque, charge et température par hôte. Vous êtes prévenu si un hôte dépasse un seuil ou passe hors ligne. Branchez un canal de notification avant la panne.",
         cta: "Lire le guide",
         icon: "alertTriangle" as const,
         iconSize: 20,
@@ -40,16 +40,16 @@ const cards = [
         href: "/fr/monitoring/packages/",
         title: "Surveiller les paquets",
         description:
-            "Suivez chaque paquet installé sur votre parc. Watchflare signale les logiciels obsolètes et vulnérables afin que vous sachiez ce qui doit être mis à jour.",
+            "Suivez chaque paquet installé sur votre parc. Watchflare signale les paquets obsolètes et les mises à jour de sécurité en attente.",
         cta: "Lire le guide",
         icon: "package" as const,
         iconSize: 20,
     },
     {
         href: "/fr/get-started/architecture/",
-        title: "Architecture & Sécurité",
+        title: "Architecture et sécurité",
         description:
-            "Le Hub et ses agents communiquent via gRPC/TLS 1.3 avec authentification HMAC par requête. Les données ne quittent jamais votre infrastructure.",
+            "Le Hub et ses agents communiquent via gRPC/TLS 1.3 avec authentification HMAC par requête. Les données ne quittent jamais votre infrastructure. Lisez le modèle de confiance avant la mise en production.",
         cta: "Lire le concept",
         icon: "shield" as const,
         iconSize: 20,
@@ -58,7 +58,7 @@ const cards = [
         href: "/fr/hub/configuration/",
         title: "Référence de configuration",
         description:
-            "Toutes les variables d'environnement du Hub en un seul endroit — base de données, ports, mode TLS, sécurité des cookies, fenêtre HMAC, et plus.",
+            "Toutes les variables d'environnement du Hub en un seul endroit — base de données, ports, mode TLS, sécurité des cookies, fenêtre d'horodatage gRPC, et plus.",
         cta: "Lire le guide",
         icon: "server" as const,
         iconSize: 20,
@@ -121,7 +121,7 @@ const cards = [
             <!-- Stack diagram -->
             <div>
                 <div class="dhome__bottom-head">
-                    <h2>Vue d'ensemble du stack</h2>
+                    <h2>Vue d'ensemble</h2>
                     <a
                         href="/fr/get-started/architecture/"
                         class="dhome__bottom-link">Architecture →</a
@@ -134,7 +134,7 @@ const cards = [
                         <div class="dstack__row dstack__row--edge">
                             <div class="dstack__group">
                                 <span class="dstack__group-label"
-                                    >Edge · votre infrastructure</span
+                                    >Hôtes · votre infrastructure</span
                                 >
                                 <div class="dstack__nodes">
                                     <a
@@ -148,7 +148,7 @@ const cards = [
                                             >Hôte Linux</span
                                         >
                                         <span class="dstack__node-meta"
-                                            >Systemd</span
+                                            >systemd</span
                                         >
                                     </a>
                                     <a
@@ -162,7 +162,7 @@ const cards = [
                                             >Hôte macOS</span
                                         >
                                         <span class="dstack__node-meta"
-                                            >homebrew</span
+                                            >Homebrew</span
                                         >
                                     </a>
                                     <span
@@ -220,10 +220,10 @@ const cards = [
                                     >Watchflare Hub</span
                                 >
                                 <span class="dstack__node-meta"
-                                    >Binaire Go unique · SvelteKit embarqué</span
+                                    >Un seul binaire Go · SvelteKit embarqué</span
                                 >
                                 <div class="dstack__node-parts">
-                                    <span>Dashboard</span>
+                                    <span>Tableau de bord</span>
                                     <span>Vue métriques</span>
                                     <span>Liste paquets</span>
                                     <span>Moteur d'alertes</span>
@@ -234,7 +234,7 @@ const cards = [
                         <!-- Pipe: SQL -->
                         <div class="dstack__pipe">
                             <span class="dstack__pipe-label"
-                                >SQL · socket local</span
+                                >SQL · TCP 5432</span
                             >
                             <svg
                                 class="dstack__pipe-line"

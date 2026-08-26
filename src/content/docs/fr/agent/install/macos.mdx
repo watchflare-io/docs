@@ -1,6 +1,6 @@
 ---
 title: "Installer l'Agent Watchflare sous macOS"
-description: "Installez l'agent Watchflare sous macOS via Homebrew. Une commande, Homebrew à la main, service launchd, changement de Hub."
+description: "Installez l'agent Watchflare sous macOS via Homebrew. Une commande, Homebrew à la main, service launchd, réenrôlement."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -43,7 +43,7 @@ Dans le tableau de bord : **Hosts → Add host**. Copiez le jeton d'enregistreme
 
 ---
 
-## Une seule commande (recommandé)
+## Une seule commande (recommandée)
 
 Homebrew pose l'agent, l'enrôle auprès du Hub, et démarre le service :
 
@@ -56,7 +56,7 @@ curl -sSL https://get.watchflare.io/brew | bash -s -- \
 ```
 </CodeBlock>
 
-Dans **Hosts**, le statut passe de **pending** à **online** en moins de 5 secondes.
+Dans **Hosts**, le statut passe de **pending** à **online** dans les 5 secondes après le démarrage du service.
 
 <Callout type="warn" title="Attention">
   Le jeton expire au bout de 24 heures. Installez avant.
@@ -131,13 +131,13 @@ tail -f $(brew --prefix)/var/log/watchflare-agent.log
 | `$(brew --prefix)/etc/watchflare/agent.conf` | Config (identifiants) |
 | `$(brew --prefix)/etc/watchflare/ca.pem` | Certificat CA du Hub |
 | `$(brew --prefix)/var/watchflare/` | Données |
-| `$(brew --prefix)/var/watchflare/metrics.wal` | Journal d'écriture anticipée |
+| `$(brew --prefix)/var/watchflare/metrics.wal` | WAL |
 | `$(brew --prefix)/var/watchflare/packages.state.json` | État de l'inventaire des paquets |
 | `$(brew --prefix)/var/log/watchflare-agent.log` | Journaux |
 
 ---
 
-## Changer de Hub
+## Réenrôler
 
 Pour pointer vers un autre Hub, ou après avoir supprimé puis recréé l'hôte dans le tableau de bord :
 
@@ -160,7 +160,7 @@ brew services start watchflare-agent
 | `configuration error` (fichier de config introuvable) | Pas encore enrôlé | `watchflare-agent register ...` |
 | `connection refused` | Mauvais hôte/port | Le port 50051 est-il joignable ? |
 | `Invalid agent credentials` | Clé qui ne correspond pas | Réenrôlez l'agent |
-| L'hôte reste hors ligne après le démarrage | Horloge décalée | Vérifiez l'horloge : le Hub refuse un écart de plus de ±5 min |
+| L'hôte reste **offline** après le démarrage | Horloge décalée | Vérifiez l'horloge : le Hub refuse un horodatage hors fenêtre de ±5 min |
 
 Journaux récents :
 

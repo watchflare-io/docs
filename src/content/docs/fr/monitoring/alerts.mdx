@@ -46,7 +46,7 @@ Les règles de la machine l'emportent.
 
 ## Fenêtre de durée
 
-Chaque règle a une **durée** (5 minutes par défaut). Le seuil doit rester franchi pendant toute la fenêtre. Un pic de vingt secondes ne suffit pas : pas d'incident, pas de notification.
+Chaque règle a une **durée** (5 minutes par défaut). Le seuil doit rester franchi pendant toute la fenêtre. Un pic plus court que la fenêtre ne suffit pas : pas d'incident, pas de notification.
 
 ---
 
@@ -59,7 +59,7 @@ La fenêtre tenue : le Hub ouvre un **incident**.
 
 Onglet **Alerts** et section **Incidents** de l'hôte : début, fin, valeur qui a fait sauter le seuil.
 
-Trois états : **active** (toujours au-dessus), **paused** (hôte mis en pause pendant l'incident), **resolved**. **Pause** sur l'hôte **suspend** les incidents, au lieu de les refermer. Ils sortent de la liste active, badge paused. **Resume** les reprend tels quels. Voir [Mettre en pause](/fr/monitoring/hosts/#pausing-a-host).
+Trois états : **active** (toujours en cours), **paused** (hôte mis en pause pendant l'incident), **resolved**. **Pause** sur l'hôte **suspend** les incidents, au lieu de les refermer. Ils sortent de la liste active, badge paused. **Resume** les reprend tels quels. Voir [Mettre en pause](/fr/monitoring/hosts/#pausing-a-host).
 
 **/incidents** dans la barre : tout le parc, filtrable par état.
 

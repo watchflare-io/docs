@@ -96,7 +96,7 @@ import PageSchema from "@components/PageSchema.astro";
       "name": "L'onglet Packages est vide juste après l'installation. Combien attendre ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Le premier scan part 60 secondes après le démarrage. Attendez 90 secondes. Pour ne pas attendre : Collect now sur la page de l'hôte."
+        "text": "Le premier inventaire part 60 secondes après le démarrage. Attendez 90 secondes. Pour ne pas attendre : Collect now sur la page de l'hôte."
       }
     },
     {
@@ -104,7 +104,7 @@ import PageSchema from "@components/PageSchema.astro";
       "name": "Après un redémarrage du Hub, plus aucun agent ne se connecte. Que s'est-il passé ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Le Hub a probablement régénéré sa CA (souvent après suppression de server.pem). Les agents ont figé l'ancienne. Arrêtez l'agent, retirez agent.conf et ca.pem, réenrôlez avec un jeton neuf, redémarrez."
+        "text": "Seulement si le Hub a régénéré sa CA (ex. après suppression de server.pem). Les agents ont épinglé l'ancienne. Arrêtez l'agent, retirez agent.conf et ca.pem, réenrôlez avec un jeton neuf, redémarrez."
       }
     },
     {
@@ -112,7 +112,7 @@ import PageSchema from "@components/PageSchema.astro";
       "name": "Le port gRPC ne passe pas derrière le reverse proxy. Pourquoi ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Le 50051 doit transiter en TCP, sans terminaison TLS. Les agents figent la CA du Hub. Un autre certificat sur le proxy, et plus personne ne se connecte. Guides Traefik, Nginx et Caddy dans Reverse proxy."
+        "text": "Le 50051 doit transiter en TCP, sans terminaison TLS. Les agents épinglent la CA du Hub. Un autre certificat sur le proxy, et plus personne ne se connecte. Guides Traefik, Nginx et Caddy dans Reverse proxy."
       }
     }
   ]
@@ -242,7 +242,7 @@ L'agent n'envoyait plus. Deux cas.
 
 **Hub injoignable, WAL saturé**
 
-Le journal local tient 10 Mo par défaut (~3 000 points). Au-delà, les plus anciens tombent.
+Le WAL tient 10 Mo par défaut (~3 000 points). Une fois plein, les plus anciens sont jetés sans bruit, les nouveaux continuent d'être écrits.
 
 ```
 WARN   WAL exceeds max size, truncating  max_mb=10
@@ -299,7 +299,7 @@ Il n'existe qu'une fois les métriques activées **et** un lot reçu.
 
 ### **Packages** vide juste après l'installation
 
-Le premier scan part **60 secondes** après le démarrage. Attendez 90 secondes.
+Le premier inventaire part **60 secondes** après le démarrage. Attendez 90 secondes.
 
 Sans attendre : page de l'hôte → **Packages** → **Collect now**.
 
@@ -368,7 +368,7 @@ WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
 
 ### Plus aucun agent après un redémarrage du Hub
 
-Souvent : `server.pem` retiré pour forcer un renouvellement. Le Hub a refait **la CA et** le certificat serveur. Les agents ont figé l'ancienne CA.
+Si vous avez retiré `server.pem` pour forcer un renouvellement, le Hub a refait **la CA et** le certificat serveur. Les agents ont épinglé l'ancienne CA.
 
 Réenrôlez chaque machine touchée :
 
@@ -383,11 +383,11 @@ sudo systemctl start watchflare-agent
 </CodeBlock>
 
 <Callout type="warn" title="Attention">
-  Mode `auto` : on ne renouvelle pas le serveur tout seul. Retirer `ca.pem` ou `server.pem` régénère les deux. Tout le parc à réenrôler. [Certificats TLS](/fr/hub/tls/).
+  Mode `auto` : impossible de renouveler le certificat serveur isolément. Retirer `ca.pem` ou `server.pem` régénère les deux. Tout le parc à réenrôler. [Certificats TLS](/fr/hub/tls/).
 </Callout>
 
 ### Le `50051` ne passe pas le reverse proxy
 
-TCP **sans** terminaison TLS. Les agents figent la CA du Hub. Un certificat du proxy à la place : plus personne.
+TCP **sans** terminaison TLS. Les agents épinglent la CA du Hub. Un certificat du proxy à la place : plus personne.
 
 Traefik, Nginx, Caddy : [Reverse proxy](/fr/hub/reverse-proxy/).

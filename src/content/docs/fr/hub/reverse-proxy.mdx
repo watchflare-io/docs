@@ -6,15 +6,15 @@ description: "Placez Traefik, Nginx ou Caddy devant le Hub Watchflare. Reverse p
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-Le Hub ouvre deux ports. Ils ne se proxifient pas de la même façon :
+Le Hub ouvre deux ports. Ils ne passent pas par le même type de proxy :
 
 | Port | Protocole | Type de proxy |
 |------|----------|------------|
-| `8080` | HTTP | Reverse proxy classique : c'est ici qu'on termine le TLS |
+| `8080` | HTTP | Reverse proxy classique : c'est là que le TLS est terminé |
 | `50051` | gRPC / TLS 1.3 | **Passthrough TCP, sans terminer le TLS** |
 
 <Callout type="warn" title="Attention">
-  Le gRPC doit passer en TCP, TLS intact. Les agents figent la CA du Hub à l'enregistrement. Un autre certificat sur le proxy, et plus aucun agent ne se connecte.
+  Le gRPC doit passer en TCP, TLS intact. Les agents épinglent la CA du Hub à l'enrôlement. Un autre certificat sur le proxy, et plus aucun agent ne se connecte.
 </Callout>
 
 ---
@@ -191,7 +191,7 @@ stream {
 Le bloc `stream {}` doit être à la racine de `nginx.conf`, pas dans un `http {}`.
 
 <Callout type="warn" title="Attention">
-  Dans le bloc HTTP : `proxy_http_version 1.1`, `proxy_set_header Connection ""` et `proxy_buffering off` — les trois. Sans ça, le flux SSE (statut et métriques en direct) reste dans un buffer, et le tableau de bord ne bouge plus.
+  Dans le bloc HTTP : `proxy_http_version 1.1`, `proxy_set_header Connection ""` et `proxy_buffering off` — les trois. Sans ça, le flux SSE (statut et métriques en direct) reste dans le tampon, et le tableau de bord ne bouge plus.
 </Callout>
 
 ---
@@ -220,16 +220,16 @@ watchflare.example.com {
 
 Pendant le handshake TLS, l'agent envoie un SNI égal à `server_name` dans `agent.conf` — par défaut `watchflare`, le CN du certificat généré par le Hub. Une règle `HostSNI("watchflare")` devrait coller à cette valeur au caractère près.
 
-`HostSNI("*")` évite les décalages si le CN change (par ex. `TLS_MODE=custom` avec un autre CN). C'est sûr : le port `50051` ne sert qu'au gRPC Watchflare. La sécu vient du TLS 1.3 et du HMAC par requête, pas du filtrage SNI.
+`HostSNI("*")` évite les décalages si le CN change (par ex. `TLS_MODE=custom` avec un autre CN). C'est sûr : le port `50051` ne sert qu'au gRPC Watchflare. La sécurité vient du TLS 1.3 et du HMAC par requête, pas du filtrage SNI.
 
 ---
 
 ## Limitation de débit
 
-Le tableau de bord est une SPA : un chargement à froid tire des dizaines d'assets depuis `/_app/immutable/*` en parallèle, davantage sur les pages lourdes. Si le proxy limite le débit, le burst doit absorber un chargement complet. Un burst trop bas répond `429` sur une partie des fichiers : le navigateur affiche `NS_ERROR_CORRUPTED_CONTENT`, la page échoue, le tableau de bord montre « Internal Error ».
+Le tableau de bord tient en une seule page : un chargement à froid tire des dizaines de fichiers statiques depuis `/_app/immutable/*` en parallèle, davantage sur les pages lourdes. Si le proxy limite le débit, le burst doit absorber un chargement complet. Un burst trop bas répond `429` sur une partie des fichiers : le navigateur affiche `NS_ERROR_CORRUPTED_CONTENT`, la page échoue, le tableau de bord montre « Internal Error ».
 
 <Callout type="warn" title="Attention">
-  Compter les requêtes sur des assets immutables n'apporte presque rien, et casse facilement le tableau de bord. Burst généreux (quelques centaines), ou limitez seulement les chemins d'API.
+  Compter les requêtes sur des fichiers immuables n'apporte presque rien, et casse facilement le tableau de bord. Burst généreux (quelques centaines), ou limitez seulement les chemins d'API.
 </Callout>
 
 Les chiffres ci-dessous sont des exemples. Dimensionnez selon le poids de vos pages et le nombre de clients. Rien n'est imposé.
@@ -242,8 +242,8 @@ http:
   middlewares:
     watchflare-ratelimit:
       rateLimit:
-        average: 300 # example, tune to your setup
-        burst: 300   # example, tune to your setup
+        average: 300 # exemple, à ajuster
+        burst: 300   # exemple, à ajuster
 ```
 </CodeBlock>
 
@@ -256,7 +256,7 @@ limit_req_zone $binary_remote_addr zone=watchflare:10m rate=300r/s; # example
 
 # inside the location block
 location / {
-    limit_req zone=watchflare burst=300 nodelay; # example, tune to your setup
+    limit_req zone=watchflare burst=300 nodelay; # exemple, à ajuster
     proxy_pass http://HUB_IP:8080;
     # ... your other proxy_set_header / SSE settings
 }
@@ -267,7 +267,7 @@ Caddy n'a pas de limitation de débit intégrée : rien à régler par défaut. 
 
 ---
 
-## Après le setup
+## Après la mise en place
 
 Une fois le HTTPS en place, mettez à jour le `.env` pour que les cookies de session portent bien `Secure` :
 
