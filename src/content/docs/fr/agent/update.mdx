@@ -1,0 +1,102 @@
+---
+title: "Mettre à jour l'Agent Watchflare"
+description: "Mettez à jour l'agent Watchflare sous Linux (commande intégrée) ou sous macOS (Homebrew). Mises à jour depuis le tableau de bord, compatibilité Hub / Agent."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+
+<CodeBlock tabs={["Linux", "macOS"]} lang="bash">
+<Fragment slot="Linux">
+```bash
+sudo watchflare-agent update
+```
+</Fragment>
+<Fragment slot="macOS">
+```bash
+brew upgrade watchflare-agent
+brew services restart watchflare-agent
+```
+</Fragment>
+</CodeBlock>
+
+---
+
+## Linux
+
+La commande `update` est dans le binaire. Elle interroge l'API GitHub, télécharge depuis `get.watchflare.io`, vérifie le SHA-256, puis confie le remplacement à un service systemd qui a les droits : le binaire est remplacé, le service redémarre.
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent update
+```
+</CodeBlock>
+
+<Shell title="bash" code={`Watchflare Agent v0.35.0
+
+Checking for updates...
+Update available: v0.35.0 → v0.36.0
+
+Downloading v0.36.0...
+✓ Updated to v0.36.0
+✓ Service restarted`} />
+
+Savoir s'il y a quelque chose de nouveau, sans l'installer :
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent update --check
+```
+</CodeBlock>
+
+<Callout type="info" title="Remarque">
+  [`agent.conf`](/fr/agent/configuration/), `ca.pem` et le dossier de données restent en place. Seul le binaire change.
+</Callout>
+
+---
+
+## macOS
+
+C'est Homebrew qui met à jour :
+
+<CodeBlock lang="bash">
+```bash
+brew upgrade watchflare-agent
+brew services restart watchflare-agent
+```
+</CodeBlock>
+
+---
+
+## Mises à jour depuis le tableau de bord (Linux)
+
+Sous Linux, un path unit systemd peut enchaîner tout seul. Page de l'hôte → **Update agent**. Le Hub envoie l'ordre au heartbeat suivant. L'agent télécharge, installe, redémarre. Rien à faire sur la machine.
+
+La page de chaque hôte affiche la version de l'agent. Les versions en retard sont signalées.
+
+---
+
+## Version installée
+
+<CodeBlock lang="bash">
+```bash
+watchflare-agent version
+```
+</CodeBlock>
+
+Sortie :
+
+```
+Watchflare Agent v0.36.0
+```
+
+La même version apparaît sur la page de l'hôte, dans le Hub.
+
+---
+
+## Compatibilité Hub / Agent
+
+Les deux ont leur propre numéro de version. Un écart d'une mineure (Hub v0.34, agent v0.33) fonctionne en général. Si le Hub ajoute une métrique ou un RPC, les agents plus anciens l'ignorent et continuent de remonter le reste.
+
+Gardez tout de même les agents à jour : correctifs et nouveaux collecteurs.

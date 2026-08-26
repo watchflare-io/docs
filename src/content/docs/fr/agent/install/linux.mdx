@@ -1,0 +1,258 @@
+---
+title: "Installer l'Agent Watchflare sous Linux"
+description: "Installez l'agent Watchflare sur un Linux avec systemd. Une commande pour Ubuntu, Debian, RHEL, Fedora, Amazon Linux et Arch Linux."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Shell from "@components/Shell.astro";
+import PageSchema from "@components/PageSchema.astro";
+
+<PageSchema schema={{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Installer l'Agent Watchflare sous Linux",
+  "description": "Installer l'agent Watchflare sur un Linux avec systemd, en une commande.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Créer un hôte dans le tableau de bord",
+      "text": "Dans le tableau de bord Watchflare, Hosts → Add host. Copiez le jeton d'enregistrement. Il expire au bout de 24 heures."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "Lancer l'installeur",
+      "text": "Lancez : curl -sSL https://get.watchflare.io | sudo bash -s -- --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP --port 50051. L'installeur crée l'utilisateur système watchflare, pose le binaire dans /usr/local/bin/, installe le service systemd, enrôle l'agent et le démarre."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Vérifier",
+      "text": "Dans le tableau de bord, l'hôte passe de pending à online dans les 5 secondes après le démarrage du service."
+    }
+  ]
+}} />
+
+**Prérequis :** un Linux avec systemd, `curl` ou `wget`, et `sudo`. Distributions testées : Ubuntu 18.04+, Debian 10+, RHEL/CentOS 7+, Fedora 30+, Amazon Linux 2+, Arch Linux.
+
+Dans le tableau de bord : **Hosts → Add host**. Copiez le jeton d'enregistrement.
+
+---
+
+## Une seule commande (recommandé)
+
+Une ligne pose le binaire, enrôle l'agent auprès du Hub, et démarre le service systemd :
+
+<CodeBlock lang="bash">
+```bash
+curl -sSL https://get.watchflare.io | sudo bash -s -- \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</CodeBlock>
+
+Remplacez `YOUR_HUB_IP` par l'IP ou le nom d'hôte du Hub, et `wf_reg_YOUR_TOKEN` par le jeton copié dans le tableau de bord.
+
+Ce que fait l'installeur :
+1. Vérifie que vous êtes root
+2. Crée l'utilisateur système `watchflare`
+3. Crée les dossiers de données et de config
+4. Pose le binaire dans `/usr/local/bin/`
+5. Installe le service systemd
+6. Enrôle l'agent auprès du Hub
+7. Active et démarre le service
+
+<Shell title="bash" code={`Downloading latest release from GitHub...
+  → Downloaded and extracted
+[1/5] Checking for existing installation...
+  → Systemd detected
+[2/5] Creating system user 'watchflare'...
+  → Created group 'watchflare'
+  → Created user 'watchflare'
+[3/5] Creating directories...
+  → Created /etc/watchflare, /var/lib/watchflare
+[4/5] Installing binary...
+  → Installed to /usr/local/bin/watchflare-agent
+[5/5] Installing service and registering...
+=== Watchflare Agent Installation ===
+
+[1/7] Checking permissions...
+  → Running as root
+
+[2/7] Creating system user...
+  → User 'watchflare' already exists
+
+[3/7] Creating directories...
+  → Created /etc/watchflare
+  → Created /var/lib/watchflare
+  → Created /var/lib/watchflare/wal
+
+[4/7] Installing binary...
+  → Already installed at /usr/local/bin/watchflare-agent
+  → Created log file /var/log/watchflare-agent.log
+
+[5/7] Installing service...
+  → Installed to /etc/systemd/system/watchflare-agent.service
+  → Installed to /etc/systemd/system/watchflare-agent-update.service
+  → Installed to /etc/systemd/system/watchflare-agent-update.path
+  → Systemd daemon reloaded
+  → Enabled watchflare-agent-update.path
+
+[6/7] Agent registration...
+  → Registering agent with the Hub...
+  → Registration successful
+
+[7/7] Starting service...
+  → Service enabled (will start on boot)
+  → Service started
+  → Checking agent health... ✓
+
+=== Installation Complete ===
+
+Installation successful!`} />
+
+Dans **Hosts**, le statut passe de **pending** à **online** en moins de 5 secondes.
+
+<Callout type="warn" title="Attention">
+  Le jeton expire au bout de 24 heures. Installez avant.
+</Callout>
+
+<Callout type="tip" title="Astuce">
+  Docker ou Podman sur cette machine ? Ajoutez `--containers` pour remonter CPU, mémoire et réseau par conteneur. Voir [Métriques Docker/Podman](/fr/agent/docker-metrics/).
+</Callout>
+
+---
+
+## Poser le binaire d'abord
+
+Installer maintenant, enrôler plus tard.
+
+**1. Installer sans enregistrer**
+
+<CodeBlock lang="bash">
+```bash
+curl -sSL https://get.watchflare.io | sudo bash
+```
+</CodeBlock>
+
+**2. Enrôler quand le Hub est prêt**
+
+<CodeBlock lang="bash">
+```bash
+sudo watchflare-agent register \
+  --token wf_reg_YOUR_TOKEN \
+  --host YOUR_HUB_IP \
+  --port 50051
+```
+</CodeBlock>
+
+**3. Activer et démarrer le service**
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl enable --now watchflare-agent
+```
+</CodeBlock>
+
+---
+
+## Service systemd
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl status watchflare-agent     # état
+sudo systemctl start watchflare-agent      # démarrer
+sudo systemctl stop watchflare-agent       # arrêter
+sudo systemctl restart watchflare-agent    # redémarrer
+sudo systemctl enable watchflare-agent     # au boot
+sudo systemctl disable watchflare-agent    # plus au boot
+journalctl -u watchflare-agent -f          # suivre les journaux
+```
+</CodeBlock>
+
+---
+
+## Fichiers
+
+| Chemin | Rôle | Propriétaire | Mode |
+|------|---------|-------|------|
+| `/usr/local/bin/watchflare-agent` | Binaire | root:root | 755 |
+| `/etc/watchflare/agent.conf` | Config (identifiants) | root:watchflare | 640 |
+| `/etc/watchflare/ca.pem` | Certificat CA du Hub | root:watchflare | 640 |
+| `/var/lib/watchflare/` | Données | watchflare:watchflare | 750 |
+| `/var/lib/watchflare/metrics.wal` | Journal d'écriture anticipée | watchflare:watchflare | 640 |
+| `/var/lib/watchflare/packages.state.json` | État de l'inventaire des paquets | watchflare:watchflare | 640 |
+| `/etc/systemd/system/watchflare-agent.service` | Unité systemd | root:root | 644 |
+| `/var/log/watchflare-agent.log` | Journaux | watchflare:watchflare | 644 |
+
+---
+
+## Changer de Hub
+
+Pour pointer vers un autre Hub, ou après avoir supprimé puis recréé l'hôte dans le tableau de bord :
+
+<CodeBlock lang="bash">
+```bash
+sudo systemctl stop watchflare-agent
+sudo rm /etc/watchflare/agent.conf /etc/watchflare/ca.pem
+sudo watchflare-agent register --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP
+sudo systemctl start watchflare-agent
+```
+</CodeBlock>
+
+---
+
+## SELinux
+
+Sur RHEL, CentOS et Fedora, réappliquez les contextes SELinux après l'installation :
+
+<CodeBlock lang="bash">
+```bash
+sudo restorecon -Rv /usr/local/bin/watchflare-agent
+sudo restorecon -Rv /etc/watchflare
+sudo restorecon -Rv /var/lib/watchflare
+```
+</CodeBlock>
+
+---
+
+## Dépannage
+
+| Symptôme | Cause | Correctif |
+|---------|-------|-----|
+| `configuration error` (fichier de config introuvable) | Pas encore enrôlé | `sudo watchflare-agent register ...` |
+| `permission denied` | Mauvais propriétaire | Vérifiez `ls -la /etc/watchflare/` |
+| `connection refused` | Mauvais hôte/port, ou firewall | Le port 50051 est-il joignable depuis cette machine ? |
+| `Invalid agent credentials` | Clé qui ne correspond pas | Réenrôlez l'agent |
+| L'hôte reste hors ligne après le démarrage | Horloge décalée | NTP doit tourner : le Hub refuse un écart de plus de ±5 min |
+
+Les journaux :
+
+<CodeBlock lang="bash">
+```bash
+journalctl -u watchflare-agent -n 50
+# ou
+tail -50 /var/log/watchflare-agent.log
+```
+</CodeBlock>
+
+Au démarrage, un agent qui tourne bien écrit :
+
+```
+2026/01/02 15:04:05 INFO   Watchflare Agent starting  version=v0.36.0
+2026/01/02 15:04:05 INFO   environment detected  type="Physical Host"
+2026/01/02 15:04:05 INFO   heartbeat started  interval_sec=5
+2026/01/02 15:04:05 INFO   package collector started
+2026/01/02 15:04:05 INFO   waiting before initial package collection  delay_sec=60
+```
+
+Erreurs fréquentes :
+
+```
+2026/01/02 15:04:05 WARN   heartbeat failed  error="Heartbeat failed: dial tcp 1.2.3.4:50051: connect: connection refused"
+2026/01/02 15:04:05 WARN   heartbeat failed  error="Heartbeat failed: rpc error: code = Unauthenticated desc = Invalid agent credentials"
+2026/01/02 15:04:05 ERROR  send failed: clock out of sync with Hub
+```

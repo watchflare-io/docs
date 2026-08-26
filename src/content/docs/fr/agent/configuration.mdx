@@ -1,0 +1,156 @@
+---
+title: "Configurer l'Agent Watchflare"
+description: "Tous les champs de agent.conf : connexion Hub, TLS, intervalles, journal d'écriture anticipée, journaux, variables d'environnement."
+---
+
+import Callout from "@components/Callout.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+
+L'agent lit un fichier TOML, écrit par `register`. Dans la pratique, vous n'y touchez presque jamais. Un redémarrage du service recharge le fichier.
+
+| Plateforme | Chemin |
+|----------|------|
+| Linux | `/etc/watchflare/agent.conf` |
+| macOS (Apple Silicon) | `/opt/homebrew/etc/watchflare/agent.conf` |
+| macOS (Intel) | `/usr/local/etc/watchflare/agent.conf` |
+
+<Callout type="warn" title="Attention">
+  `agent.conf` contient `agent_key`. Traitez-le comme un mot de passe. Droits `0640` (root:watchflare sous Linux). Ne le copiez pas ailleurs, ne le collez pas dans un ticket.
+</Callout>
+
+---
+
+## Exemple complet
+
+<CodeBlock filename="agent.conf" lang="toml">
+```toml
+# Hub connection
+server_host = "hub.example.com"
+server_port = "50051"
+
+# Credentials (written at registration, do not edit manually)
+agent_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+agent_key = "base64encodedkey..."
+
+# TLS
+ca_cert_file = "/etc/watchflare/ca.pem"
+server_name  = "watchflare"
+
+# Collection intervals
+heartbeat_interval = 5    # seconds
+metrics_interval   = 30   # seconds
+
+# Write-Ahead Log
+wal_enabled    = true
+wal_path       = "/var/lib/watchflare/metrics.wal"
+wal_max_size_mb = 10
+
+# Logging
+log_file  = "/var/log/watchflare-agent.log"
+log_level = "info"
+
+# Container metrics (opt-in)
+container_metrics = false
+```
+</CodeBlock>
+
+---
+
+## Champs
+
+### Connexion
+
+| Champ | Type | Défaut | Description |
+|-------|------|---------|-------------|
+| `server_host` | string | Aucun | Nom d'hôte ou IP du Hub |
+| `server_port` | string | `"50051"` | Port gRPC du Hub |
+
+### Identifiants
+
+`register` les écrit. N'y touchez pas.
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `agent_id` | string | UUID attribué par le Hub à l'enregistrement |
+| `agent_key` | string | Clé HMAC pour signer les requêtes gRPC |
+
+### TLS
+
+| Champ | Type | Défaut | Description |
+|-------|------|---------|-------------|
+| `ca_cert_file` | string | Aucun | Chemin du certificat CA du Hub, écrit à l'enregistrement |
+| `server_name` | string | `"watchflare"` | Nom présenté au TLS. Écrit à l'enregistrement d'après la réponse du Hub. Doit correspondre au CN du certificat. |
+
+### Intervalles de collecte
+
+| Champ | Type | Défaut | Description |
+|-------|------|---------|-------------|
+| `heartbeat_interval` | int | `5` | Secondes entre deux heartbeats |
+| `metrics_interval` | int | `30` | Secondes entre deux collectes (et envois) de métriques |
+
+<a id="write-ahead-log"></a>
+
+### Write-Ahead Log
+
+| Champ | Type | Défaut | Description |
+|-------|------|---------|-------------|
+| `wal_enabled` | bool | `true` | Écrit les métriques en local tant que le Hub est injoignable |
+| `wal_path` | string | `{data_dir}/metrics.wal` | Chemin du fichier WAL |
+| `wal_max_size_mb` | int | `10` | Taille max du WAL, en Mo. Au-delà, les plus anciens sont jetés (FIFO). |
+
+### Journaux
+
+| Champ | Type | Défaut | Description |
+|-------|------|---------|-------------|
+| `log_file` | string | `""` | Chemin du fichier de journal. Vide : stdout, récupéré par systemd ou launchd. |
+| `log_level` | string | `"info"` | Niveau : `debug`, `info`, `warn`, `error`. Pour forcer le debug : `WATCHFLARE_DEBUG=1`. |
+
+### Métriques conteneurs
+
+| Champ | Type | Défaut | Description |
+|-------|------|---------|-------------|
+| `container_metrics` | bool | `false` | Métriques par conteneur (Docker et Podman). Sous Linux, l'utilisateur `watchflare` doit être dans le groupe `docker`. Voir [Métriques Docker](/fr/agent/docker-metrics/). |
+
+---
+
+## Variables d'environnement
+
+Quatre variables pour changer les chemins ou le niveau de journal. Homebrew les pose tout seul sous macOS. Vous n'avez généralement rien à exporter.
+
+| Variable | Description |
+|----------|-------------|
+| `WATCHFLARE_CONFIG_DIR` | Dossier de config (`/etc/watchflare` sous Linux) |
+| `WATCHFLARE_DATA_DIR` | Dossier de données (`/var/lib/watchflare` sous Linux) |
+| `WATCHFLARE_LOG_FILE` | Chemin du fichier de journal |
+| `WATCHFLARE_DEBUG` | `1` force le niveau debug, quel que soit `log_level` |
+
+---
+
+## Fichiers
+
+### Linux
+
+| Chemin | Rôle | Propriétaire | Mode |
+|------|---------|-------|------|
+| `/usr/local/bin/watchflare-agent` | Binaire | root:root | 755 |
+| `/etc/watchflare/agent.conf` | Config | root:watchflare | 640 |
+| `/etc/watchflare/ca.pem` | Certificat CA | root:watchflare | 640 |
+| `/var/lib/watchflare/` | Données | watchflare:watchflare | 750 |
+| `/var/lib/watchflare/metrics.wal` | WAL | watchflare:watchflare | 640 |
+| `/var/lib/watchflare/packages.state.json` | État des paquets | watchflare:watchflare | 640 |
+| `/var/log/watchflare-agent.log` | Journaux | watchflare:watchflare | 644 |
+| `/etc/systemd/system/watchflare-agent.service` | Service | root:root | 644 |
+
+### macOS
+
+`$(brew --prefix)` vaut `/opt/homebrew` sur Apple Silicon, `/usr/local` sur Intel.
+
+| Chemin | Rôle |
+|------|---------|
+| `$(brew --prefix)/bin/watchflare-agent` | Binaire |
+| `$(brew --prefix)/etc/watchflare/agent.conf` | Config |
+| `$(brew --prefix)/etc/watchflare/ca.pem` | Certificat CA |
+| `$(brew --prefix)/var/watchflare/` | Données |
+| `$(brew --prefix)/var/watchflare/metrics.wal` | WAL |
+| `$(brew --prefix)/var/watchflare/packages.state.json` | État des paquets |
+| `$(brew --prefix)/var/log/watchflare-agent.log` | Journaux |

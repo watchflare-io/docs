@@ -1,0 +1,80 @@
+---
+title: "L'Agent Watchflare"
+description: "Démon Go sur chaque machine surveillée : métriques, inventaire de paquets, état systemd. Utilisateur sans privilèges, gRPC/TLS en sortie uniquement."
+---
+
+import Callout from "@components/Callout.astro";
+
+L'agent tourne sur chaque machine à surveiller. C'est un démon Go, sans privilèges. Il ne parle qu'en sortie : aucun port ouvert en entrée.
+
+---
+
+## Ce qu'il fait
+
+Cinq boucles, indépendantes :
+
+| Boucle | Intervalle | Rôle |
+|------|----------|--------------|
+| Heartbeat | 5 s | Signal de présence, avec les IP actuelles |
+| Métriques | 30 s | Collecte des métriques système et envoi au Hub |
+| Inventaire des paquets | 60 s après le démarrage, puis tous les jours à 03:00 | Scan des paquets, envoi du delta au Hub |
+| Inventaire des services | 60 s après le démarrage, puis toutes les 15 min | Catalogue des unités systemd (Linux + systemd uniquement) |
+| Santé des services | 30 s | État des services systemd (Linux + systemd uniquement) |
+
+---
+
+## Ce qu'il remonte
+
+| Catégorie | Métriques |
+|----------|---------|
+| **CPU** | Usage %, iowait, steal (VMs) |
+| **Mémoire** | Utilisée, disponible, buffers, cached, swap |
+| **Disque** | Total, utilisé, débit lecture/écriture |
+| **Réseau** | Bande passante entrante et sortante |
+| **Température** | Capteurs CPU et autres (stockage, gestion d'énergie, etc.) sur les machines physiques |
+| **Système** | Uptime, charge moyenne (1/5/15 min), nombre de processus |
+| **Conteneurs** | CPU, mémoire, réseau par conteneur (Docker/Podman, à activer) |
+| **Services** | Unités systemd et leur état, sur les hôtes Linux |
+| **Paquets** | Paquets installés, versions, et détection des obsolètes parmi [~30 gestionnaires](/fr/monitoring/packages/#supported-package-managers) |
+
+L'agent ajuste tout seul ce qu'il collecte :
+
+| Environnement | Ce qui est omis |
+|-------------|-------|
+| Conteneur d'application (Docker, Podman) | Disque, E/S disque, réseau, swap, température |
+| Conteneur système (LXC) | Rien — collecte complète, comme une machine |
+| Machine virtuelle | Capteurs de température |
+| Machine physique | Rien — collecte complète |
+
+---
+
+## Comment ça marche
+
+**WAL (journal d'écriture anticipée).** Les métriques sont d'abord écrites dans un fichier local, puis envoyées. Si le Hub ne répond pas, le journal continue de se remplir. À la reconnexion, les points partent dans l'ordre. Une coupure courte ne les fait pas disparaître. Plafond par défaut : 10 Mo ; au-delà, les plus anciens sont jetés. Réglable avec [`wal_max_size_mb`](/fr/agent/configuration/#write-ahead-log) dans `agent.conf`.
+
+**Sécurité.** Chaque requête gRPC est signée HMAC-SHA256 (identifiant de l'agent + horodatage + contenu). Le Hub refuse tout ce qui sort d'une fenêtre de ±5 minutes. Le canal est en TLS 1.3. À l'enregistrement, l'agent fige la CA du Hub.
+
+**Sans privilèges.** Sous Linux, utilisateur système `watchflare` : pas de shell, home non inscriptible (`/var/empty`), écriture limitée à son dossier de données. Sous macOS, Homebrew le lance sous votre compte.
+
+---
+
+## Prérequis
+
+### Linux
+
+- systemd (Ubuntu 18.04+, Debian 10+, RHEL/CentOS 7+, Fedora 30+, Amazon Linux 2+, Arch Linux)
+- `curl` ou `wget`
+- `sudo` pour l'installation
+
+### macOS
+
+- macOS 11 (Big Sur) ou plus récent
+- Intel ou Apple Silicon (M1/M2/M3/M4)
+- [Homebrew](https://brew.sh)
+
+---
+
+## Installation
+
+- [Installer sous Linux](/fr/agent/install/linux/)
+- [Installer sous macOS](/fr/agent/install/macos/)
