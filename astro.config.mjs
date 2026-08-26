@@ -12,6 +12,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITE = 'https://docs.watchflare.io';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
 
+/** @param {string} url */
 function urlToSrcPath(url) {
   const path = url.replace(SITE + '/', '').replace(/\/$/, '');
   if (path === '' || path === SITE) return 'src/pages/index.astro';
@@ -26,6 +27,7 @@ function urlToSrcPath(url) {
   return `src/content/docs/en/${path}.mdx`;
 }
 
+/** @param {string} filePath */
 function gitDate(filePath) {
   try {
     const ts = execSync(`git log -1 --format=%ct -- "${filePath}"`, { encoding: 'utf8' }).trim();

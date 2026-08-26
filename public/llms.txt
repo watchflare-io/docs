@@ -7,7 +7,8 @@
 Watchflare is a self-hosted alternative to cloud monitoring services like Datadog, New Relic, or Grafana Cloud. It is designed for sysadmins and developers who run their own servers and want full control over their monitoring data.
 
 **Key facts:**
-- License: MIT
+- Application license: AGPL-3.0
+- Documentation license: MIT
 - Language: Go (Hub + Agent), SvelteKit (embedded frontend)
 - Source: https://github.com/watchflare-io/watchflare
 - Website: https://watchflare.io
@@ -19,7 +20,7 @@ Watchflare is a self-hosted alternative to cloud monitoring services like Datado
 - Hub: Linux (Docker Compose or native binary), any platform supporting Docker
 - Agent: Linux (systemd), macOS (Homebrew) — Windows support planned
 
-**What it monitors:** CPU usage and temperature, memory, disk I/O, network bandwidth, system load, uptime, Docker/Podman container metrics, and a full package inventory across ~30 package managers (apt, yum, dnf, brew, npm, pip, cargo, gem, and more).
+**What it monitors:** CPU usage and temperature, memory, disk I/O, network bandwidth, system load, uptime, Docker/Podman container metrics, systemd services, and a full package inventory across ~30 package managers (apt, yum, dnf, brew, npm, pip, cargo, gem, and more).
 
 **Differentiators vs. alternatives:**
 - No external cloud, no telemetry, no data leaving your infrastructure
@@ -44,7 +45,7 @@ TimescaleDB (PostgreSQL with time-series extensions). Metrics are stored in a hy
 Watchflare is designed to scale horizontally. The agent is lightweight (~10 MB binary, minimal CPU/memory footprint) and multiple agents can connect to a single Hub.
 
 **Is Watchflare free?**
-Yes. Watchflare is MIT-licensed open-source software.
+Yes. Watchflare is AGPL-3.0-licensed open-source software. This documentation site is MIT-licensed.
 
 ## Getting Started
 - [Introduction](https://docs.watchflare.io/get-started/introduction/): What Watchflare is, what it monitors, and how it works
@@ -55,11 +56,13 @@ Yes. Watchflare is MIT-licensed open-source software.
 - [Deploy with Docker](https://docs.watchflare.io/hub/deploy-docker/)
 - [Binary Install (Linux)](https://docs.watchflare.io/hub/binary-install/)
 - [Configuration](https://docs.watchflare.io/hub/configuration/)
-- [TLS Certificates](https://docs.watchflare.io/hub/tls/)
 - [HTTPS Setup](https://docs.watchflare.io/hub/https/)
 - [Reverse Proxy](https://docs.watchflare.io/hub/reverse-proxy/)
-- [Email Notifications](https://docs.watchflare.io/hub/smtp/)
+- [TLS Certificates](https://docs.watchflare.io/hub/tls/)
+- [Two-factor Authentication](https://docs.watchflare.io/hub/two-factor-auth/)
 - [Alerts](https://docs.watchflare.io/hub/alerts/)
+- [Email Notifications](https://docs.watchflare.io/hub/smtp/)
+- [Notification Channels](https://docs.watchflare.io/hub/notifications/)
 - [Update the Hub](https://docs.watchflare.io/hub/update/)
 - [Uninstall the Hub](https://docs.watchflare.io/hub/uninstall/)
 
@@ -75,12 +78,12 @@ Yes. Watchflare is MIT-licensed open-source software.
 ## Monitoring
 - [Hosts & Status](https://docs.watchflare.io/monitoring/hosts/)
 - [System Metrics](https://docs.watchflare.io/monitoring/metrics/)
+- [Package Inventory](https://docs.watchflare.io/monitoring/packages/)
+- [systemd Services](https://docs.watchflare.io/monitoring/services/)
 - [Container Metrics](https://docs.watchflare.io/monitoring/containers/)
 - [Alerts & Notifications](https://docs.watchflare.io/monitoring/alerts/)
-- [Package Inventory](https://docs.watchflare.io/monitoring/packages/)
 
 ## Reference
-- [Agent Config (TOML)](https://docs.watchflare.io/reference/agent-config/)
 - [Hub Environment Variables](https://docs.watchflare.io/reference/hub-env/)
 - [Troubleshooting](https://docs.watchflare.io/reference/troubleshooting/)
 
