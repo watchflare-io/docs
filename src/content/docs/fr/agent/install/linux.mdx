@@ -1,6 +1,6 @@
 ---
 title: "Installer l'Agent Watchflare sous Linux"
-description: "Installez l'agent Watchflare sur un Linux avec systemd. Une commande pour Ubuntu, Debian, RHEL, Fedora, Amazon Linux et Arch Linux."
+description: "Installez l'agent Watchflare sur un hôte Linux avec systemd. Installeur en une commande pour Ubuntu, Debian, RHEL, Fedora, Amazon Linux et Arch Linux."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -12,38 +12,38 @@ import PageSchema from "@components/PageSchema.astro";
   "@context": "https://schema.org",
   "@type": "HowTo",
   "name": "Installer l'Agent Watchflare sous Linux",
-  "description": "Installer l'agent Watchflare sur un Linux avec systemd, en une commande.",
+  "description": "Installez l'agent Watchflare sur un hôte Linux avec systemd à l'aide de l'installeur en une commande.",
   "step": [
     {
       "@type": "HowToStep",
       "position": 1,
       "name": "Créer un hôte dans le tableau de bord",
-      "text": "Dans le tableau de bord Watchflare, Hosts → Add host. Copiez le jeton d'enregistrement. Il expire au bout de 24 heures."
+      "text": "Ouvrez le tableau de bord Watchflare, allez dans Hosts → Add host, et copiez le jeton d'enrôlement. Le jeton expire au bout de 24 heures."
     },
     {
       "@type": "HowToStep",
       "position": 2,
-      "name": "Lancer l'installeur",
-      "text": "Lancez : curl -sSL https://get.watchflare.io | sudo bash -s -- --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP --port 50051. L'installeur crée l'utilisateur système watchflare, pose le binaire dans /usr/local/bin/, installe le service systemd, enrôle l'agent et le démarre."
+      "name": "Lancer l'installeur en une commande",
+      "text": "Lancez : curl -sSL https://get.watchflare.io | sudo bash -s -- --token wf_reg_YOUR_TOKEN --host YOUR_HUB_IP --port 50051. L'installeur crée l'utilisateur système watchflare, installe le binaire dans /usr/local/bin/, installe le service systemd, enrôle l'agent et le démarre automatiquement."
     },
     {
       "@type": "HowToStep",
       "position": 3,
-      "name": "Vérifier",
-      "text": "Dans le tableau de bord, l'hôte passe de pending à online dans les 5 secondes après le démarrage du service."
+      "name": "Vérifier l'installation",
+      "text": "L'hôte passe de pending à online dans le tableau de bord Watchflare dans les 5 secondes après le démarrage du service."
     }
   ]
 }} />
 
-**Prérequis :** un Linux avec systemd, `curl` ou `wget`, et `sudo`. Distributions testées : Ubuntu 18.04+, Debian 10+, RHEL/CentOS 7+, Fedora 30+, Amazon Linux 2+, Arch Linux.
+**Prérequis :** un hôte Linux avec systemd, `curl` ou `wget`, et un accès `sudo`. Testé sur Ubuntu 18.04+, Debian 10+, RHEL/CentOS 7+, Fedora 30+, Amazon Linux 2+, Arch Linux.
 
-Dans le tableau de bord : **Hosts → Add host**. Copiez le jeton d'enregistrement.
+Avant de commencer, créez l'hôte dans le tableau de bord Watchflare (**Hosts → Add host**) et copiez le jeton d'enrôlement.
 
 ---
 
-## Une seule commande (recommandée)
+## Installation en une commande (recommandée)
 
-Une ligne pose le binaire, enrôle l'agent auprès du Hub, et démarre le service systemd :
+Cette commande installe l'agent, l'enrôle auprès du Hub et démarre le service systemd en une seule étape :
 
 <CodeBlock lang="bash">
 ```bash
@@ -54,13 +54,13 @@ curl -sSL https://get.watchflare.io | sudo bash -s -- \
 ```
 </CodeBlock>
 
-Remplacez `YOUR_HUB_IP` par l'IP ou le nom d'hôte du Hub, et `wf_reg_YOUR_TOKEN` par le jeton complet copié dans le tableau de bord.
+Remplacez `YOUR_HUB_IP` par l'IP ou le nom d'hôte de votre Hub et `wf_reg_YOUR_TOKEN` par le jeton complet copié depuis le tableau de bord.
 
-Ce que fait l'installeur :
-1. Vérifie que vous êtes root
+L'installeur :
+1. Vérifie les permissions (nécessite root)
 2. Crée l'utilisateur système `watchflare`
 3. Crée les dossiers de données et de config
-4. Pose le binaire dans `/usr/local/bin/`
+4. Copie le binaire vers `/usr/local/bin/`
 5. Installe le service systemd
 6. Enrôle l'agent auprès du Hub
 7. Active et démarre le service
@@ -114,23 +114,23 @@ Ce que fait l'installeur :
 
 Installation successful!`} />
 
-Dans **Hosts**, le statut passe de **pending** à **online** dans les 5 secondes après le démarrage du service.
+L'hôte passe de **pending** à **online** dans le tableau de bord dans les 5 secondes.
 
 <Callout type="warn" title="Attention">
-  Le jeton expire au bout de 24 heures. Installez avant.
+  Les jetons d'enrôlement expirent au bout de 24 heures. Lancez la commande d'installation avant que le jeton n'expire.
 </Callout>
 
 <Callout type="tip" title="Astuce">
-  Docker ou Podman sur cette machine ? Ajoutez `--containers` pour remonter CPU, mémoire et réseau par conteneur. Voir [Métriques Docker/Podman](/fr/agent/docker-metrics/).
+  Vous faites tourner Docker ou Podman sur cet hôte ? Ajoutez `--containers` pour collecter les métriques CPU, mémoire et réseau par conteneur. Voir [Métriques de conteneurs Docker/Podman](/fr/agent/docker-metrics/).
 </Callout>
 
 ---
 
-## Poser le binaire d'abord
+## Installation en deux étapes
 
-Installer maintenant, enrôler plus tard.
+Si vous voulez installer le binaire d'abord et l'enrôler plus tard :
 
-**1. Installer sans enrôler**
+**Étape 1 : Installer sans enrôler**
 
 <CodeBlock lang="bash">
 ```bash
@@ -138,7 +138,7 @@ curl -sSL https://get.watchflare.io | sudo bash
 ```
 </CodeBlock>
 
-**2. Enrôler quand vous êtes prêt**
+**Étape 2 : Enrôler quand vous êtes prêt**
 
 <CodeBlock lang="bash">
 ```bash
@@ -149,7 +149,7 @@ sudo watchflare-agent register \
 ```
 </CodeBlock>
 
-**3. Activer et démarrer le service**
+**Étape 3 : Activer et démarrer le service**
 
 <CodeBlock lang="bash">
 ```bash
@@ -159,7 +159,7 @@ sudo systemctl enable --now watchflare-agent
 
 ---
 
-## Service systemd
+## Gestion du service
 
 <CodeBlock lang="bash">
 ```bash
@@ -167,32 +167,32 @@ sudo systemctl status watchflare-agent     # état
 sudo systemctl start watchflare-agent      # démarrer
 sudo systemctl stop watchflare-agent       # arrêter
 sudo systemctl restart watchflare-agent    # redémarrer
-sudo systemctl enable watchflare-agent     # au démarrage
-sudo systemctl disable watchflare-agent    # plus au démarrage
+sudo systemctl enable watchflare-agent     # activer au démarrage
+sudo systemctl disable watchflare-agent    # désactiver au démarrage
 journalctl -u watchflare-agent -f          # suivre les journaux
 ```
 </CodeBlock>
 
 ---
 
-## Fichiers
+## Emplacement des fichiers
 
 | Chemin | Rôle | Propriétaire | Mode |
 |------|---------|-------|------|
 | `/usr/local/bin/watchflare-agent` | Binaire | root:root | 755 |
 | `/etc/watchflare/agent.conf` | Config (identifiants) | root:watchflare | 640 |
 | `/etc/watchflare/ca.pem` | Certificat CA du Hub | root:watchflare | 640 |
-| `/var/lib/watchflare/` | Données | watchflare:watchflare | 750 |
-| `/var/lib/watchflare/metrics.wal` | WAL | watchflare:watchflare | 640 |
+| `/var/lib/watchflare/` | Dossier de données | watchflare:watchflare | 750 |
+| `/var/lib/watchflare/metrics.wal` | Write-Ahead Log | watchflare:watchflare | 640 |
 | `/var/lib/watchflare/packages.state.json` | État de l'inventaire des paquets | watchflare:watchflare | 640 |
-| `/etc/systemd/system/watchflare-agent.service` | Unité systemd | root:root | 644 |
+| `/etc/systemd/system/watchflare-agent.service` | Définition du service | root:root | 644 |
 | `/var/log/watchflare-agent.log` | Journaux | watchflare:watchflare | 644 |
 
 ---
 
 ## Réenrôler
 
-Pour pointer vers un autre Hub, ou après avoir supprimé puis recréé l'hôte dans le tableau de bord :
+Pour connecter l'agent à un autre Hub, ou après avoir supprimé puis recréé un hôte :
 
 <CodeBlock lang="bash">
 ```bash
@@ -207,7 +207,7 @@ sudo systemctl start watchflare-agent
 
 ## SELinux
 
-Sur RHEL, CentOS et Fedora, réappliquez les contextes SELinux après l'installation :
+Sur RHEL, CentOS et Fedora, restaurez les contextes SELinux après l'installation :
 
 <CodeBlock lang="bash">
 ```bash
@@ -223,13 +223,13 @@ sudo restorecon -Rv /var/lib/watchflare
 
 | Symptôme | Cause | Correctif |
 |---------|-------|-----|
-| `configuration error` (fichier de config introuvable) | Pas encore enrôlé | `sudo watchflare-agent register ...` |
-| `permission denied` | Mauvais propriétaire | Vérifiez `ls -la /etc/watchflare/` |
-| `connection refused` | Mauvais hôte/port, ou firewall | Le port 50051 est-il joignable depuis cette machine ? |
+| `configuration error` (fichier de config introuvable) | Pas enrôlé | Exécutez `sudo watchflare-agent register ...` |
+| `permission denied` | Mauvais propriétaire des fichiers | Vérifiez `ls -la /etc/watchflare/` |
+| `connection refused` | Mauvais hôte/port ou pare-feu | Vérifiez que le port 50051 est joignable depuis cet hôte |
 | `Invalid agent credentials` | Clé qui ne correspond pas | Réenrôlez l'agent |
-| L'hôte reste **offline** après le démarrage | Horloge décalée | NTP doit tourner : le Hub refuse un horodatage hors fenêtre de ±5 min |
+| L'hôte reste offline après le démarrage | Horloge désynchronisée | Assurez-vous que NTP tourne, car le Hub refuse les horodatages décalés de ±5 min |
 
-Les journaux :
+Consultez les journaux pour plus de détails :
 
 <CodeBlock lang="bash">
 ```bash
@@ -239,7 +239,7 @@ tail -50 /var/log/watchflare-agent.log
 ```
 </CodeBlock>
 
-Au démarrage, un agent qui tourne bien écrit :
+Un agent en bon état produit des lignes de ce type au démarrage :
 
 ```
 2026/01/02 15:04:05 INFO   Watchflare Agent starting  version=v0.40.1
@@ -249,7 +249,7 @@ Au démarrage, un agent qui tourne bien écrit :
 2026/01/02 15:04:05 INFO   waiting before initial package collection  delay_sec=60
 ```
 
-Erreurs fréquentes :
+Motifs d'erreur fréquents :
 
 ```
 2026/01/02 15:04:05 WARN   heartbeat failed  error="Heartbeat failed: dial tcp 1.2.3.4:50051: connect: connection refused"

@@ -1,19 +1,19 @@
 ---
 title: "Métriques système et plages de temps"
-description: "CPU, mémoire, disque, charge, réseau, température. Cinq plages de graphiques, agrégats TimescaleDB, rétention."
+description: "Voyez quelles métriques système Watchflare collecte (CPU, mémoire, disque, charge, réseau, température) et comment le choix de la plage de temps influe sur la résolution des graphiques."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Un point toutes les 30 secondes, envoyé au Hub. La page de l'hôte l'affiche tout de suite. TimescaleDB le garde pour l'historique.
+L'agent collecte les métriques système toutes les 30 secondes et les envoie au Hub. Elles s'affichent en temps réel sur les pages de détail des hôtes et sont stockées dans TimescaleDB pour les requêtes historiques.
 
 <Callout type="info" title="Remarque">
-  Un **0** n'est pas toujours un bug. Pas de température sur VM ni conteneur. IOWait : Linux seulement. Disque et réseau : l'agent dans un conteneur ne les remonte pas. La colonne Notes dit pour qui.
+  Certaines métriques affichent **0** sur certains environnements, et c'est attendu. La température n'est pas disponible sur les VM ni les conteneurs. L'IOWait est Linux uniquement. Le disque et le réseau sont omis lorsque l'agent s'exécute dans un conteneur. Voir la colonne Notes de chaque tableau.
 </Callout>
 
 ---
 
-## Ce qui est collecté
+## Métriques collectées
 
 <a id="cpu"></a>
 
@@ -21,17 +21,17 @@ Un point toutes les 30 secondes, envoyé au Hub. La page de l'hôte l'affiche to
 
 | Métrique | Unité | Notes |
 |--------|------|-------|
-| Usage | % | Tous les cœurs logiques |
-| IOWait | % | Attente I/O. Linux uniquement ; 0 sous macOS et sur les VM. |
-| Steal | % | Temps pris par l'hyperviseur. VM Linux uniquement ; 0 sur machine physique et macOS. |
-| Temperature | °C | Machines physiques uniquement. Rien sur VM ni conteneurs. |
+| Usage | % | Pourcentage de tous les cœurs logiques |
+| IOWait | % | Temps d'attente I/O. Linux uniquement, 0 sous macOS et sur les VM. |
+| Steal | % | Temps CPU volé par l'hyperviseur. VM Linux uniquement, 0 sur les hôtes physiques et macOS. |
+| Temperature | °C | Hôtes physiques uniquement. Indisponible sur VM et conteneurs. |
 
 ### Mémoire
 
 | Métrique | Unité | Notes |
 |--------|------|-------|
-| Used | octets | Mémoire active (pas buffers ni cache) |
-| Available | octets | Disponible pour les applis, sans passer par le swap |
+| Used | octets | Mémoire activement utilisée |
+| Available | octets | Mémoire disponible pour les applications sans swap |
 | Buffers | octets | Cache buffers du noyau. Linux uniquement. |
 | Cached | octets | Page cache. Linux uniquement. |
 
@@ -42,18 +42,18 @@ Un point toutes les 30 secondes, envoyé au Hub. La page de l'hôte l'affiche to
 | Total | octets |
 | Used | octets |
 
-Les métriques swap ne sont pas remontées dans un conteneur.
+Les métriques swap sont omises sur les conteneurs.
 
 ### Disque
 
 | Métrique | Unité | Notes |
 |--------|------|-------|
-| Total | octets | Partition principale |
-| Used | octets | Espace occupé |
-| Read throughput | octets/s | Lecture depuis le dernier point |
-| Write throughput | octets/s | Écriture depuis le dernier point |
+| Total | octets | Capacité totale de la partition principale |
+| Used | octets | Espace utilisé |
+| Read throughput | octets/s | Débit de lecture disque depuis le dernier échantillon |
+| Write throughput | octets/s | Débit d'écriture disque depuis le dernier échantillon |
 
-Dans un conteneur Docker, le disque est celui de l'hôte : l'agent ne le remonte pas, pour ne pas compter deux fois.
+Les métriques disque sont omises sur les conteneurs Docker (le disque est partagé avec l'hôte et serait compté deux fois).
 
 ### Réseau
 
@@ -74,46 +74,46 @@ Dans un conteneur Docker, le disque est celui de l'hôte : l'agent ne le remonte
 
 ### Capteurs de température
 
-Linux physique, capteurs présents : l'agent lit tout (cœurs CPU, NVMe, châssis…) et stocke chaque sonde à part. Ça s'affiche dans **Sensors**.
+Sur les hôtes Linux physiques équipés de capteurs matériels, l'agent collecte toutes les lectures de température disponibles (cœurs CPU, disques NVMe, ventilateurs de châssis, etc.) et les stocke individuellement. Elles apparaissent dans la section **Sensors** de la page de détail de l'hôte.
 
 ---
 
 <a id="time-ranges-and-resolution"></a>
 
-## Plages et résolution
+## Plages de temps et résolution
 
-Cinq plages. Plus c'est long, plus le graphique lit un agrégat déjà calculé, pas les points bruts :
+Les graphiques de la page de détail de l'hôte sont disponibles en cinq plages de temps. Les plages plus longues utilisent des agrégats précalculés, pour les performances :
 
 | Plage | Résolution | Source |
 |-------|------------|--------|
-| **1 hour** | Points bruts (30 s) | table `metrics` |
+| **1 hour** | Brut (échantillons de 30 s) | table `metrics` |
 | **12 hours** | Intervalles de 10 min | agrégat `metrics_10min` |
 | **24 hours** | Intervalles de 15 min | agrégat `metrics_15min` |
 | **7 days** | Intervalles de 2 h | agrégat `metrics_2h` |
 | **30 days** | Intervalles de 8 h | agrégat `metrics_8h` |
 
-Ce sont des agrégats continus TimescaleDB. Une plage longue : moins de détail, plus de recul.
+Les agrégats sont calculés automatiquement par les agrégats continus TimescaleDB. Passer à une plage plus longue échange la granularité des échantillons contre une vue plus large.
 
-Plage par défaut : **Settings → Preferences**.
-
----
-
-## Temps réel
-
-Le navigateur tient une connexion SSE persistante vers le Hub. Statut, jauges, graphiques : tout arrive en événements. La page n'interroge jamais le serveur. Un cycle de 30 secondes se voit tout de suite.
+Votre plage de temps par défaut peut être définie dans **Settings → Preferences**.
 
 ---
 
-## Rétention
+## Mises à jour en temps réel
 
-TimescaleDB applique une rétention par table :
+Le tableau de bord reçoit les mises à jour de métriques via une connexion Server-Sent Events (SSE) persistante vers le Hub. Il n'y a pas d'interrogation périodique, et les données apparaissent en quelques secondes après l'envoi par l'agent. Chaque cycle de collecte de 30 secondes se reflète immédiatement sur le graphique et sur les jauges de statistiques en direct.
+
+---
+
+## Rétention des données
+
+Chaque table a sa propre politique de rétention, appliquée automatiquement par TimescaleDB :
 
 | Table | Rétention |
 |-------|-----------|
-| `metrics` (points bruts, 30 s) | 24 heures |
+| `metrics` (brutes, échantillons de 30 s) | 24 heures |
 | `metrics_10min` | 14 jours |
 | `metrics_15min` | 30 jours |
 | `metrics_2h` | 90 jours |
 | `metrics_8h` | 1 an |
 
-Les lignes brutes sont compressées au bout d'un jour. Le tableau de bord choisit la table selon la plage. Rien à régler.
+Les données brutes sont compressées après 1 jour. Le tableau de bord sélectionne automatiquement la table appropriée selon la plage de temps choisie, sans configuration nécessaire.

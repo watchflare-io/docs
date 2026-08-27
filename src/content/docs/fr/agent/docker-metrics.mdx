@@ -1,20 +1,20 @@
 ---
-title: "Métriques Docker et Podman"
-description: "CPU, mémoire et réseau par conteneur, depuis Docker et Podman. À activer avec --containers, ou en éditant agent.conf."
+title: "Métriques de conteneurs Docker et Podman"
+description: "Collectez les métriques CPU, mémoire et réseau par conteneur depuis Docker et Podman. À activer via le flag --containers ou en éditant agent.conf directement."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-L'agent peut remonter CPU, mémoire et réseau **par conteneur**, Docker ou Podman. Désactivé par défaut : il faut le socket du runtime, et le dire explicitement.
+L'agent peut collecter des métriques par conteneur depuis Docker et Podman : usage CPU, usage mémoire et I/O réseau. C'est une option à activer, et cela exige l'accès au socket du runtime de conteneurs.
 
-**Prérequis :** Docker Engine 23.0+ (API v1.44+), ou Podman avec un socket API compatible (`/run/podman/podman.sock`).
+**Prérequis :** Docker Engine 23.0+ (API v1.44+) ou Podman avec un socket API compatible (`/run/podman/podman.sock`).
 
 ---
 
-## À l'installation
+## Activer à l'installation
 
-Passez `--containers` à l'installeur ou à `register` :
+Passez `--containers` à la commande d'installation ou d'enrôlement :
 
 <CodeBlock lang="bash">
 ```bash
@@ -25,7 +25,7 @@ curl -sSL https://get.watchflare.io | sudo bash -s -- \
 ```
 </CodeBlock>
 
-Ou à l'enrôlement à la main :
+Ou lors d'un enrôlement à la main :
 
 <CodeBlock lang="bash">
 ```bash
@@ -36,15 +36,15 @@ sudo watchflare-agent register \
 ```
 </CodeBlock>
 
-`--containers` écrit `container_metrics = true` dans `agent.conf` et ajoute tout seul `watchflare` au groupe `docker`.
+Le flag `--containers` définit `container_metrics = true` dans `agent.conf` et ajoute automatiquement l'utilisateur `watchflare` au groupe `docker`.
 
 ---
 
-## Sur un agent déjà en place
+## Activer sur une installation existante
 
-Trois gestes.
+Si l'agent est déjà installé et enrôlé, activez les métriques de conteneurs en trois étapes :
 
-**1. Ajouter `watchflare` au groupe `docker`**
+**Étape 1 : Ajouter `watchflare` au groupe `docker`**
 
 <CodeBlock lang="bash">
 ```bash
@@ -52,7 +52,7 @@ sudo usermod -aG docker watchflare
 ```
 </CodeBlock>
 
-**2. `container_metrics = true` dans [`/etc/watchflare/agent.conf`](/fr/agent/configuration/)**
+**Étape 2 : Définir `container_metrics = true` dans [`/etc/watchflare/agent.conf`](/fr/agent/configuration/)**
 
 <CodeBlock filename="/etc/watchflare/agent.conf" lang="toml">
 ```toml
@@ -60,7 +60,7 @@ container_metrics = true
 ```
 </CodeBlock>
 
-**3. Redémarrer l'agent**
+**Étape 3 : Redémarrer l'agent**
 
 <CodeBlock lang="bash">
 ```bash
@@ -69,16 +69,16 @@ sudo systemctl restart watchflare-agent
 </CodeBlock>
 
 <Callout type="info" title="Remarque">
-  Le groupe n'est pris en compte qu'au prochain démarrage du service. Le redémarrage de l'étape 3 charge les deux : groupe et config.
+  Les changements d'appartenance à un groupe prennent effet au prochain démarrage du service. Le redémarrage de l'étape 3 prend en compte à la fois le changement de groupe et le changement de configuration.
 </Callout>
 
 ---
 
 ## macOS
 
-Sous macOS (Docker Desktop ou Colima), l'agent tourne sous le compte qui a démarré le service Homebrew. Ce compte voit déjà le socket Docker : pas de groupe à modifier.
+Sous macOS (Docker Desktop ou Colima), l'agent tourne sous l'utilisateur qui a démarré le service Homebrew. Cet utilisateur a déjà accès au socket Docker, aucun changement de groupe n'est donc nécessaire.
 
-`--containers` à l'enrôlement :
+Passez `--containers` à l'enrôlement :
 
 <CodeBlock lang="bash">
 ```bash
@@ -99,27 +99,27 @@ brew services restart watchflare-agent
 
 ---
 
-## Ce qui remonte
+## Ce qui est collecté
 
 | Métrique | Description |
 |--------|-------------|
-| CPU % | Usage CPU du conteneur, rapporté à tous les cœurs |
-| Mémoire utilisée | Consommation actuelle |
-| Limite mémoire | Limite du conteneur (si elle est posée) |
+| CPU % | Usage CPU par conteneur, rapporté à tous les cœurs |
+| Mémoire utilisée | Consommation mémoire actuelle |
+| Limite mémoire | Limite mémoire du conteneur (si elle est définie) |
 | Network RX | Débit entrant (octets/s) |
 | Network TX | Débit sortant (octets/s) |
 
-Même intervalle que les métriques système (30 secondes par défaut). Affichage : onglet **Containers** de la page de l'hôte.
+Les métriques sont collectées au même intervalle que les métriques système (30 secondes par défaut) et s'affichent dans l'onglet **Containers** de la page de détail de l'hôte.
 
 <Callout type="info" title="Remarque">
-  Les métriques de conteneurs sont des instantanés, **sans passer par le WAL**. Si le Hub est injoignable, ces points-là sont perdus. CPU, mémoire, disque et le reste du système restent dans le WAL et sont rejoués à la reconnexion.
+  Les métriques de conteneurs sont envoyées ponctuellement et **ne sont pas mises en tampon dans le Write-Ahead Log**. Si le Hub est injoignable, les métriques de conteneurs de cette période sont perdues. Les métriques système (CPU, mémoire, disque, etc.) sont conservées et rejouées depuis le WAL à la reconnexion.
 </Callout>
 
 ---
 
-## Vérifier
+## Vérifier que cela fonctionne
 
-Après le redémarrage, les journaux doivent mentionner la collecte des conteneurs :
+Après le redémarrage de l'agent, consultez les journaux pour la collecte des conteneurs :
 
 <CodeBlock lang="bash">
 ```bash
@@ -127,9 +127,9 @@ journalctl -u watchflare-agent -n 30
 ```
 </CodeBlock>
 
-Les métriques apparaissent dans l'onglet **Containers** de la page de l'hôte dans les 30 premières secondes. Pour les journaux de collecte : passez `WATCHFLARE_DEBUG=1`.
+Les métriques de conteneurs apparaissent dans l'onglet **Containers** de la page de détail de l'hôte dans les 30 premières secondes. Pour voir les journaux de collecte détaillés, activez le journal de débogage en définissant `WATCHFLARE_DEBUG=1`.
 
-Si l'onglet reste vide :
-1. `watchflare` est bien dans le groupe `docker` : `groups watchflare`
+Si aucun conteneur n'apparaît, vérifiez que :
+1. L'utilisateur `watchflare` est dans le groupe `docker` : `groups watchflare`
 2. Docker tourne : `docker ps`
-3. `container_metrics = true` dans `agent.conf`
+3. `container_metrics = true` est défini dans `agent.conf`

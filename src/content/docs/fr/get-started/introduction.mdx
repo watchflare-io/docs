@@ -1,26 +1,26 @@
 ---
-title: "Watchflare : supervision auto-hébergée"
-description: "Supervision open source et auto-hébergée. Des agents légers remontent les métriques et l'inventaire de paquets vers le Hub en gRPC/TLS, avec tableau de bord temps réel et alertes."
+title: "Watchflare : supervision de serveurs auto-hébergée"
+description: "Supervision de serveurs open source et auto-hébergée. Des agents légers transmettent les métriques et l'inventaire de paquets au Hub via gRPC/TLS, avec tableaux de bord temps réel et alertes."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Watchflare est une **plateforme auto-hébergée** : elle surveille vos machines et suit les logiciels qui y sont installés. Elle collecte les métriques système en temps réel (CPU, mémoire, disque, réseau, températures) et tient un inventaire des paquets sur tout le parc — versions installées, historique quotidien des changements, mises à jour disponibles.
+Watchflare est une **plateforme auto-hébergée** qui surveille vos hôtes et suit leurs logiciels. Elle collecte les métriques système en temps réel (CPU, mémoire, disque, réseau et températures) et maintient un inventaire complet des paquets sur vos hôtes : versions installées, historique quotidien des changements et mises à jour disponibles.
 
 ---
 
 ## Deux composants
 
-Watchflare, c'est deux programmes qui travaillent ensemble.
+Watchflare est constitué de deux éléments qui travaillent ensemble :
 
-Le **Hub** est le serveur central. Vous le déployez une fois, en [Docker Compose](/fr/hub/deploy-docker/) ou en [binaire Linux](/fr/hub/binary-install/). Il reçoit les données des agents, les enregistre dans une base de séries temporelles et sert le tableau de bord web. Un seul binaire Go, l'interface est embarquée.
+Le **Hub** est le serveur central. Déployez-le une fois avec [Docker Compose](/fr/hub/deploy-docker/) ou en tant que [binaire Linux natif](/fr/hub/binary-install/). Il reçoit les données des agents, les stocke dans une base de séries temporelles et sert le tableau de bord web. Le Hub est un seul binaire, avec l'interface embarquée.
 
-L'**Agent** tourne sur chaque machine à surveiller. **Linux et macOS** aujourd'hui, Windows plus tard. Toutes les 30 secondes il collecte les métriques, toutes les 5 secondes il envoie un heartbeat, et une fois par jour il dresse l'inventaire des paquets. Il consomme peu, et n'a jamais besoin de root. Sous Linux il s'exécute sous l'utilisateur système `watchflare` ; sous macOS, sous votre compte via Homebrew.
+L'**Agent** est un démon léger qui s'exécute sur chaque hôte que vous souhaitez surveiller. Il prend en charge **Linux et macOS**, avec une prise en charge de Windows prévue. Il collecte les métriques système toutes les 30 secondes, envoie un heartbeat toutes les 5 secondes et dresse un inventaire quotidien des paquets. L'agent utilise un minimum de ressources et n'a jamais besoin de root pour s'exécuter. Sous Linux, il s'exécute en tant qu'utilisateur système dédié `watchflare`, et sous macOS, il s'exécute sous votre propre compte via Homebrew.
 
 <figure class="doc__diagram">
   <img
     src="/diagrams/architecture.png"
-    alt="Des agents sur des hôtes Linux (systemd) et macOS (Homebrew) remontent les métriques vers le Hub en gRPC, TLS 1.3 et HMAC. Le Hub, un seul binaire Go qui sert un tableau de bord SvelteKit embarqué, stocke les données dans PostgreSQL/TimescaleDB en SQL sur le port TCP 5432."
+    alt="Des agents s'exécutant sur des hôtes Linux (systemd) et macOS (Homebrew) envoient les métriques au Hub via gRPC avec TLS 1.3 et HMAC. Le Hub, un seul binaire Go servant un tableau de bord SvelteKit embarqué, stocke les données dans PostgreSQL/TimescaleDB via SQL sur TCP 5432."
     width="2163"
     height="1128"
     loading="lazy"
@@ -30,7 +30,7 @@ L'**Agent** tourne sur chaque machine à surveiller. **Linux et macOS** aujourd'
 
 ---
 
-## Ce qui est surveillé
+## Ce qu'il surveille
 
 | Catégorie | Métriques |
 |----------|---------|
@@ -38,28 +38,28 @@ L'**Agent** tourne sur chaque machine à surveiller. **Linux et macOS** aujourd'
 | **Mémoire** | Utilisée, disponible, buffers, cached, swap |
 | **Disque** | Total, utilisé, débit lecture/écriture |
 | **Réseau** | Bande passante entrante et sortante |
-| **Température** | Capteurs CPU et autres (stockage, gestion d'énergie, etc.) sur les hôtes physiques |
+| **Température** | Capteurs de température CPU et autres (stockage, gestion d'énergie, etc.) sur les hôtes physiques |
 | **Système** | Uptime, charge moyenne (1/5/15 min), nombre de processus |
 | **Conteneurs** | CPU, mémoire, réseau par conteneur (Docker/Podman, à activer) |
-| **Services** | Unités systemd et leur état, sur les hôtes Linux |
-| **Paquets** | Paquets installés, versions, et détection des obsolètes parmi [~30 gestionnaires](/fr/monitoring/packages/#supported-package-managers) |
+| **Services** | Inventaire des unités systemd et état en temps réel sur les hôtes Linux |
+| **Paquets** | Paquets installés, versions, et détection des obsolètes parmi [~30 gestionnaires de paquets pris en charge](/fr/monitoring/packages/#supported-package-managers) |
 
 ---
 
-## Ce que ça vous apporte
+## Ce que vous obtenez
 
-- **Tableau de bord temps réel.** Le statut en ligne / hors ligne d'un hôte arrive en quelques secondes, via SSE. Les métriques s'affichent au fil de l'eau, dès que l'agent les envoie. Pas d'interrogation périodique, pas de rechargement de page.
-- **Graphiques d'historique.** TimescaleDB agrège tout seul. Plages : 1 h, 12 h, 24 h, 7 j, 30 j.
-- **Inventaire des paquets.** Tous les paquets de chaque hôte, mis à jour chaque jour, avec l'historique des changements et la détection des versions obsolètes.
-- **Alertes.** Seuils sur CPU, mémoire, disque, charge et température, plus les notifications d'hôte hors ligne. Envoi par e-mail et vers n'importe lequel des 26+ canaux [Shoutrrr](https://shoutrrr.nickfedor.com/) (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, HTTP, etc.).
-- **WAL (journal d'écriture anticipée).** Si le Hub est injoignable, l'agent met les métriques de côté en local et les rejoue à la reconnexion. Une coupure courte ne fait pas perdre de points : 10 Mo par défaut (`wal_max_size_mb`).
+- **Tableau de bord temps réel.** Le statut en ligne/hors ligne des hôtes est mis à jour en quelques secondes via Server-Sent Events. Les métriques en direct sont diffusées directement vers le tableau de bord à mesure que les agents les transmettent. Pas d'interrogation périodique, pas de rechargement de page.
+- **Graphiques d'historique.** Métriques stockées dans TimescaleDB avec agrégation automatique. Consultez les plages 1 h, 12 h, 24 h, 7 j et 30 j.
+- **Inventaire des paquets.** Liste complète des paquets installés sur chaque hôte, mise à jour quotidiennement, avec historique des changements et détection des paquets obsolètes.
+- **Alertes.** Alertes basées sur des seuils de CPU, mémoire, disque, charge et température, plus les notifications d'hôte hors ligne. Envoyées par e-mail et vers n'importe lequel des 26+ canaux de notification pris en charge par [Shoutrrr](https://shoutrrr.nickfedor.com/) (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, HTTP générique, et plus).
+- **Journal d'écriture anticipée (WAL).** Si le Hub est injoignable, l'agent conserve les métriques localement et les rejoue à la reconnexion. Les métriques ne sont pas perdues pendant les coupures brèves : le WAL conserve jusqu'à 10 Mo par défaut (configurable via `wal_max_size_mb`).
 
 ---
 
-## Auto-hébergé, c'est le principe
+## Auto-hébergé, par conception
 
-Tout tourne sur votre infrastructure. Le Hub et sa base sont sur un serveur que vous contrôlez. Les agents ne parlent qu'à votre Hub : aucun suivi d'usage, aucune télémétrie.
+Watchflare s'exécute entièrement sur votre infrastructure. Le Hub et sa base de données se trouvent sur un serveur que vous contrôlez. Les agents ne communiquent qu'avec votre Hub : aucun suivi d'usage, aucune télémétrie.
 
 <Callout type="info" title="Remarque">
-  Prêt ? Le [démarrage en 5 minutes](/fr/get-started/quickstart/) suffit pour être opérationnel.
+  Prêt à commencer ? Le [démarrage rapide](/fr/get-started/quickstart/) vous met en service en moins de 5 minutes.
 </Callout>

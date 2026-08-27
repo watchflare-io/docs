@@ -11,8 +11,8 @@ const cards = [
         href: "/fr/get-started/quickstart/",
         title: "Démarrage en 5 minutes",
         description:
-            "Déployez le Hub avec Docker Compose, créez le compte admin et enrôlez votre première machine. Cinq étapes, zéro configuration optionnelle.",
-        cta: "Commencer",
+            "Déployez le Hub avec Docker Compose, créez le compte admin, enrôlez votre première machine. Cinq étapes, zéro configuration optionnelle.",
+        cta: "Commencer ici",
         meta: "~5 min",
         icon: "bolt" as const,
         iconSize: 22,
@@ -20,9 +20,9 @@ const cards = [
     },
     {
         href: "/fr/agent/install/linux/",
-        title: "Installer l'Agent",
+        title: "Installer l'agent",
         description:
-            "Enrôlez n'importe quelle machine Linux en une commande, ou via Homebrew sur macOS. L'agent s'enregistre, génère sa clé et commence à remonter les métriques en moins d'une minute.",
+            "Enrôlez n'importe quelle machine Linux en une commande, ou utilisez Homebrew sur macOS. L'agent s'enrôle, génère sa clé et commence à transmettre en moins d'une minute.",
         cta: "Lire le guide",
         icon: "monitor" as const,
         iconSize: 20,
@@ -31,7 +31,7 @@ const cards = [
         href: "/fr/hub/alerts/",
         title: "Configurer les alertes",
         description:
-            "Définissez des seuils CPU, mémoire, disque, charge et température par hôte. Vous êtes prévenu si un hôte dépasse un seuil ou passe hors ligne. Branchez un canal de notification avant la panne.",
+            "Définissez des seuils CPU, mémoire, disque, charge et température par hôte. Recevez une alerte lorsqu'un hôte dépasse une limite ou passe hors ligne. Connectez un canal de notification avant qu'un problème ne devienne une panne.",
         cta: "Lire le guide",
         icon: "alertTriangle" as const,
         iconSize: 20,
@@ -40,7 +40,7 @@ const cards = [
         href: "/fr/monitoring/packages/",
         title: "Surveiller les paquets",
         description:
-            "Suivez chaque paquet installé sur votre parc. Watchflare signale les paquets obsolètes et les mises à jour de sécurité en attente.",
+            "Suivez chaque paquet installé sur votre parc. Watchflare signale les paquets obsolètes et les mises à jour de sécurité en attente, pour que vous sachiez ce qu'il faut mettre à jour.",
         cta: "Lire le guide",
         icon: "package" as const,
         iconSize: 20,
@@ -49,7 +49,7 @@ const cards = [
         href: "/fr/get-started/architecture/",
         title: "Architecture et sécurité",
         description:
-            "Le Hub et ses agents communiquent via gRPC/TLS 1.3 avec authentification HMAC par requête. Les données ne quittent jamais votre infrastructure. Lisez le modèle de confiance avant la mise en production.",
+            "Le Hub et ses agents communiquent via gRPC/TLS 1.3 avec authentification HMAC par requête. Les données ne quittent jamais votre infrastructure. Comprenez le modèle de confiance avant de passer en production.",
         cta: "Lire le concept",
         icon: "shield" as const,
         iconSize: 20,
@@ -58,7 +58,7 @@ const cards = [
         href: "/fr/hub/configuration/",
         title: "Référence de configuration",
         description:
-            "Toutes les variables d'environnement du Hub en un seul endroit — base de données, ports, mode TLS, sécurité des cookies, fenêtre d'horodatage gRPC, et plus.",
+            "Toutes les variables d'environnement du Hub en un seul endroit : base de données, ports, mode TLS, sécurité des cookies, fenêtre d'horodatage gRPC, et plus.",
         cta: "Lire le guide",
         icon: "server" as const,
         iconSize: 20,
@@ -88,9 +88,10 @@ const cards = [
             </div>
             <h1 class="dhome__title">Documentation Watchflare</h1>
             <p class="dhome__lede">
-                Guides, référence et concepts pour déployer le Hub, enrôler des
-                agents et lire vos métriques. Auto-hébergé, un seul binaire Go,
-                TimescaleDB, gRPC sur TLS&nbsp;1.3.
+                Tout ce dont vous avez besoin pour déployer le Hub, enrôler vos
+                agents et suivre vos métriques, d'un démarrage rapide de cinq
+                minutes jusqu'au TLS, aux alertes et à l'inventaire de paquets.
+                Open source, auto-hébergé, un seul binaire Go.
             </p>
         </header>
 
@@ -121,7 +122,7 @@ const cards = [
             <!-- Stack diagram -->
             <div>
                 <div class="dhome__bottom-head">
-                    <h2>Vue d'ensemble</h2>
+                    <h2>Aperçu de la pile</h2>
                     <a
                         href="/fr/get-started/architecture/"
                         class="dhome__bottom-link">Architecture →</a
@@ -134,7 +135,7 @@ const cards = [
                         <div class="dstack__row dstack__row--edge">
                             <div class="dstack__group">
                                 <span class="dstack__group-label"
-                                    >Hôtes · votre infrastructure</span
+                                    >Edge · votre infrastructure</span
                                 >
                                 <div class="dstack__nodes">
                                     <a
@@ -307,7 +308,7 @@ const cards = [
                 >
                     <Icon name="info" size={14} />
                     <div>
-                        <span class="lbl">Issues & retours</span>
+                        <span class="lbl">Issues et retours</span>
                         <span class="val">GitHub Issues</span>
                     </div>
                     <span class="tag">open</span>
@@ -340,7 +341,7 @@ const cards = [
         </section>
 
         <footer class="dhome__footer">
-            <span>© 2026 Watchflare — Supervision d'hôtes auto-hébergée</span>
+            <span>© 2026 Watchflare · Supervision de serveurs auto-hébergée</span>
         </footer>
     </div>
 </HomeLayout>

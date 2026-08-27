@@ -1,20 +1,20 @@
 ---
-title: "Règles d'alerte et notifications"
-description: "Seuils d'alerte par hôte : CPU, mémoire, disque, charge, température. Défauts globaux et fenêtre de durée pour filtrer les pics brefs."
+title: "Règles d'alerte et configuration des notifications"
+description: "Configurez les règles d'alerte par hôte pour le CPU, la mémoire, le disque, la charge moyenne et la température. Définissez les défauts globaux et les fenêtres de durée pour éviter les alertes intempestives."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Watchflare prévient quand une métrique dépasse un seuil, ou quand une machine passe hors ligne. Les alertes sont évaluées toutes les 30 secondes, et se règlent par hôte. Les notifications partent à l'adresse de **Settings → Notifications** (par défaut, l'e-mail du premier compte) et vers tous les [canaux](/fr/hub/notifications/) que vous avez ajoutés.
+Watchflare envoie une notification lorsqu'une métrique franchit un seuil ou lorsqu'un hôte passe hors ligne. Les alertes sont évaluées toutes les 30 secondes et configurées par hôte. Les notifications vont à l'adresse e-mail configurée dans **Settings → Notifications** (par défaut, l'e-mail du premier compte) et vers tous les [canaux de notification](/fr/hub/notifications/) que vous avez configurés.
 
-Le trio alertes / incidents / notifications est détaillé dans [Alertes et notifications](/fr/monitoring/alerts/).
+Pour un aperçu conceptuel de la façon dont les alertes, les incidents et les notifications fonctionnent ensemble, voir [Alertes et notifications](/fr/monitoring/alerts/).
 
 <Callout type="info" title="Remarque">
-  L'e-mail exige un SMTP configuré. Voir [Notifications e-mail](/fr/hub/smtp/).
+  L'envoi d'e-mails exige que le SMTP soit configuré. Voir [Notifications e-mail](/fr/hub/smtp/).
 </Callout>
 
 <Callout type="info" title="Remarque">
-  Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, HTTP : tout se règle sur **Settings > Notifications**. Voir [Canaux de notification](/fr/hub/notifications/).
+  Les canaux de notification (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, SMTP, HTTP générique, et d'autres) se configurent dans la même page **Settings > Notifications**. Voir [Canaux de notification](/fr/hub/notifications/).
 </Callout>
 
 ---
@@ -23,14 +23,14 @@ Le trio alertes / incidents / notifications est détaillé dans [Alertes et noti
 
 | Type | Description | Unité |
 |------|-------------|------|
-| `host_down` | Aucun heartbeat depuis plus de 15 secondes | Aucune |
-| `cpu_usage` | Usage CPU au-dessus du seuil | % |
-| `memory_usage` | Usage mémoire au-dessus du seuil | % |
-| `disk_usage` | Usage disque au-dessus du seuil | % |
-| `load_avg` | Charge moyenne 1 min au-dessus du seuil | Aucune |
-| `load_avg_5` | Charge moyenne 5 min au-dessus du seuil | Aucune |
-| `load_avg_15` | Charge moyenne 15 min au-dessus du seuil | Aucune |
-| `temperature` | Température CPU au-dessus du seuil | °C |
+| `host_down` | Aucun heartbeat reçu depuis plus de 15 secondes | Aucune |
+| `cpu_usage` | L'usage CPU dépasse le seuil | % |
+| `memory_usage` | L'usage mémoire dépasse le seuil | % |
+| `disk_usage` | L'usage disque dépasse le seuil | % |
+| `load_avg` | La charge moyenne 1 minute dépasse le seuil | Aucune |
+| `load_avg_5` | La charge moyenne 5 minutes dépasse le seuil | Aucune |
+| `load_avg_15` | La charge moyenne 15 minutes dépasse le seuil | Aucune |
+| `temperature` | La température CPU dépasse le seuil | °C |
 
 ---
 
@@ -38,50 +38,50 @@ Le trio alertes / incidents / notifications est détaillé dans [Alertes et noti
 
 ### Défauts globaux
 
-Dans **Settings → Alerts**, posez les seuils par défaut. Ils s'appliquent à tous les hôtes, et à chaque nouvel hôte.
+Allez dans **Settings → Alerts** pour définir les seuils par défaut qui s'appliquent à tous les hôtes. Ce sont les valeurs de référence pour chaque nouvel hôte.
 
-### Par hôte
+### Surcharges par hôte
 
 1. Ouvrez la page de détail d'un hôte.
-2. Onglet **Alerts**.
-3. Activez les types voulus et réglez le seuil pour cette machine.
-4. C'est enregistré tout de suite, sans confirmation.
+2. Cliquez sur l'onglet **Alerts**.
+3. Basculez les types d'alerte que vous souhaitez activer et définissez le seuil pour chaque hôte.
+4. Les modifications sont enregistrées immédiatement, sans étape de confirmation.
 
-Les règles par hôte priment. Un serveur de base peut avoir un seuil CPU plus haut qu'une machine statique peu chargée.
+Les règles par hôte priment sur les défauts globaux. Vous pouvez par exemple définir un seuil CPU plus élevé sur un serveur de base de données que sur un hôte statique peu chargé.
 
 ---
 
 ## Fenêtre de durée
 
-Chaque règle a une **durée** (5 minutes par défaut). Le seuil doit rester dépassé pendant toute cette fenêtre avant qu'un incident s'ouvre et qu'une notification parte. Un pic de quelques secondes ne suffit pas.
+Chaque règle d'alerte a une **durée** (par défaut : 5 minutes). Le seuil doit être dépassé de façon continue pendant cette durée avant qu'un incident s'ouvre et qu'une notification soit envoyée. Cela évite les alertes intempestives dues à de brefs pics.
 
-Si la métrique redescend avant la fin, aucun incident n'est ouvert et aucune notification ne part.
-
----
-
-## Incidents
-
-Quand le dépassement tient toute la durée, le Hub ouvre un **incident** :
-
-1. Une notification à l'**ouverture** (seuil franchi).
-2. Une seconde à la **résolution** (sous le seuil, ou machine de retour).
-
-L'onglet **Alerts** de chaque hôte liste les incidents : début, fin, seuil, et valeur qui a déclenché.
+Si la métrique redescend sous le seuil avant que la durée ne s'écoule, aucun incident n'est ouvert et aucune notification n'est envoyée.
 
 ---
 
-## Machine hors ligne
+## Fonctionnement des incidents
 
-`host_down` part quand aucun heartbeat n'est arrivé depuis plus de 15 secondes. Le contrôle des hôtes inactifs tourne toutes les 10 secondes ; une machine passe hors ligne après environ 3 heartbeats consécutifs manqués (un toutes les 5 secondes).
+Lorsqu'un dépassement de métrique est maintenu pendant la durée configurée, le Hub ouvre un **incident** :
 
-L'incident se referme tout seul au heartbeat suivant.
+1. Une notification est envoyée lorsque l'incident **s'ouvre** (seuil franchi).
+2. Une seconde notification est envoyée lorsque l'incident **se résout** (la métrique redescend sous le seuil, ou l'hôte revient en ligne).
+
+Les incidents sont visibles dans l'onglet **Alerts** de la page de détail de chaque hôte, avec l'heure de début, l'heure de résolution, la valeur du seuil et la valeur qui a déclenché le dépassement.
+
+---
+
+## Détection d'hôte hors ligne
+
+L'alerte `host_down` se déclenche lorsqu'aucun heartbeat n'a été reçu depuis plus de 15 secondes. Le contrôle des hôtes inactifs s'exécute toutes les 10 secondes, et un hôte est marqué hors ligne après environ 3 heartbeats consécutifs manqués (intervalle de heartbeat : 5 secondes).
+
+L'incident se résout automatiquement lorsque le heartbeat suivant arrive.
 
 <Callout type="tip" title="Astuce">
-  Une coupure de moins de 15 secondes ne déclenche pas `host_down`. Un ou deux heartbeats manqués sont absorbés avant le passage hors ligne.
+  Les brèves interruptions réseau de moins de 15 secondes ne déclenchent pas d'alerte `host_down`. Un ou deux heartbeats manqués sont absorbés avant que l'hôte ne passe hors ligne.
 </Callout>
 
 ---
 
 ## Alertes de température
 
-La température n'est collectée que sur les **machines physiques**. VM et conteneurs n'ont pas accès aux capteurs : une alerte température sur une VM ne partira jamais.
+La collecte de température ne s'exécute que sur les **hôtes physiques**. Elle est ignorée sur les VM et les conteneurs où l'accès aux capteurs matériels n'est pas disponible, donc activer une alerte de température sur une VM ne se déclenchera jamais.

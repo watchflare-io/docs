@@ -1,27 +1,27 @@
 ---
-title: "Notifications e-mail (SMTP)"
-description: "Réglez le SMTP dans Watchflare Settings pour envoyer les alertes par e-mail. Chiffrement, authentification, stockage AES-256-GCM, message de test."
+title: "Configuration des notifications e-mail (SMTP)"
+description: "Configurez le SMTP dans Watchflare Settings pour envoyer les e-mails d'alerte. Couvre les modes de chiffrement, les types d'authentification, le stockage du mot de passe en AES-256-GCM et l'envoi d'e-mails de test."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-Watchflare envoie les alertes par e-mail. Le SMTP se règle dans **Settings**, pas dans les variables d'environnement — sauf `NOTIFICATION_ENCRYPTION_KEY`, à poser avant de démarrer le Hub.
+Watchflare envoie les notifications d'alerte par e-mail. Le SMTP se configure depuis la page **Settings** du tableau de bord. Aucune variable d'environnement n'est requise au-delà de `NOTIFICATION_ENCRYPTION_KEY`, qui doit être définie avant le démarrage du Hub.
 
-Pour Discord, Slack, Telegram, Matrix, Ntfy, Gotify, HTTP et le reste via Shoutrrr : [Canaux de notification](/fr/hub/notifications/).
+Pour les autres canaux de notification (Discord, Slack, Telegram, Matrix, Ntfy, Gotify, HTTP générique, et d'autres via Shoutrrr), voir [Canaux de notification](/fr/hub/notifications/).
 
 ---
 
 ## Prérequis
 
-Il vous faut un serveur ou un relais SMTP. En pratique :
+Vous avez besoin d'un serveur ou d'un relais SMTP. Options courantes :
 
-- le relais de votre hébergeur
-- un service d'e-mail transactionnel (Postmark, Mailgun, Resend, SendGrid)
-- un serveur mail chez vous
-- Gmail SMTP avec un [mot de passe d'application](https://support.google.com/accounts/answer/185833) (obligatoire si la validation en deux étapes est activée)
+- Le relais SMTP de votre hébergeur
+- Un service d'e-mail transactionnel (Postmark, Mailgun, Resend, SendGrid)
+- Un serveur mail auto-hébergé
+- Gmail SMTP avec un [App Password](https://support.google.com/accounts/answer/185833) (obligatoire si 2-Step Verification est activée)
 
-Vérifiez que `NOTIFICATION_ENCRYPTION_KEY` est dans le `.env`. Le mot de passe saisi dans Settings est chiffré avec cette clé avant d'être stocké :
+Assurez-vous que `NOTIFICATION_ENCRYPTION_KEY` est définie dans votre `.env` avant de continuer. Le mot de passe que vous saisissez dans Settings est chiffré avec cette clé avant d'être stocké :
 
 <CodeBlock filename=".env" lang="bash">
 ```bash
@@ -33,67 +33,67 @@ NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
 
 ## Configuration
 
-**Settings → Notifications**, puis :
+Allez dans **Settings → Notifications** et renseignez les champs suivants :
 
 | Champ | Description |
 |-------|-------------|
-| **Host** | Nom d'hôte SMTP (ex. `smtp.example.com`) |
-| **Port** | Port SMTP (voir le tableau de chiffrement) |
-| **Username** | Identifiant SMTP |
-| **Password** | Mot de passe SMTP. Stocké chiffré en AES-256-GCM. |
-| **From address** | Expéditeur (ex. `watchflare@example.com`) |
-| **From name** | Nom affiché (ex. `Watchflare`) |
+| **Host** | Nom d'hôte du serveur SMTP (ex. `smtp.example.com`) |
+| **Port** | Port SMTP (voir le tableau de chiffrement ci-dessous) |
+| **Username** | Identifiant SMTP pour l'authentification |
+| **Password** | Mot de passe SMTP. Stocké chiffré avec AES-256-GCM. |
+| **From address** | E-mail de l'expéditeur (ex. `watchflare@example.com`) |
+| **From name** | Nom affiché de l'expéditeur (ex. `Watchflare`) |
 | **Encryption** | `starttls`, `tls` ou `none` |
-| **Auth type** | `plain` ou `login`, selon le fournisseur |
-| **HELO name** | Nom envoyé dans HELO/EHLO. Vide = défaut du système. |
-| **Categories** | Ce que cet expéditeur envoie : **Alerts**, **Transactional**, ou les deux. Défaut : Alerts. |
+| **Auth type** | `plain` ou `login`, selon votre fournisseur SMTP |
+| **HELO name** | Nom d'hôte envoyé dans la commande SMTP HELO/EHLO. Laissez vide pour utiliser la valeur par défaut du système. |
+| **Categories** | Quels types de notification cet expéditeur envoie : **Alerts**, **Transactional**, ou les deux. Par défaut : Alerts. |
 
 ### Catégories
 
-Les cases décident ce que le SMTP a le droit d'envoyer :
+Les cases à cocher de catégorie décident ce que l'expéditeur SMTP est autorisé à envoyer par e-mail :
 
 - **Alerts** : alertes de supervision et leurs résolutions.
-- **Transactional** : compte et sécurité (connexion, mot de passe, 2FA, changement d'e-mail).
+- **Transactional** : événements de compte et de sécurité (connexion, changement de mot de passe, modifications du 2FA, changements d'e-mail).
 
-Aucune case cochée : le SMTP reste configuré mais n'envoie rien. Même logique pour tous les canaux ; voir [Catégories de notification](/fr/hub/notifications/#notification-categories).
+Si aucune n'est sélectionnée, l'expéditeur SMTP reste configuré mais n'envoie rien. Le même modèle de catégories s'applique à chaque canal de notification ; voir [Catégories de notification](/fr/hub/notifications/#notification-categories).
 
-### Chiffrement
+### Modes de chiffrement
 
 | Mode | Port typique | Description |
 |------|-------------|-------------|
-| `starttls` | `587` | Connexion en clair, puis passage en TLS via STARTTLS. C'est le défaut à prendre. |
-| `tls` | `465` | TLS dès la connexion. |
-| `none` | `25` | Pas de chiffrement. Uniquement sur un réseau interne de confiance. |
+| `starttls` | `587` | Se connecte en clair, puis passe en TLS via STARTTLS. Défaut recommandé. |
+| `tls` | `465` | Se connecte directement en SSL/TLS. |
+| `none` | `25` | Pas de chiffrement. Uniquement pour les réseaux internes de confiance. |
 
-### Authentification
+### Types d'authentification
 
-| Type | Quand |
+| Type | Quand l'utiliser |
 |------|-------------|
-| `plain` | Le plus courant. Identifiant et mot de passe sur la connexion déjà chiffrée. |
-| `login` | AUTH LOGIN, plus ancien. Certains serveurs d'entreprise n'ont que ça. |
+| `plain` | Standard. L'identifiant et le mot de passe sont envoyés tels quels sur la connexion chiffrée. Fonctionne avec la plupart des fournisseurs. |
+| `login` | Mécanisme AUTH LOGIN historique. Requis par certains serveurs de messagerie plus anciens ou d'entreprise. |
 
 ---
 
 ## Tester
 
-Avant d'activer les alertes, cliquez **Send test email** dans Settings. Un message part vers l'e-mail de votre compte, pour confirmer que la connexion et les identifiants fonctionnent.
+Utilisez le bouton **Send test email** dans Settings avant d'activer les alertes. Un message de test sera envoyé à l'adresse e-mail de votre compte pour confirmer que la connexion et les identifiants fonctionnent.
 
 <Callout type="tip" title="Astuce">
-  Si le test échoue, alignez le port sur le mode de chiffrement, et vérifiez que le SMTP accepte l'IP du Hub. Certains fournisseurs demandent une liste d'IP autorisées.
+  Si le test échoue, vérifiez que le port correspond au mode de chiffrement et que votre serveur SMTP autorise les connexions depuis l'adresse IP de votre Hub. Certains fournisseurs exigent une liste d'IP autorisées.
 </Callout>
 
 ---
 
 ## Stockage du mot de passe
 
-Chiffrement au repos : **AES-256-GCM**, clé `NOTIFICATION_ENCRYPTION_KEY` du `.env`. L'API ne renvoie jamais le mot de passe. Le tableau de bord dit seulement s'il y en a un de stocké.
+Les mots de passe SMTP sont chiffrés au repos avec **AES-256-GCM**. La clé est `NOTIFICATION_ENCRYPTION_KEY` dans votre `.env`. Le mot de passe n'est jamais renvoyé via l'API. Le tableau de bord indique seulement si un mot de passe est actuellement stocké.
 
 <Callout type="warn" title="Attention">
-  Si vous changez `NOTIFICATION_ENCRYPTION_KEY` et redémarrez, le mot de passe stocké n'est plus lisible. Il faudra le resaisir dans Settings.
+  Si vous changez `NOTIFICATION_ENCRYPTION_KEY` et redémarrez le Hub, le mot de passe stocké ne peut plus être déchiffré. Vous devrez le resaisir dans Settings.
 </Callout>
 
 ---
 
-## Ensuite
+## Étape suivante
 
-SMTP en place : activez les alertes sur vos machines. Voir [Alertes](/fr/hub/alerts/).
+Une fois le SMTP configuré, activez les alertes sur vos hôtes. Voir [Alertes](/fr/hub/alerts/).

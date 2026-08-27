@@ -1,6 +1,6 @@
 ---
 title: "Mettre à jour l'Agent Watchflare"
-description: "Mettez à jour l'agent Watchflare sous Linux (commande intégrée) ou sous macOS (Homebrew). Mises à jour depuis le tableau de bord, compatibilité Hub / Agent."
+description: "Mettez à jour l'agent Watchflare sous Linux avec la commande de mise à jour intégrée, ou sous macOS via Homebrew. Couvre les mises à jour automatiques et la compatibilité des versions."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -25,7 +25,7 @@ brew services restart watchflare-agent
 
 ## Linux
 
-La commande `update` est dans le binaire. Elle interroge l'API GitHub pour la dernière version, télécharge le binaire depuis `get.watchflare.io`, vérifie la somme SHA-256, puis confie le remplacement à un service systemd qui a les droits : le binaire est remplacé, le service redémarre.
+L'agent dispose d'une commande de mise à jour intégrée. Elle vérifie la dernière version via l'API GitHub, télécharge le binaire depuis `get.watchflare.io`, vérifie la somme SHA-256, puis passe la main à un service systemd privilégié pour remplacer le binaire et redémarrer.
 
 <CodeBlock lang="bash">
 ```bash
@@ -42,7 +42,7 @@ Downloading v0.40.1...
 ✓ Updated to v0.40.1
 ✓ Service restarted`} />
 
-Vérifier si une mise à jour est disponible, sans l'installer :
+Pour vérifier si une mise à jour est disponible sans l'installer :
 
 <CodeBlock lang="bash">
 ```bash
@@ -51,14 +51,14 @@ sudo watchflare-agent update --check
 </CodeBlock>
 
 <Callout type="info" title="Remarque">
-  [`agent.conf`](/fr/agent/configuration/), `ca.pem` et le dossier de données restent en place. Seul le binaire change.
+  La configuration de l'agent ([`agent.conf`](/fr/agent/configuration/), `ca.pem`) et le dossier de données ne sont jamais touchés pendant une mise à jour. Seul le binaire est remplacé.
 </Callout>
 
 ---
 
 ## macOS
 
-C'est Homebrew qui met à jour :
+Sous macOS, les mises à jour sont gérées via Homebrew :
 
 <CodeBlock lang="bash">
 ```bash
@@ -69,15 +69,15 @@ brew services restart watchflare-agent
 
 ---
 
-## Mises à jour depuis le tableau de bord (Linux)
+## Mises à jour automatiques (Linux)
 
-Sous Linux, les mises à jour automatiques passent par un path unit systemd. Page de l'hôte → **Update agent**. Le Hub envoie l'ordre au heartbeat suivant. L'agent télécharge, installe, redémarre. Rien à faire sur la machine.
+L'agent Linux prend en charge les mises à jour automatiques via un path unit systemd. Lorsqu'une mise à jour est déclenchée depuis le tableau de bord du Hub (page de détail de l'hôte → **Update agent**), le Hub envoie une commande à l'agent au heartbeat suivant. L'agent télécharge et installe la mise à jour automatiquement, puis redémarre le service, sans intervention manuelle.
 
-La page de chaque hôte affiche la version de l'agent. Les hôtes en retard de version sont signalés.
+Le tableau de bord du Hub affiche la version actuelle de l'agent sur la page de détail de chaque hôte et met en évidence les hôtes qui tournent avec une version obsolète.
 
 ---
 
-## Version installée
+## Vérifier la version installée
 
 <CodeBlock lang="bash">
 ```bash
@@ -91,12 +91,12 @@ Sortie :
 Watchflare Agent v0.40.1
 ```
 
-La même version apparaît sur la page de l'hôte, dans le Hub.
+La version actuelle est aussi visible sur la page de détail de l'hôte dans le tableau de bord du Hub.
 
 ---
 
-## Compatibilité Hub / Agent
+## Compatibilité des versions
 
-Le Hub et l'Agent ont le même numéro de version. Ils sont publiés en même temps. Un agent plus ancien continue de parler à un Hub plus récent, d'une version mineure à l'autre : les métriques ou RPC inconnus sont simplement omis. Le [changelog](/fr/changelog/) signale un changement incompatible s'il y en a un.
+Le Hub et l'agent partagent un seul numéro de version et sont publiés ensemble. Vous pouvez tout de même faire tourner un agent plus ancien face à un Hub plus récent d'une version mineure à l'autre : les métriques ou RPC que l'agent ne connaît pas sont simplement omis. Consultez le [changelog](/fr/changelog/) si une version signale une rupture de protocole.
 
-Gardez tout de même les agents à jour : correctifs et nouveaux collecteurs.
+Gardez les agents raisonnablement à jour pour bénéficier des correctifs et des nouveaux collecteurs.

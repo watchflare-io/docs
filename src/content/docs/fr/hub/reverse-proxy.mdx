@@ -1,20 +1,20 @@
 ---
 title: "Configuration du reverse proxy"
-description: "Placez Traefik, Nginx ou Caddy devant le Hub Watchflare. Reverse proxy HTTP pour le tableau de bord, passthrough TCP pour le port gRPC."
+description: "Configurez Traefik, Nginx ou Caddy devant le Hub Watchflare. Couvre le reverse proxy HTTP pour le tableau de bord et le passthrough TCP pour le port gRPC."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-Le Hub ouvre deux ports. Ils ne passent pas par le même type de proxy :
+Le Hub expose deux ports, avec des exigences de proxy différentes :
 
 | Port | Protocole | Type de proxy |
 |------|----------|------------|
-| `8080` | HTTP | Reverse proxy classique : c'est là que le TLS est terminé |
-| `50051` | gRPC / TLS 1.3 | **Passthrough TCP, sans terminer le TLS** |
+| `8080` | HTTP | Reverse proxy standard, terminaison TLS ici |
+| `50051` | gRPC / TLS 1.3 | **Passthrough TCP, sans terminaison TLS** |
 
 <Callout type="warn" title="Attention">
-  Le gRPC doit passer en TCP, TLS intact. Les agents épinglent la CA du Hub à l'enrôlement. Un autre certificat sur le proxy, et plus aucun agent ne se connecte.
+  Le port gRPC doit être relayé au niveau TCP, sans terminaison TLS. Les agents épinglent le certificat CA du Hub à l'enrôlement. Si le proxy présente un certificat différent, chaque agent refusera de se connecter.
 </Callout>
 
 ---
@@ -23,7 +23,7 @@ Le Hub ouvre deux ports. Ils ne passent pas par le même type de proxy :
 
 **Testé :** ✅ Traefik v3
 
-Deux routes : HTTP pour le tableau de bord, TCP passthrough pour le gRPC.
+Traefik a besoin de deux routes : un reverse proxy HTTP pour le tableau de bord, et un passthrough TCP pour le gRPC.
 
 ### Config statique
 
@@ -47,7 +47,7 @@ certificatesResolvers:
 ```
 </CodeBlock>
 
-Redémarrez Traefik après un changement de config statique. La config dynamique se recharge toute seule.
+Redémarrez Traefik après avoir modifié la config statique. Les changements de config dynamique sont rechargés à chaud.
 
 ### Config dynamique
 
@@ -97,11 +97,11 @@ tcp:
 ```
 </CodeBlock>
 
-Remplacez `HUB_IP` par l'IP ou le nom d'hôte du serveur Hub, et `watchflare.example.com` par votre domaine.
+Remplacez `HUB_IP` par l'IP ou le nom d'hôte du serveur qui exécute le Hub, et `watchflare.example.com` par votre domaine.
 
 ### Labels Docker Compose
 
-Si Traefik et le Hub sont dans le même Compose :
+Si Traefik et le Hub s'exécutent dans la même stack Compose :
 
 <CodeBlock filename="docker-compose.yml" lang="yaml">
 ```yaml
@@ -144,7 +144,7 @@ services:
 
 **Testé :** ⚠️ Non testé, config d'après la documentation Nginx
 
-Nginx a besoin du module `stream` pour le passthrough TCP du port gRPC (`--with-stream` à la compilation, présent dans la plupart des distros Linux).
+Nginx exige le module `stream` pour le passthrough TCP sur le port gRPC (`--with-stream` à la compilation, inclus dans la plupart des distributions Linux).
 
 <CodeBlock filename="nginx.conf" lang="nginx">
 ```nginx
@@ -188,10 +188,10 @@ stream {
 ```
 </CodeBlock>
 
-Le bloc `stream {}` doit être à la racine de `nginx.conf`, pas dans un `http {}`.
+Le bloc `stream {}` doit être au niveau supérieur de `nginx.conf`, pas à l'intérieur d'un bloc `http {}`.
 
 <Callout type="warn" title="Attention">
-  Dans le bloc HTTP : `proxy_http_version 1.1`, `proxy_set_header Connection ""` et `proxy_buffering off` — les trois. Sans ça, le flux SSE (statut et métriques en direct) reste dans le tampon, et le tableau de bord ne bouge plus.
+  `proxy_http_version 1.1`, `proxy_set_header Connection ""` et `proxy_buffering off` sont tous obligatoires dans le bloc HTTP. Sans eux, le flux SSE qui alimente les mises à jour en temps réel du statut des hôtes et des métriques sera mis en tampon et le tableau de bord ne se mettra pas à jour en direct.
 </Callout>
 
 ---
@@ -200,9 +200,9 @@ Le bloc `stream {}` doit être à la racine de `nginx.conf`, pas dans un `http {
 
 **Testé :** ⚠️ Non testé, config d'après la documentation Caddy
 
-Caddy gère le HTTPS et le renouvellement des certificats tout seul. Pour le passthrough TCP du gRPC, il faut le plugin [caddy-l4](https://github.com/mholt/caddy-l4).
+Caddy gère le HTTPS et le renouvellement des certificats automatiquement. Pour le passthrough TCP du gRPC, le plugin [caddy-l4](https://github.com/mholt/caddy-l4) est obligatoire.
 
-**HTTP (tableau de bord).** Caddyfile standard, pas de plugin :
+**HTTP (tableau de bord).** Caddyfile standard, aucun plugin n'est nécessaire :
 
 <CodeBlock filename="Caddyfile" lang="plaintext">
 ```plaintext
@@ -212,29 +212,29 @@ watchflare.example.com {
 ```
 </CodeBlock>
 
-**Passthrough TCP gRPC.** Il faut caddy-l4. Ajoutez un bloc `layer4` en JSON, ou construisez Caddy avec `xcaddy` et le plugin. Syntaxe : [documentation caddy-l4](https://github.com/mholt/caddy-l4).
+**Passthrough TCP gRPC.** Exige caddy-l4. Ajoutez un bloc `layer4` dans une config JSON ou via une compilation `xcaddy` avec le plugin. Consultez la [documentation caddy-l4](https://github.com/mholt/caddy-l4) pour la syntaxe.
 
 ---
 
 ## Pourquoi `HostSNI("*")`
 
-Pendant le handshake TLS, l'agent envoie un SNI égal à `server_name` dans `agent.conf` — par défaut `watchflare`, le CN du certificat généré par le Hub. Une règle `HostSNI("watchflare")` devrait coller à cette valeur au caractère près.
+Pendant le handshake TLS, l'agent envoie un SNI égal à `server_name` dans `agent.conf`, qui vaut par défaut `watchflare` (le CN du certificat généré par le Hub). Une règle du type `HostSNI("watchflare")` devrait correspondre exactement à cette valeur.
 
-`HostSNI("*")` évite les décalages si le CN change (par ex. `TLS_MODE=custom` avec un autre CN). C'est sûr : le port `50051` ne sert qu'au gRPC Watchflare. La sécurité vient du TLS 1.3 et du HMAC par requête, pas du filtrage SNI.
+Utiliser `HostSNI("*")` évite les décalages si le CN du certificat change (par ex. lors du passage à `TLS_MODE=custom` avec un CN différent). C'est sûr, car le port `50051` est dédié au gRPC Watchflare. La sécurité est assurée par TLS 1.3 et l'authentification HMAC par requête, pas par le filtrage SNI.
 
 ---
 
 ## Limitation de débit
 
-Le tableau de bord tient en une seule page : un chargement à froid tire des dizaines de fichiers statiques depuis `/_app/immutable/*` en parallèle, davantage sur les pages lourdes. Si le proxy limite le débit, le burst doit absorber un chargement complet. Un burst trop bas répond `429` sur une partie des fichiers : le navigateur affiche `NS_ERROR_CORRUPTED_CONTENT`, la page échoue, le tableau de bord montre « Internal Error ».
+Le tableau de bord du Hub est une application monopage : un chargement à froid récupère des dizaines de fichiers statiques depuis `/_app/immutable/*` en parallèle, davantage sur les pages plus lourdes. Si votre proxy impose une limite de débit par requête, le burst doit être assez élevé pour absorber un chargement de page complet. Un burst trop bas renvoie `429` pour une partie de ces fichiers, ce que le navigateur signale comme `NS_ERROR_CORRUPTED_CONTENT` et un chargement de page en échec (le tableau de bord affiche alors une page « Internal Error »).
 
 <Callout type="warn" title="Attention">
-  Compter les requêtes sur des fichiers immuables n'apporte presque rien, et casse facilement le tableau de bord. Burst généreux (quelques centaines), ou limitez seulement les chemins d'API.
+  Limiter le débit des fichiers statiques immuables au nombre de requêtes apporte rarement de la valeur et casse facilement le tableau de bord. Utilisez un burst généreux (quelques centaines), ou bornez la limite de débit aux chemins d'API uniquement.
 </Callout>
 
-Les chiffres ci-dessous sont des exemples. Dimensionnez selon le poids de vos pages et le nombre de clients. Rien n'est imposé.
+Les valeurs ci-dessous ne sont que des exemples. Dimensionnez le burst selon le poids de vos pages et le nombre de clients. Il n'y a pas de nombre imposé.
 
-Pour Traefik, c'est le `burst` du middleware `rateLimit` :
+Pour Traefik, il s'agit de la valeur `burst` du middleware `rateLimit` :
 
 <CodeBlock filename="rules.d/watchflare.yml" lang="yaml">
 ```yaml
@@ -247,7 +247,7 @@ http:
 ```
 </CodeBlock>
 
-Pour Nginx, `limit_req` avec un `burst` suffisant pour un chargement complet (`nodelay` pour servir le burst tout de suite, sans file) :
+Pour Nginx, utilisez `limit_req` avec un `burst` assez grand pour un chargement de page complet (ajoutez `nodelay` pour que le burst soit servi immédiatement, sans mise en file) :
 
 <CodeBlock filename="nginx.conf" lang="nginx">
 ```nginx
@@ -263,13 +263,13 @@ location / {
 ```
 </CodeBlock>
 
-Caddy n'a pas de limitation de débit intégrée : rien à régler par défaut. Si vous en ajoutez une via plugin, soyez généreux ou bornez-la aux chemins d'API — même principe.
+Caddy n'a pas de limitation de débit intégrée, il n'y a donc rien à ajuster par défaut. Si vous ajoutez une limitation de débit via un plugin, dimensionnez-la généreusement ou bornez-la aux chemins d'API uniquement, en suivant le même principe.
 
 ---
 
 ## Après la mise en place
 
-Une fois le HTTPS en place, mettez à jour le `.env` pour que les cookies de session portent bien `Secure` :
+Une fois le HTTPS fonctionnel, mettez à jour votre `.env` pour que les cookies de session soient correctement marqués `Secure` :
 
 <CodeBlock filename=".env" lang="bash">
 ```bash
@@ -277,4 +277,4 @@ COOKIE_DOMAIN=watchflare.example.com
 ```
 </CodeBlock>
 
-Détail cookies et vérif : [configuration HTTPS](/fr/hub/https/).
+Voir [configuration HTTPS](/fr/hub/https/) pour le détail de la sécurité des cookies et comment vérifier que cela fonctionne.

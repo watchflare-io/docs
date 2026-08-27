@@ -1,105 +1,105 @@
 ---
-title: "Hôtes et statut"
-description: "Cinq statuts, ajout et suppression d'une machine, page de détail : métriques, alertes, inventaire de paquets."
+title: "Hôtes et aperçu des statuts"
+description: "Comprenez les cinq statuts d'hôte Watchflare, ajoutez ou retirez des hôtes, et parcourez la page de détail montrant les métriques en direct, les alertes et l'inventaire de paquets."
 ---
 
 import Callout from "@components/Callout.astro";
 
-**Hosts** liste tout le parc. Statut, dernière vue, métriques, version d'agent : le Hub pousse les changements en SSE, la page ne se recharge pas.
+La page **Hosts** est le tableau de bord principal. Elle liste tous les hôtes enregistrés avec leur statut actuel, l'heure de dernière vue, les métriques clés et la version de l'agent.
 
 ---
 
-## Les cinq statuts
+## Statuts d'hôte
 
 | Statut | Signification |
 |--------|---------|
-| `pending` | Créé dans le tableau de bord, jeton pas encore utilisé |
-| `online` | Heartbeat reçu dans les 15 dernières secondes |
-| `offline` | Plus aucun heartbeat depuis plus de 15 secondes |
-| `paused` | Supervision coupée à la main. Heartbeats ignorés, pas d'alerte hors ligne |
-| `expired` | Jeton périmé (24 h) avant que l'agent s'enrôle |
+| `pending` | Hôte créé dans le tableau de bord, jeton d'enrôlement pas encore utilisé par un agent |
+| `online` | Un heartbeat a été reçu dans les 15 dernières secondes |
+| `offline` | Aucun heartbeat reçu depuis plus de 15 secondes |
+| `paused` | Supervision suspendue manuellement. Les heartbeats sont ignorés, aucune alerte hors ligne ne se déclenche |
+| `expired` | Jeton d'enrôlement périmé (fenêtre de 24 heures) avant que l'agent ne s'enrôle |
 
-Plus aucun heartbeat : l'hôte passe de `online` à `offline` en 15 à 25 secondes (délai 15 s, contrôle toutes les 10 s).
+Le statut se met à jour en temps réel via Server-Sent Events, sans rechargement de page. Un hôte en ligne passe hors ligne en 15 à 25 secondes après que son agent a cessé d'envoyer des heartbeats (délai de 15 secondes, vérifié toutes les 10 secondes).
 
 ---
 
-## Ajouter une machine
+## Ajouter un hôte
 
-1. **Add host**, en haut à droite de **Hosts**.
-2. Un nom.
-3. L'IP est facultative. Si vous en mettez une, le Hub prévient quand l'agent se connecte depuis ailleurs.
-4. Copiez le jeton, puis [installez l'agent](/fr/agent/install/linux/).
+1. Cliquez sur **Add host** en haut à droite de la page **Hosts**.
+2. Saisissez un nom affiché.
+3. Indiquez éventuellement l'adresse IP attendue. Le Hub signalera les écarts si l'agent se connecte depuis une IP différente.
+4. Copiez le jeton d'enrôlement et utilisez-le lors de [l'installation de l'agent](/fr/agent/install/linux/).
 
-Le jeton expire au bout de **24 heures**. Au-delà, statut `expired`. Un nouveau jeton se fabrique depuis la page de l'hôte.
+Le jeton est valable **24 heures**. Une fois expiré, le statut de l'hôte passe à `expired` et un nouveau jeton doit être généré depuis la page de détail de l'hôte.
 
 ---
 
 ## Page de détail
 
-Cliquez une ligne. Vous avez :
+Cliquez sur n'importe quel hôte pour ouvrir sa page de détail. Elle affiche :
 
-- Tout en haut : nom, IP, OS, architecture, modèle CPU, RAM, uptime, version de l'agent
-- Jauges CPU, mémoire, disque — un point toutes les 30 secondes
-- Graphiques d'historique, sur la plage choisie
-- Onglet **Packages** : paquets installés et historique
-- Onglet **Containers** : métriques par conteneur, si elles sont activées
-- Onglet **Alerts** : incidents en cours et règles de cette machine
-- Section **Incidents** : historique
+- **En-tête.** Nom d'hôte, adresses IP, OS, architecture, modèle CPU, RAM totale, uptime, version de l'agent
+- **Statistiques en direct.** Jauges CPU, mémoire et disque en temps réel, mises à jour toutes les 30 secondes
+- **Graphiques.** Graphiques historiques des métriques pour la plage de temps sélectionnée
+- **Packages.** Paquets installés et historique des changements
+- **Containers.** Métriques par conteneur (si elles sont activées)
+- **Alerts.** Incidents actifs et règles d'alerte par hôte
+- **Incidents.** Historique des incidents d'alerte passés
 
 ---
 
-## Menu ⋯
+## Actions sur l'hôte
 
-Sur la page de l'hôte :
+Depuis la page de détail d'un hôte (menu ⋯ ou boutons dédiés) :
 
-| Action | Effet |
+| Action | Description |
 |--------|-------------|
 | **Rename** | Changer le nom affiché |
-| **Pause** | Couper la supervision, pas d'alerte hors ligne |
-| **Resume** | Reprendre après une pause |
-| **Update IP** | Enregistrer la nouvelle IP attendue |
-| **Dismiss IP mismatch** | Garder l'IP configurée, masquer l'écart |
-| **Dismiss reactivation** | Retirer le badge **Reactivated** |
-| **Regenerate token** | Nouveau jeton, pour réenrôler l'agent |
-| **Delete** | Effacer l'hôte et tout ce qui va avec (métriques, paquets, alertes) |
+| **Pause** | Suspendre la supervision, aucune alerte hors ligne ne se déclenchera |
+| **Resume** | Réactiver la supervision après une pause |
+| **Update IP** | Mettre à jour l'adresse IP attendue lorsque l'IP d'un hôte a changé |
+| **Dismiss IP mismatch** | Ignorer l'avertissement d'écart d'IP sans mettre à jour l'IP configurée |
+| **Dismiss reactivation** | Effacer le badge de réactivation (voir ci-dessous) |
+| **Regenerate token** | Générer un nouveau jeton d'enrôlement (par exemple pour réenrôler l'agent) |
+| **Delete** | Supprimer l'hôte et toutes ses données (métriques, paquets, alertes) |
 
 ---
 
 ## Écart d'IP
 
-Une IP posée à la création : le Hub vérifie que l'agent arrive depuis cette adresse. Réseau changé, machine migrée : avertissement **IP mismatch**.
+Lorsque vous créez un hôte et définissez une adresse IP attendue, le Hub vérifie que l'agent se connecte depuis cette IP. Si l'IP de l'agent diffère (par exemple après un changement de réseau ou une migration de serveur), la page de détail de l'hôte affiche un avertissement **IP mismatch**.
 
-Dans le menu **⋯** :
-- **Update IP** enregistre la nouvelle adresse et retire l'avertissement.
-- **Dismiss IP mismatch** garde l'ancienne IP, masque seulement l'avertissement.
+Depuis le menu ⋯, vous pouvez soit :
+- **Update IP.** Enregistrer la nouvelle IP comme adresse attendue et effacer l'avertissement.
+- **Dismiss IP mismatch.** Garder l'ancienne IP configurée mais supprimer l'avertissement.
 
 ---
 
 ## Réactivation
 
-Réinstaller l'agent sans supprimer l'hôte : même UUID sur le disque, le Hub réutilise l'enrôlement existant. Pas de doublon. C'est la **réactivation**.
+Si un agent se réenrôle sur un hôte qui a déjà des identifiants sur le Hub (même UUID sur le disque), le Hub réutilise l'enregistrement d'hôte existant au lieu de créer un doublon. C'est ce qu'on appelle la **réactivation**, et cela se produit lorsque vous réinstallez l'agent sur une machine sans avoir d'abord supprimé l'hôte.
 
-Un badge **Reactivated** s'affiche. Une fois que c'est bien la machine attendue, **Dismiss reactivation** (menu **⋯**) le retire.
+Un badge **Reactivated** apparaît sur la page de détail de l'hôte pour signaler que l'agent s'est reconnecté à un enregistrement existant. Cliquez sur **Dismiss reactivation** (menu ⋯) pour effacer le badge une fois que vous avez confirmé qu'il s'agit de l'hôte attendu.
 
 ---
 
-## Horloge décalée
+## Avertissement Clock desync
 
-Plus de 5 minutes d'écart entre l'agent et le Hub : les requêtes gRPC sont refusées, bannière **Clock desync**.
+Si l'horloge système d'un agent diffère de celle du Hub de plus de 5 minutes, le Hub refuse ses requêtes gRPC et une bannière **Clock desync** s'affiche sur la page de détail de l'hôte.
 
-NTP doit tourner sur la machine (`timedatectl status` sous Linux). La bannière part toute seule au premier heartbeat valide.
+Correction : assurez-vous que NTP s'exécute sur l'hôte surveillé (`timedatectl status` sous Linux). La bannière disparaît automatiquement une fois qu'un heartbeat valide est reçu.
 
 ---
 
 <a id="pausing-a-host"></a>
 
-## Mettre en pause
+## Mettre un hôte en pause
 
-Pour une maintenance prévue. Pendant ce temps :
-- Les heartbeats ne comptent plus
-- L'hôte ne passe pas `offline`
-- Aucune alerte
-- Ni métriques ni inventaire de paquets
-- Les incidents ouverts sont **suspendus**, pas refermés
+Mettre un hôte en pause est utile pendant une maintenance prévue. Pendant la pause :
+- Les heartbeats sont ignorés
+- L'hôte n'apparaît pas comme hors ligne
+- Aucune alerte ne se déclenche
+- Les métriques et l'inventaire de paquets ne sont pas enregistrés
+- Les incidents ouverts sont suspendus plutôt que résolus
 
-**Resume** reprend la supervision. Les incidents suspendus restent ouverts : pas de fausse résolution.
+Reprendre l'hôte restaure la supervision normale et le traitement des incidents, sans résoudre à tort les incidents suspendus.

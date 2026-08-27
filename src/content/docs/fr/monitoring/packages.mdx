@@ -1,33 +1,33 @@
 ---
-title: "Inventaire des paquets et mises à jour"
-description: "Paquets installés sur tout le parc, historique des changements, versions obsolètes et correctifs de sécurité. Environ 30 gestionnaires."
+title: "Inventaire des paquets et détection des mises à jour"
+description: "Suivez chaque paquet installé sur votre parc avec Watchflare. Watchflare détecte les paquets obsolètes et signale les mises à jour de sécurité en attente, via environ 30 intégrations de gestionnaires de paquets."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Sur chaque machine, l'agent recense les paquets installés et les envoie au Hub. Passage quotidien. Installé, retiré, mis à jour : tout reste dans l'historique.
+L'agent dresse un inventaire des paquets de chaque hôte et l'envoie au Hub. L'inventaire est mis à jour chaque jour, et tout changement (paquet ajouté, retiré ou mis à jour) est consigné dans l'historique.
 
 ---
 
-## Comment ça se passe
+## Fonctionnement
 
-**Premier passage.** Inventaire complet, envoyé au Hub, gardé comme référence.
+**Première exécution :** l'agent collecte un inventaire complet de tous les paquets installés et l'envoie au Hub. Le Hub stocke la liste complète comme référence.
 
-**Ensuite.** Comparaison avec le fichier local. Seul le delta part : ajoutés, retirés, version changée. Quel que soit le nombre de paquets, l'envoi quotidien reste petit.
+**Exécutions suivantes :** l'agent compare l'état actuel à l'instantané précédent sur le disque et n'envoie que le delta : paquets ajoutés, retirés, ou dont la version a changé. Cela maintient les payloads quotidiens petits, quel que soit le nombre de paquets installés.
 
-**Quand.** 60 secondes après le lancement, puis tous les jours à **03:00** (heure de la machine).
+**Planification :** l'inventaire s'exécute une fois au démarrage de l'agent (avec un délai de 60 secondes), puis tous les jours à **03:00** sur l'hôte surveillé.
 
-**Sans attendre 03:00.** Onglet **Packages**, bouton **Collect now**. Le Hub envoie l'ordre au heartbeat suivant (dans les 5 s). Dès que l'analyse finit, la liste se met à jour. Pratique juste après avoir installé ou retiré des paquets.
+**Collecte manuelle :** ouvrez la page de détail de l'hôte, cliquez sur l'onglet **Packages**, puis sur **Collect now**. Le Hub envoie une commande de collecte à l'agent au heartbeat suivant (dans les 5 secondes). L'inventaire se met à jour quelques secondes après que l'agent a terminé l'analyse. Utilisez-le après avoir installé des paquets sur un hôte lorsque vous ne voulez pas attendre jusqu'à 03:00.
 
 <Callout type="info" title="Remarque">
-  **Packages** affiche "No packages found" pendant une minute : le premier inventaire n'a pas encore fini. C'est normal.
+  L'onglet **Packages** affiche "No packages found" pendant les 60 premières secondes après le démarrage de l'agent. C'est normal, car la première analyse n'est pas encore terminée.
 </Callout>
 
 ---
 
 <a id="supported-package-managers"></a>
 
-## Gestionnaires pris en charge
+## Gestionnaires de paquets pris en charge
 
 ### Linux
 
@@ -38,7 +38,7 @@ Sur chaque machine, l'agent recense les paquets installés et les envoie au Hub.
 | `pacman` | Arch Linux, Manjaro |
 | `apk` | Alpine Linux |
 | `zypper` | openSUSE |
-| Snap | Ubuntu et autres |
+| Snap | Ubuntu et d'autres distributions |
 | Flatpak | Toutes distributions |
 | AppImage | Applications portables |
 | Homebrew | Homebrew sous Linux |
@@ -47,15 +47,15 @@ Sur chaque machine, l'agent recense les paquets installés et les envoie au Hub.
 
 | Gestionnaire | Notes |
 |-----------------|-------|
-| Homebrew formulae | Paquets CLI via `brew` |
-| Homebrew casks | Applications macOS via `brew install --cask` |
-| MacPorts | Paquets via `port` |
-| macOS applications | Bundles `.app` dans `/Applications` |
-| macOS pkgutil | Paquets système installés via `.pkg` |
+| Homebrew formulae | Paquets CLI installés via `brew` |
+| Homebrew casks | Applications macOS installées via `brew install --cask` |
+| MacPorts | Paquets installés via `port` |
+| macOS applications | Tous les bundles `.app` dans `/Applications` |
+| macOS pkgutil | Paquets système installés via des installeurs `.pkg` |
 
-### Langages (tous systèmes)
+### Multi-plateforme (gestionnaires de paquets de langages)
 
-| Gestionnaire | Écosystème |
+| Gestionnaire | Langage / écosystème |
 |-----------------|---------------------|
 | npm | Paquets globaux Node.js |
 | Yarn | Paquets globaux Yarn |
@@ -63,7 +63,7 @@ Sur chaque machine, l'agent recense les paquets installés et les envoie au Hub.
 | pip | Paquets Python |
 | pipx | Applications Python isolées |
 | Poetry | Virtualenvs Poetry |
-| uv | Gestionnaire Python uv |
+| uv | Gestionnaire de paquets Python uv |
 | conda / mamba | Environnements data science |
 | gem | Gems Ruby |
 | Cargo | Crates Rust |
@@ -71,19 +71,19 @@ Sur chaque machine, l'agent recense les paquets installés et les envoie au Hub.
 | NuGet | Outils globaux .NET |
 | Maven | Dépôt local Maven |
 | Nix | Paquets Nix |
-| CLI tools | Docker, kubectl, terraform, et d'autres CLI courants |
+| CLI tools | Docker, kubectl, terraform, et d'autres outils CLI importants |
 
-Si l'outil n'est pas installé, le collecteur ne tourne pas.
+Chaque collecteur se désactive de lui-même si son outil n'est pas installé sur l'hôte, de sorte que seuls les collecteurs qui ont quelque chose à signaler restent actifs.
 
 ---
 
-## Mises à jour disponibles
+## Détection des paquets obsolètes
 
-Watchflare croise l'inventaire avec ce que le gestionnaire sait mettre à jour. Le résumé affiche deux compteurs : **outdated** et **security**.
+Watchflare identifie les paquets pour lesquels une mise à jour est disponible et signale les paquets qui ont un correctif de sécurité connu. Les compteurs **outdated** et **security** sont affichés dans le résumé de la liste de paquets.
 
-Détection active pour :
+La vérification des mises à jour est prise en charge pour les gestionnaires de paquets suivants :
 
-| Gestionnaire | Commande |
+| Gestionnaire | Comment les mises à jour sont détectées |
 |---------|--------------------------|
 | apt (dpkg) | `apt-get -s upgrade` |
 | dnf / yum (rpm) | `dnf check-update` |
@@ -96,29 +96,29 @@ Détection active pour :
 | gem | `gem outdated` |
 | Composer | `composer outdated -g` |
 
-Les autres (`uv`, `pipx`, `Poetry`, `Yarn`, `Cargo`, `NuGet`, `Maven`, `Nix`, `conda/mamba`, Snap, Flatpak, AppImage, MacPorts, paquets système macOS) : l'inventaire est là, `available_version` reste vide. `update_checked` dit si le gestionnaire est dans le tableau ci-dessus.
+Pour les gestionnaires de paquets non listés ci-dessus (y compris `uv`, `pipx`, `Poetry`, `Yarn`, `Cargo`, `NuGet`, `Maven`, `Nix`, `conda/mamba`, Snap, Flatpak, AppImage, MacPorts et les paquets système macOS), le champ `available_version` reste vide : l'inventaire est collecté, mais la détection des mises à jour n'est pas prise en charge. Le drapeau `update_checked` de chaque paquet indique si son gestionnaire prend en charge la détection des mises à jour.
 
 <Callout type="info" title="Remarque">
-  Arch Linux : installez `pacman-contrib` (`pacman -S pacman-contrib`). Sans lui, pacman apparaît, mais Watchflare ne sait pas s'il y a des mises à jour.
+  La vérification des mises à jour sous Arch Linux exige que `pacman-contrib` soit installé (`pacman -S pacman-contrib`). Sans lui, les paquets pacman s'afficheront comme installés mais ne seront pas contrôlés pour les mises à jour.
 </Callout>
 
 ---
 
-## Historique
+## Historique des changements
 
-Chaque écart est daté, avec un type :
+Chaque changement de paquet est consigné dans l'historique, avec un horodatage et un type de changement :
 
-| Type | Signification |
+| Type de changement | Signification |
 |-------------|---------|
-| `initial` | Déjà là au premier inventaire |
-| `added` | Installé depuis le dernier passage |
-| `removed` | Désinstallé depuis le dernier passage |
-| `updated` | Version changée |
+| `initial` | Paquet présent dans le premier inventaire complet |
+| `added` | Paquet installé depuis le dernier inventaire |
+| `removed` | Paquet désinstallé depuis le dernier inventaire |
+| `updated` | Version du paquet changée |
 
-Onglet **History** de **Packages** : journal dans l'ordre, filtrable par type et par gestionnaire.
+L'onglet **History** de la page Packages de l'hôte affiche un journal chronologique de tous les changements, filtrable par type de changement et par gestionnaire de paquets.
 
 ---
 
-## Tout le parc
+## Vue globale des paquets
 
-**/packages** dans la barre latérale : vue dédoublonnée sur tout le parc. Un paquet, toutes les machines : qui ne l'a pas, qui est en retard, qui a un correctif de sécurité en attente.
+La page **/packages** dans la barre latérale affiche une vue dédoublonnée des paquets sur tous les hôtes, utile pour repérer quels hôtes n'ont pas un paquet, exécutent une ancienne version, ou ont des paquets de sécurité obsolètes.

@@ -1,32 +1,32 @@
 ---
-title: "HTTPS et cookies de session"
-description: "Passez le tableau de bord Watchflare en HTTPS derrière un reverse proxy, puis réglez COOKIE_DOMAIN et TRUSTED_PROXIES pour que les cookies de session soient Secure."
+title: "HTTPS et configuration de la sécurité des cookies"
+description: "Exposez le tableau de bord Watchflare en HTTPS via un reverse proxy et configurez COOKIE_DOMAIN et TRUSTED_PROXIES pour que les cookies de session soient marqués Secure."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-Le Hub sert le tableau de bord en HTTP sur le port `8080`. Pour du HTTPS, un reverse proxy termine le TLS. Ensuite, deux variables d'environnement : les cookies de session doivent porter le flag `Secure`.
+Le Hub sert son tableau de bord en HTTP sur le port `8080`. Pour l'exposer en HTTPS, placez-le derrière un reverse proxy qui gère la terminaison TLS. Une fois cela fait, mettez à jour deux variables d'environnement pour que les cookies de session soient marqués `Secure` correctement.
 
 <Callout type="info" title="Remarque">
-  Le port gRPC (`50051`) gère son propre TLS 1.3. Le proxy ne doit **pas** le terminer. Mise en place complète, passthrough compris : [Reverse proxy](/fr/hub/reverse-proxy/).
+  Le port gRPC (`50051`) gère son propre TLS 1.3 et ne doit **pas** être terminé par le proxy. Voir [Reverse proxy](/fr/hub/reverse-proxy/) pour la mise en place complète, y compris le passthrough gRPC.
 </Callout>
 
 ---
 
-## Comment le Hub pose `Secure`
+## Comment fonctionne la sécurité des cookies
 
-Le Hub décide tout seul, d'après la requête :
+Le Hub détecte automatiquement s'il doit poser le flag `Secure` sur le cookie de session JWT :
 
-1. HTTPS en direct → `Secure` activé
+1. Connexion HTTPS directe → `Secure` activé
 2. `X-Forwarded-Proto: https` depuis une IP de proxy de confiance → `Secure` activé
 3. HTTP simple, pas de proxy de confiance → `Secure` désactivé
 
-Derrière un reverse proxy, deux conditions : le Hub doit connaître les IP autorisées à poser `X-Forwarded-Proto`, et le proxy doit réellement transmettre cet en-tête.
+Pour que cela fonctionne correctement derrière un reverse proxy, le Hub doit connaître les adresses IP autorisées à poser `X-Forwarded-Proto`, et le proxy doit réellement transmettre cet en-tête.
 
 ---
 
-## Mettre à jour le `.env`
+## Mettre à jour votre `.env`
 
 Ajoutez ces variables une fois le HTTPS en place, puis redémarrez le Hub :
 
@@ -45,8 +45,8 @@ docker compose up -d
 
 | Variable | Quand la poser |
 |----------|-------------|
-| `COOKIE_DOMAIN` | Dès que le tableau de bord a son propre nom de domaine |
-| `TRUSTED_PROXIES` | Si le reverse proxy tourne sur une **autre machine** que le Hub. Par défaut : loopback (`127.0.0.1,::1`), donc le cas « même hôte » est déjà couvert. |
+| `COOKIE_DOMAIN` | Toujours, lorsque le tableau de bord est servi sur un nom de domaine personnalisé |
+| `TRUSTED_PROXIES` | Lorsque le reverse proxy tourne sur un **hôte différent** du Hub. Par défaut, loopback uniquement (`127.0.0.1,::1`), ce qui couvre les configurations sur le même hôte. |
 
 ---
 
@@ -56,23 +56,22 @@ Le Hub ne lit explicitement qu'un en-tête :
 
 | En-tête | Valeur | Rôle |
 |--------|-------|---------|
-| `X-Forwarded-Proto` | `https` | **Obligatoire.** C'est lui qui déclenche le flag `Secure`. |
-| `Host` | `watchflare.example.com` | Recommandé. Usage habituel derrière un proxy. |
-| `X-Real-IP` | IP client | Recommandé. Sert à résoudre l'IP du visiteur. |
-| `X-Forwarded-For` | IP client | Recommandé. Pareil. |
+| `X-Forwarded-Proto` | `https` | **Obligatoire.** Utilisé pour poser le flag `Secure` sur le cookie de session. |
+| `Host` | `watchflare.example.com` | Recommandé. Pratique proxy standard. |
+| `X-Real-IP` | IP client | Recommandé. Utilisé par le framework pour résoudre l'IP du client. |
+| `X-Forwarded-For` | IP client | Recommandé. Utilisé par le framework pour résoudre l'IP du client. |
 
-Config Caddy, Nginx, Traefik : [Reverse proxy](/fr/hub/reverse-proxy/).
+Pour la configuration spécifique à chaque proxy (Caddy, Nginx, Traefik), voir [Reverse proxy](/fr/hub/reverse-proxy/).
 
 ---
 
-## Vérifier
+## Vérifier que cela fonctionne
 
-Redémarrez le Hub, ouvrez le tableau de bord, connectez-vous. Dans les DevTools, regardez le cookie de session :
+Après avoir redémarré le Hub, ouvrez le tableau de bord et connectez-vous. Inspectez le cookie de session dans les DevTools de votre navigateur :
 
-- `Secure` doit valoir `true`
-- `Domain` doit coller à `COOKIE_DOMAIN`
+- `Secure` doit être `true`
+- `Domain` doit correspondre à `COOKIE_DOMAIN`
 
-Si `Secure` n'est pas là :
-
-1. `TRUSTED_PROXIES` contient-il l'IP du proxy ? Au démarrage, `docker compose logs watchflare` liste les proxies de confiance.
-2. Le proxy envoie-t-il bien `X-Forwarded-Proto: https` ?
+Si `Secure` n'est pas posé, vérifiez que :
+1. `TRUSTED_PROXIES` inclut l'IP du proxy (exécutez `docker compose logs watchflare` pour voir quels proxies sont de confiance au démarrage)
+2. Le proxy transmet `X-Forwarded-Proto: https`

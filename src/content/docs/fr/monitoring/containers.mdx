@@ -1,83 +1,83 @@
 ---
-title: "Métriques des conteneurs"
-description: "CPU, mémoire et réseau par conteneur, Docker et Podman. Onglet hôte, vue parc, Live et Stale."
+title: "Aperçu des métriques de conteneurs"
+description: "Consultez les métriques CPU, mémoire et réseau par conteneur dans Watchflare. Lisez les statistiques par conteneur et les graphiques par plage de temps issus des workloads Docker et Podman."
 ---
 
 import Callout from "@components/Callout.astro";
 
-CPU, mémoire, réseau **par conteneur** — Docker ou Podman. Rien n'est collecté tant que ce n'est pas activé sur l'agent.
+Watchflare peut collecter des métriques par conteneur sur les hôtes Docker et Podman : usage CPU, mémoire et I/O réseau pour chaque conteneur en cours d'exécution. Cette fonctionnalité est en opt-in.
 
 ---
 
 <a id="enabling-container-metrics"></a>
 
-## L'activer
+## Activer les métriques de conteneurs
 
-Procédure complète : [Métriques Docker/Podman](/fr/agent/docker-metrics/).
+Les métriques de conteneurs doivent être activées sur l'agent. Voir [Métriques Docker et Podman](/fr/agent/docker-metrics/) pour les instructions de configuration.
 
 En bref :
-- **À l'installation :** `--containers` sur l'installeur ou `register`.
-- **Déjà installé :** `watchflare` dans le groupe `docker`, `container_metrics = true` dans `agent.conf`, redémarrage du service.
+- **À l'installation :** passez `--containers` à la commande d'installation ou d'enrôlement.
+- **Sur un agent existant :** ajoutez `watchflare` au groupe `docker`, définissez `container_metrics = true` dans `agent.conf`, et redémarrez le service.
 
 ---
 
-## Ce que l'agent remonte
+## Ce qui est collecté
 
-Uniquement les conteneurs **en cours d'exécution**, au même rythme que le système (30 s) :
+Les métriques sont collectées par conteneur en cours d'exécution, au même intervalle que les métriques système (toutes les 30 secondes) :
 
 | Métrique | Description |
 |--------|-------------|
-| **CPU %** | Usage CPU, rapporté à tous les cœurs |
-| **Memory used** | Consommation actuelle |
-| **Memory limit** | Limite du conteneur, si elle est posée |
-| **Network RX** | Débit entrant (octets/s) |
-| **Network TX** | Débit sortant (octets/s) |
+| **CPU %** | Usage CPU par conteneur, sur tous les cœurs |
+| **Memory used** | Consommation mémoire actuelle |
+| **Memory limit** | Limite mémoire du conteneur, si elle est définie |
+| **Network RX** | Octets/s entrants |
+| **Network TX** | Octets/s sortants |
 
-Nom + image pour identifier. Un conteneur arrêté n'apparaît pas.
+Chaque conteneur est identifié par son nom et son image. Les conteneurs arrêtés ne sont pas collectés.
 
 <Callout type="info" title="Remarque">
-  Ces points partent tels quels, **sans passer par le WAL**. Hub injoignable : cette période est perdue. CPU, mémoire, disque et le reste du système restent dans le WAL, rejoués à la reconnexion.
+  Les métriques de conteneurs sont envoyées en instantané et **ne sont pas mises en tampon dans le Write-Ahead Log**. Si le Hub est injoignable, les métriques de conteneurs de cette période sont perdues. Les métriques système (CPU, mémoire, disque, etc.) ne sont pas affectées. Elles s'accumulent dans le WAL et sont rejouées à la reconnexion.
 </Callout>
 
 ---
 
-## Onglet Containers
+## Consulter les métriques de conteneurs
 
-Sur la page de l'hôte. L'onglet n'existe que si `container_metrics = true` et qu'au moins un lot est arrivé.
+Les métriques de conteneurs apparaissent dans l'onglet **Containers** de la page de détail de l'hôte. L'onglet n'est visible que si l'agent a `container_metrics = true` dans sa configuration et a envoyé au moins un lot de métriques de conteneurs.
 
-Vous y voyez :
-- Le tableau des conteneurs en cours, CPU et mémoire du moment
-- Les graphiques (CPU, mémoire, réseau) sur la plage choisie
+L'onglet affiche :
+- Un tableau de tous les conteneurs en cours d'exécution avec leurs valeurs CPU et mémoire actuelles
+- Des graphiques par conteneur pour le CPU, la mémoire et le réseau sur la plage de temps sélectionnée
 
-Mêmes plages que le système. Voir [Métriques système](/fr/monitoring/metrics/#time-ranges-and-resolution).
+Les plages de temps et la résolution sont les mêmes que pour les métriques système. Voir [Métriques système](/fr/monitoring/metrics/#time-ranges-and-resolution).
 
 ---
 
-## Vue parc
+## Vue globale des conteneurs
 
-**Containers** dans la barre latérale : une ligne par conteneur, toutes les machines. Pour trouver où tourne une image, comparer les ressources, ou voir ce qui tournait sur un hôte hors ligne.
+L'entrée **Containers** dans la barre latérale ouvre une vue parc de chaque conteneur en cours d'exécution sur tous les hôtes, dans un seul tableau. Elle est utile pour trouver où une image donnée s'exécute, comparer l'usage des ressources côte à côte, ou repérer les conteneurs dont l'hôte est passé hors ligne.
 
-Trois cartes :
+Trois cartes de résumé se trouvent en haut :
 
 | Carte | Signification |
 |------|---------|
-| **Containers** | Combien de conteneurs sont suivis |
-| **Live** | L'hôte est `online` et remonte |
-| **Stale** | L'hôte est hors ligne. Dernier état connu, plus forcément vrai |
+| **Containers** | Nombre total de conteneurs actuellement suivis sur le parc |
+| **Live** | Conteneurs dont l'hôte est en ligne et remonte des données |
+| **Stale** | Conteneurs dont l'hôte est hors ligne. La ligne affiche le dernier état connu, qui n'est plus forcément exact |
 
-**Live** / **Stale** jugent l'**hôte**, pas le conteneur. L'hôte passe hors ligne : les lignes restent, marquées **Stale**. Elles ne sont pas retirées.
+La distinction Live / Stale porte sur l'**hôte**, pas sur le conteneur. Quand un hôte cesse de remonter des données, ses conteneurs gardent leurs dernières valeurs connues et sont marqués Stale plutôt que d'être retirés de la liste.
 
 ### Filtres
 
-- **Search** : nom ou image.
-- **Host** : une machine.
-- **Runtime** : Docker, Podman, etc.
-- **Liveness** : **Live** ou **Stale**.
+- **Search** correspond au nom du conteneur ou à l'image.
+- **Host** restreint la liste à un seul hôte.
+- **Runtime** filtre par runtime de conteneur (Docker, Podman, etc.).
+- **Liveness** restreint aux conteneurs Live ou Stale uniquement.
 
-Clic sur une ligne : tiroir avec l'image complète, les ports, la santé, les valeurs.
+Cliquez sur n'importe quelle ligne pour ouvrir un tiroir de détail avec l'image complète du conteneur, les ports, la santé et les valeurs par métrique.
 
 <Callout type="info" title="Remarque">
-  La liste se met à jour toutes les 60 secondes : le navigateur redemande les données, indépendamment du flux SSE de la page hôte. L'agent ne remonte que les conteneurs en cours : un arrêté n'apparaît jamais. Uniquement les hôtes avec [métriques conteneurs](#enabling-container-metrics).
+  La liste se rafraîchit toutes les 60 secondes : le navigateur redemande les données, indépendamment du flux SSE en direct utilisé sur les pages de détail des hôtes. Seuls les conteneurs en cours d'exécution apparaissent : l'agent ne signale que les conteneurs en cours d'exécution, donc les conteneurs arrêtés ne sont jamais listés. La vue ne montre que les conteneurs des hôtes qui ont [les métriques de conteneurs activées](#enabling-container-metrics).
 </Callout>
 
 ---
@@ -85,15 +85,15 @@ Clic sur une ligne : tiroir avec l'image complète, les ports, la santé, les va
 ## Prérequis
 
 - Docker Engine 23.0+ (API v1.44+) ou Podman avec un socket API compatible
-- Utilisateur `watchflare` dans le groupe `docker` (Linux)
-- Socket Docker `/var/run/docker.sock`, ou Podman `/run/podman/podman.sock`
+- L'utilisateur `watchflare` doit être dans le groupe `docker` (Linux)
+- Socket Docker sur `/var/run/docker.sock` ou socket Podman sur `/run/podman/podman.sock`
 
 <Callout type="info" title="Remarque">
-  macOS (Docker Desktop ou Colima) : l'agent tourne sous l'utilisateur courant (celui qui a lancé le service Homebrew). Ce compte voit déjà le socket. Pas de groupe à changer.
+  Sous macOS (Docker Desktop ou Colima), l'agent s'exécute sous l'utilisateur courant, qui a déjà accès au socket Docker. Aucun changement de groupe n'est nécessaire.
 </Callout>
 
 ---
 
-## Agent dans un conteneur
+## Conteneurs et métriques d'hôte
 
-L'agent installé **dans** un conteneur ne voit pas le socket. Posez-le sur l'OS hôte.
+Lorsque l'agent lui-même s'exécute dans un conteneur Docker (plutôt que sur l'hôte), les métriques de conteneurs ne sont pas disponibles, car l'agent ne peut pas atteindre le socket Docker depuis l'intérieur du conteneur. Installez l'agent directement sur l'OS hôte pour activer la collecte de métriques de conteneurs.

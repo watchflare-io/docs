@@ -1,17 +1,17 @@
 ---
 title: "Authentification à deux facteurs (2FA)"
-description: "Activez le 2FA TOTP sur votre compte Watchflare. Mise en place, connexion, codes de secours, désactivation."
+description: "Activez l'authentification à deux facteurs basée sur TOTP pour votre compte Watchflare. Couvre la mise en place, le déroulement de la connexion, les codes de secours et la désactivation du 2FA."
 ---
 
 import Callout from "@components/Callout.astro";
 
-Watchflare gère le **2FA TOTP** (mot de passe à usage unique basé sur le temps, RFC 6238). Une fois activé, il faut le mot de passe **et** un code à 6 chiffres d'une appli d'authentification.
+Watchflare prend en charge l'**authentification à deux facteurs basée sur TOTP** (mot de passe à usage unique basé sur le temps, RFC 6238). Lorsque l'authentification est activée, la connexion exige à la fois votre mot de passe et un code à 6 chiffres provenant d'une application d'authentification.
 
 ---
 
-## Applis compatibles
+## Applications prises en charge
 
-Toute appli TOTP convient :
+Toute application compatible TOTP fonctionne :
 
 - [Proton Authenticator](https://proton.me/authenticator) et [Proton Pass](https://proton.me/pass)
 - [2FAS](https://2fas.com/)
@@ -19,57 +19,57 @@ Toute appli TOTP convient :
 - [1Password](https://1password.com/)
 - [Authy](https://authy.com/)
 - Google Authenticator
-- et bien d'autres.
+- et bien d'autres !
 
 ---
 
 ## Activer le 2FA
 
-1. **Votre nom d'utilisateur → Account**.
-2. Sous **Two-Factor Authentication**, cliquez **Set up 2FA**.
-3. Scannez le QR code, ou copiez la clé secrète et saisissez-la à la main.
-4. Entrez le code à 6 chiffres de l'appli pour confirmer.
-5. **Rangez vos codes de secours.** Watchflare en génère 8, chacun à usage unique. Ils servent si vous perdez l'appli.
+1. Allez dans **votre nom d'utilisateur → Account**.
+2. Sous **Two-Factor Authentication**, cliquez sur **Set up 2FA**.
+3. Scannez le QR code avec votre application d'authentification, ou copiez la clé secrète et saisissez-la manuellement.
+4. Entrez le code à 6 chiffres que votre application affiche pour confirmer la mise en place.
+5. **Enregistrez vos codes de secours.** Watchflare génère 8 codes de secours à usage unique, rangez-les donc en lieu sûr. Vous pouvez les utiliser pour vous connecter si vous perdez l'accès à votre application d'authentification.
 
 <Callout type="warn" title="Attention">
-  Les codes de secours ne s'affichent qu'une fois. Sans appli et sans codes, le compte n'est plus récupérable.
+  Les codes de secours ne s'affichent qu'une fois. Si vous perdez à la fois votre application d'authentification et vos codes de secours, vous ne pouvez pas récupérer l'accès à votre compte.
 </Callout>
 
 ---
 
-## Connexion
+## Déroulement de la connexion
 
-Avec le 2FA :
+Lorsque le 2FA est activé, la séquence de connexion est :
 
-1. E-mail et mot de passe sur la page de connexion.
-2. Un écran 2FA s'affiche. Entrez le code à 6 chiffres.
-3. Ou **Use a backup code**, puis l'un des codes enregistrés.
+1. Entrez votre e-mail et votre mot de passe sur la page de connexion.
+2. Un écran de défi 2FA s'affiche. Entrez le code à 6 chiffres de votre application d'authentification.
+3. Sinon, cliquez sur **Use a backup code** et entrez l'un de vos codes enregistrés.
 
-L'étape 2FA expire au bout de **5 minutes**. Au-delà, recommencez la connexion.
+Le défi 2FA expire après **5 minutes**. S'il arrive à expiration, recommencez la connexion.
 
 ---
 
 ## Codes de secours
 
-Hexadécimal, 10 caractères, majuscules (ex. `A3F7C2E1B0`). Un code ne sert qu'une fois.
+Les codes de secours sont des codes hexadécimaux de 10 caractères en majuscules (ex. `A3F7C2E1B0`). Chaque code ne peut être utilisé qu'une fois, et il est consommé à l'usage.
 
-Vous en avez 8 après l'activation. Pour tout remplacer :
+Vous avez 8 codes de secours après la mise en place. Pour les remplacer tous par un jeu neuf :
 
-1. **Votre nom d'utilisateur → Account**.
-2. Sous **Two-Factor Authentication**, **Regenerate backup codes**.
-3. Un code TOTP à 6 chiffres pour confirmer.
-4. Les nouveaux s'affichent une fois : enregistrez-les tout de suite.
+1. Allez dans **votre nom d'utilisateur → Account**.
+2. Sous **Two-Factor Authentication**, cliquez sur **Regenerate backup codes**.
+3. Entrez un code TOTP à 6 chiffres valide pour confirmer.
+4. Les nouveaux codes s'affichent une seule fois, enregistrez-les donc immédiatement.
 
 <Callout type="warn" title="Attention">
-  Régénérer invalide tous les anciens codes.
+  Régénérer les codes de secours invalide tous les précédents.
 </Callout>
 
 ---
 
 ## Désactiver le 2FA
 
-1. **Votre nom d'utilisateur → Account**.
-2. Sous **Two-Factor Authentication**, **Disable 2FA**.
-3. Un code TOTP à 6 chiffres **ou** un code de secours.
+1. Allez dans **votre nom d'utilisateur → Account**.
+2. Sous **Two-Factor Authentication**, cliquez sur **Disable 2FA**.
+3. Entrez un code TOTP à 6 chiffres valide **ou** un code de secours pour confirmer.
 
-Ensuite, codes de secours et secret TOTP sont effacés pour de bon.
+Après la désactivation, tous les codes de secours et le secret TOTP stocké sont définitivement supprimés.

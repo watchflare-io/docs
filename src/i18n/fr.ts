@@ -19,7 +19,7 @@ const fr: Translations = {
   'toc.onThisPage': 'Sur cette page',
 
   // Sidebar
-  'sidebar.aria': 'Navigation de la documentation',
+  'sidebar.aria': 'Barre latérale de la documentation',
 
   // Doc layout
   'doc.skipToMain': 'Aller au contenu principal',
@@ -54,7 +54,7 @@ const fr: Translations = {
   'doc.fallbackNotice': "Cette page n'est pas encore disponible en français. Vous lisez la version anglaise.",
 
   // Theme toggle
-  'theme.toggle': 'Changer le thème',
+  'theme.toggle': 'Basculer le thème',
 
   // Language selector
   'lang.select': 'Choisir la langue',

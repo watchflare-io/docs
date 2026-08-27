@@ -1,13 +1,13 @@
 ---
 title: "Démarrage rapide"
-description: "Déployez le Hub avec Docker Compose et enrôlez votre premier agent. Cinq étapes, zéro configuration optionnelle : de l'installation aux métriques en moins de 5 minutes."
+description: "Déployez le Hub Watchflare avec Docker Compose et enrôlez votre premier agent. Cinq étapes et zéro configuration optionnelle vous mènent de l'installation aux métriques en direct en moins de 5 minutes."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 import Shell from "@components/Shell.astro";
 
-Ce guide vous emmène du déploiement du Hub à la connexion du premier agent, en passant par la création du compte admin.
+Ce guide vous accompagne pour déployer le Hub, créer votre compte admin et connecter votre premier agent.
 
 **Prérequis :** Docker et Docker Compose v2+ (Linux, macOS ou Windows).
 
@@ -15,7 +15,7 @@ Ce guide vous emmène du déploiement du Hub à la connexion du premier agent, e
 
 ## 1. Déployer le Hub
 
-Créez un dossier et placez-vous dedans :
+Créez un répertoire et entrez-y :
 
 <CodeBlock lang="bash">
 ```bash
@@ -23,7 +23,7 @@ mkdir watchflare && cd watchflare
 ```
 </CodeBlock>
 
-Enregistrez ce fichier sous `docker-compose.yml` :
+Enregistrez ce qui suit sous `docker-compose.yml` :
 
 <CodeBlock filename="docker-compose.yml" lang="yaml">
 ```yaml
@@ -90,7 +90,7 @@ networks:
 ```
 </CodeBlock>
 
-Dans le même dossier, créez un `.env` avec les trois secrets obligatoires :
+Créez un fichier `.env` dans le même répertoire avec les trois secrets obligatoires :
 
 <CodeBlock tabs={["Linux", "Windows"]} lang="bash">
 <Fragment slot="Linux">
@@ -111,10 +111,10 @@ $h = { -join ($r::GetBytes(32) | % { '{0:x2}' -f $_ }) }
 </CodeBlock>
 
 <Callout type="info" title="Remarque">
-  Sous macOS, prenez l'onglet Linux : `openssl` est là par défaut.
+  Sous macOS, utilisez l'onglet Linux, car `openssl` est disponible par défaut.
 </Callout>
 
-Lancez les conteneurs :
+Démarrez la stack :
 
 <Shell title="bash" code={`$ docker compose up -d
 [+] Running 3/3
@@ -123,26 +123,26 @@ Lancez les conteneurs :
  ✔ Container watchflare               Started`} />
 
 <Callout type="info" title="Remarque">
-  Au premier démarrage, le Hub génère tout seul une autorité de certification TLS auto-signée.
-  C'est elle qui sécurise le gRPC avec les agents. Rien à configurer à la main.
+  Le Hub génère automatiquement une CA TLS auto-signée au premier démarrage. Cette CA
+  sécurise la communication gRPC avec les agents. Aucune configuration manuelle de certificats n'est nécessaire.
 </Callout>
 
-Quelques secondes plus tard, le Hub répond sur `http://your-host:8080`.
+Le Hub sera disponible à l'adresse `http://your-host:8080` en quelques secondes.
 
 ---
 
-## 2. Créer le compte admin
+## 2. Créer votre compte admin
 
-Ouvrez `http://your-host:8080` dans le navigateur. Sur une installation neuve, vous atterrissez directement sur la page de création de compte. Saisissez votre e-mail et un mot de passe solide.
+Ouvrez `http://your-host:8080` dans votre navigateur. Sur une installation neuve, vous êtes automatiquement redirigé vers la page de configuration du compte. Saisissez votre e-mail et un mot de passe fort.
 
 ---
 
 ## 3. Ajouter un hôte
 
 1. Dans la barre latérale, cliquez **Hosts**, puis **Add host**.
-2. Donnez un nom (par ex. `web-01`). L'adresse IP est facultative : le Hub prévient si l'agent se connecte depuis une autre IP. Laissez vide, ou cochez **Allow registration from any IP** pour désactiver ce contrôle.
+2. Saisissez un nom (par ex. `web-01`). Saisissez éventuellement l'adresse IP de l'hôte. Le Hub vous avertira si l'agent se connecte depuis une IP différente. Laissez l'IP vide ou cochez **Allow registration from any IP** pour ignorer entièrement cette vérification.
 3. Cliquez **Create Host**.
-4. Copiez le jeton d'enregistrement affiché :
+4. Copiez le jeton d'enrôlement affiché :
 
 <Shell title="watchflare · enrollment token" pairs={[
   ["token",  "wf_reg_7f2a9c3e8b4d1a6c5e09f3b2a178e4d9"],
@@ -156,7 +156,7 @@ Ouvrez `http://your-host:8080` dans le navigateur. Sur une installation neuve, v
 
 ## 4. Installer l'agent
 
-Sur la machine à surveiller, lancez l'installeur en une ligne. Remplacez les valeurs par l'IP de votre Hub et le jeton de l'étape précédente.
+Exécutez l'installeur en une ligne sur l'hôte que vous souhaitez surveiller. Remplacez les espaces réservés par l'IP de votre Hub et le jeton de l'étape précédente.
 
 <CodeBlock tabs={["Linux", "macOS"]} lang="bash">
 <Fragment slot="Linux">
@@ -178,24 +178,24 @@ curl -sSL https://get.watchflare.io/brew | bash -s -- \
 </CodeBlock>
 
 <Callout type="warn" title="Attention">
-  Remplacez `wf_reg_YOUR_TOKEN` par le jeton de l'étape précédente, et `YOUR_HUB_IP` par l'IP ou le nom d'hôte du Hub.
+  Remplacez `wf_reg_YOUR_TOKEN` par le jeton de l'étape précédente et `YOUR_HUB_IP` par l'adresse IP ou le nom d'hôte de votre Hub.
 </Callout>
 
-L'installeur enregistre l'agent, écrit la config et démarre le service tout seul.
+L'installeur enrôle l'agent, écrit la configuration et démarre le service automatiquement.
 
 ---
 
-## 5. Voir l'hôte passer en ligne
+## 5. Voir votre hôte passer en ligne
 
-Retournez sur la liste **Hosts** dans le navigateur. Le statut passe de **pending** à **online** dans les 5 secondes après le démarrage de l'agent.
+Revenez à la liste Hosts dans votre navigateur. Le statut de l'hôte passe de **pending** à **online** dans les 5 secondes après le démarrage de l'agent.
 
-Vous pouvez ensuite ouvrir les métriques temps réel et les graphiques d'historique. L'inventaire des paquets fait une première analyse 60 secondes après le démarrage de l'agent, puis tous les jours à 03:00.
+À partir de là, vous pouvez explorer les métriques en temps réel et les graphiques d'historique. L'inventaire des paquets exécute sa première analyse 60 secondes après le démarrage de l'agent, puis quotidiennement à 03:00.
 
 ---
 
-## Ensuite
+## Prochaines étapes
 
-- [Installer l'agent sur d'autres machines](/fr/agent/install/linux/) (Linux ou macOS)
-- [Passer le Hub en HTTPS derrière un reverse proxy](/fr/hub/reverse-proxy/) (Caddy ou Nginx)
-- [Configurer les alertes](/fr/hub/alerts/) (seuils CPU, mémoire, disque, charge, température, plus hôte hors ligne)
-- [Lire les variables d'environnement du Hub](/fr/hub/configuration/) (ports, modes TLS, sécurité des cookies)
+- [Installer l'agent sur d'autres hôtes](/fr/agent/install/linux/) (Linux ou macOS)
+- [Configurer HTTPS avec un reverse proxy](/fr/hub/reverse-proxy/) (Caddy ou Nginx)
+- [Configurer les alertes](/fr/hub/alerts/) (seuils CPU, mémoire, disque, charge et température, plus notifications d'hôte hors ligne)
+- [Comprendre les variables d'environnement du Hub](/fr/hub/configuration/) (ports, modes TLS, sécurité des cookies)

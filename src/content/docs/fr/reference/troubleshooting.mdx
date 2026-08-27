@@ -1,6 +1,6 @@
 ---
-title: "Dépannage"
-description: "Le Hub ne démarre pas, l'agent ne remonte pas, trous dans les graphiques, paquets absents, CA qui a changé. Quoi regarder, quoi faire."
+title: "Dépannage des erreurs courantes"
+description: "Diagnostiquez et corrigez les problèmes Watchflare courants : erreurs de démarrage du Hub, connectivité des agents, trous de métriques, problèmes d'inventaire de paquets et échecs de certificats TLS."
 ---
 
 import Callout from "@components/Callout.astro";
@@ -13,106 +13,106 @@ import PageSchema from "@components/PageSchema.astro";
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Le Hub s'arrête au démarrage, par où commencer ?",
+      "name": "Pourquoi le Hub s'arrête-t-il immédiatement au démarrage ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Les journaux. JWT_SECRET absent ou plus court que 32 caractères, NOTIFICATION_ENCRYPTION_KEY trop courte, ou PostgreSQL injoignable. Posez JWT_SECRET=$(openssl rand -base64 32) dans le .env ou hub.env, et vérifiez la base."
+        "text": "Consultez les journaux. Causes fréquentes : JWT_SECRET non défini ou plus court que 32 caractères, NOTIFICATION_ENCRYPTION_KEY trop courte, ou PostgreSQL injoignable. Ajoutez JWT_SECRET=$(openssl rand -base64 32) à votre fichier .env ou hub.env et vérifiez vos paramètres de connexion à la base."
       }
     },
     {
       "@type": "Question",
-      "name": "Le tableau de bord ne répond pas. Que vérifier ?",
+      "name": "Pourquoi ne puis-je pas atteindre le tableau de bord Watchflare ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Le conteneur ou le service tourne-t-il ? Le port 8080 (ou HUB_PORT) est-il ouvert ? Docker : docker compose ps. Binaire : sudo systemctl status watchflare-hub."
+        "text": "Vérifiez que le conteneur ou le service tourne et que le port 8080 (ou votre HUB_PORT) est ouvert dans le pare-feu. Pour Docker, exécutez 'docker compose ps'. Pour une installation binaire, consultez 'sudo systemctl status watchflare-hub'."
       }
     },
     {
       "@type": "Question",
-      "name": "L'hôte reste pending après l'installation de l'agent. Pourquoi ?",
+      "name": "Pourquoi l'hôte reste-t-il pending après l'installation de l'agent ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Le jeton d'enregistrement expire au bout de 24 heures. Sur la page de l'hôte, menu ⋯ → Regenerate token, puis relancez l'installeur avec le nouveau jeton."
+        "text": "Le jeton d'enrôlement a expiré. Les jetons sont valables 24 heures. Ouvrez la page de détail de l'hôte, régénérez le jeton depuis le menu, puis relancez la commande d'installation avec le nouveau jeton."
       }
     },
     {
       "@type": "Question",
-      "name": "L'hôte reste offline alors que l'agent tourne. Où chercher ?",
+      "name": "Pourquoi l'hôte reste-t-il offline après le démarrage de l'agent ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Les journaux de l'agent. IP ou port du Hub faux (connection refused), agent pas enrôlé (configuration error), clé HMAC qui ne correspond pas (Invalid agent credentials), horloge décalée (send failed: clock out of sync). Vérifiez agent.conf et NTP."
+        "text": "Consultez les journaux de l'agent. Causes fréquentes : IP ou port du Hub incorrect (connection refused), agent non enrôlé (configuration error), clé HMAC qui ne correspond pas (Invalid agent credentials), ou désynchronisation d'horloge (send failed: clock out of sync). Chaque erreur a un correctif précis. Vérifiez les paramètres d'agent.conf et assurez-vous que l'horloge de l'agent est synchronisée avec NTP."
       }
     },
     {
       "@type": "Question",
-      "name": "La bannière Clock desync s'affiche. Comment la faire partir ?",
+      "name": "Comment corriger la bannière Clock desync sur la page de détail de l'hôte ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Plus de 5 minutes d'écart entre l'agent et le Hub. NTP : timedatectl status, puis sudo systemctl restart systemd-timesyncd. La bannière disparaît au premier heartbeat valide."
+        "text": "L'horloge de l'agent diffère de celle du Hub de plus de 5 minutes. Synchronisez l'horloge de l'agent avec NTP : exécutez 'timedatectl status' pour vérifier et 'sudo systemctl restart systemd-timesyncd' pour synchroniser immédiatement. La bannière disparaît automatiquement dès qu'un heartbeat valide est reçu."
       }
     },
     {
       "@type": "Question",
-      "name": "Les métriques n'arrivent pas sur une machine venant d'être enrôlée. C'est normal ?",
+      "name": "Pourquoi les métriques n'apparaissent-elles pas sur un hôte nouvellement installé ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Le premier lot part dans les 30 secondes. Après une minute, toujours rien : cherchez une erreur de connexion dans les journaux de l'agent."
+        "text": "Le premier lot de métriques arrive dans les 30 secondes après le démarrage de l'agent. Attendez au moins 60 secondes. Si rien n'apparaît, consultez les journaux de l'agent pour y trouver les erreurs de connexion."
       }
     },
     {
       "@type": "Question",
-      "name": "Il y a des trous dans les graphiques. D'où ça vient ?",
+      "name": "Qu'est-ce qui provoque des trous dans les graphiques de métriques ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "L'agent n'a pas pu envoyer. Soit le Hub était injoignable et le WAL (10 Mo par défaut) a saturé, soit wal_enabled = false. Montez wal_max_size_mb, ou réactivez le WAL, puis redémarrez l'agent."
+        "text": "Les trous indiquent que l'agent n'a pas pu envoyer les métriques pendant cette période. Deux causes : le Hub était injoignable et le Write-Ahead Log a saturé (10 Mo par défaut), ou le WAL est désactivé (wal_enabled = false dans agent.conf). Augmentez wal_max_size_mb ou réactivez le WAL, puis redémarrez l'agent."
       }
     },
     {
       "@type": "Question",
-      "name": "La température reste à 0. Est-ce un bug ?",
+      "name": "Pourquoi la température affiche-t-elle toujours 0 ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Non. La collecte ne tourne que sur une machine physique. VM et conteneurs Docker n'ont pas de capteur."
+        "text": "La collecte de température ne tourne que sur les hôtes physiques. Elle est omise sur les machines virtuelles et les conteneurs Docker, qui n'ont pas accès aux capteurs physiques. C'est le comportement attendu."
       }
     },
     {
       "@type": "Question",
-      "name": "Disque et réseau n'apparaissent pas. Pourquoi ?",
+      "name": "Pourquoi les métriques disque ou réseau manquent-elles ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "L'agent dans un conteneur Docker ne les remonte pas. Posez-le sur l'OS hôte. S'il y est déjà, les journaux doivent dire environment detected type=Physical Host."
+        "text": "Ces métriques sont omises lorsque l'agent tourne à l'intérieur d'un conteneur Docker. Installez l'agent directement sur l'OS hôte pour collecter les métriques disque et réseau. Si l'agent est sur l'hôte mais que les métriques manquent, vérifiez que l'environnement est détecté comme Physical Host dans les journaux de l'agent."
       }
     },
     {
       "@type": "Question",
-      "name": "L'onglet Containers n'est pas là. Que manque-t-il ?",
+      "name": "Pourquoi l'onglet de métriques conteneur n'est-il pas visible ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Il n'apparaît qu'après activation et un premier lot reçu. container_metrics = true dans agent.conf, watchflare dans le groupe docker, Docker qui tourne, agent redémarré après le changement de groupe."
+        "text": "L'onglet Containers n'apparaît qu'après activation des métriques conteneur et réception d'au moins un lot. Vérifiez : container_metrics = true dans agent.conf, l'utilisateur watchflare est dans le groupe docker, Docker tourne, et l'agent a été redémarré après le changement de groupe."
       }
     },
     {
       "@type": "Question",
-      "name": "L'onglet Packages est vide juste après l'installation. Combien attendre ?",
+      "name": "Pourquoi les paquets n'apparaissent-ils pas après l'installation de l'agent ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Le premier inventaire part 60 secondes après le démarrage. Attendez 90 secondes. Pour ne pas attendre : Collect now sur la page de l'hôte."
+        "text": "Le premier scan de paquets s'exécute 60 secondes après le démarrage de l'agent, pas immédiatement. Attendez au moins 90 secondes, puis consultez l'onglet Packages. Pour déclencher un scan immédiatement, utilisez le bouton Collect now sur la page de détail de l'hôte."
       }
     },
     {
       "@type": "Question",
-      "name": "Après un redémarrage du Hub, plus aucun agent ne se connecte. Que s'est-il passé ?",
+      "name": "Pourquoi les agents refusent-ils de se connecter après un redémarrage du Hub ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Seulement si le Hub a régénéré sa CA (ex. après suppression de server.pem). Les agents ont épinglé l'ancienne. Arrêtez l'agent, retirez agent.conf et ca.pem, réenrôlez avec un jeton neuf, redémarrez."
+        "text": "Si le Hub a régénéré son certificat CA (par exemple après suppression de server.pem), les agents ont épinglé l'ancienne CA et rejettent désormais la nouvelle. Correctif : arrêtez l'agent, retirez agent.conf et ca.pem, réenrôlez avec un nouveau jeton, puis redémarrez l'agent."
       }
     },
     {
       "@type": "Question",
-      "name": "Le port gRPC ne passe pas derrière le reverse proxy. Pourquoi ?",
+      "name": "Pourquoi le port gRPC est-il injoignable via un reverse proxy ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Le 50051 doit transiter en TCP, sans terminaison TLS. Les agents épinglent la CA du Hub. Un autre certificat sur le proxy, et plus personne ne se connecte. Guides Traefik, Nginx et Caddy dans Reverse proxy."
+        "text": "Le port gRPC (50051) doit être proxifié au niveau TCP, sans terminaison TLS. Les agents épinglent la CA du Hub, donc si un proxy présente un autre certificat, tous les agents refuseront de se connecter. Consultez le guide Reverse proxy pour la configuration de passthrough TCP Traefik, Nginx et Caddy."
       }
     }
   ]
@@ -120,9 +120,9 @@ import PageSchema from "@components/PageSchema.astro";
 
 ## Hub
 
-### Le Hub s'arrête au démarrage
+### Le Hub s'arrête immédiatement au démarrage
 
-Ouvrez les journaux :
+Consultez les journaux :
 
 <CodeBlock tabs={["Docker", "Binaire (systemd)"]} lang="bash">
 <Fragment slot="Docker">
@@ -137,44 +137,44 @@ journalctl -u watchflare-hub -n 50
 </Fragment>
 </CodeBlock>
 
-| Message | Cause | Quoi faire |
+| Message du journal | Cause | Correctif |
 |-------------|-------|-----|
-| `JWT_SECRET is required in environment variables` | `JWT_SECRET` absent | `JWT_SECRET=$(openssl rand -base64 32)` dans `.env` ou `hub.env` |
-| `JWT_SECRET too short current_length=X required=32` | Moins de 32 caractères | `openssl rand -base64 32` |
-| `NOTIFICATION_ENCRYPTION_KEY too short` | Clé posée, trop courte | Une nouvelle, ou retirez-la (optionnelle hors Compose) |
-| `failed to connect to database` | PostgreSQL injoignable | Docker : `POSTGRES_HOST=postgres` dans le Compose, pas seulement le `.env`. Binaire : `POSTGRES_HOST` dans `hub.env`. |
+| `JWT_SECRET is required in environment variables` | `JWT_SECRET` non défini | Ajoutez `JWT_SECRET=$(openssl rand -base64 32)` à `.env` ou `hub.env` |
+| `JWT_SECRET too short current_length=X required=32` | `JWT_SECRET` fait moins de 32 caractères | Régénérez-le avec `openssl rand -base64 32` |
+| `NOTIFICATION_ENCRYPTION_KEY too short` | La clé est définie mais fait moins de 32 caractères | Régénérez-la ou retirez-la (`NOTIFICATION_ENCRYPTION_KEY` est facultative) |
+| `failed to connect to database` | PostgreSQL injoignable | Docker : vérifiez que `POSTGRES_HOST=postgres` figure dans le bloc d'environnement Compose (pas seulement dans le `.env`). Binaire : vérifiez `POSTGRES_HOST` dans `hub.env`. |
 
-### Le tableau de bord ne répond pas
+### Le tableau de bord est injoignable
 
-**Docker**
-- `docker compose ps` : le conteneur tourne
-- Port exposé : `8080` par défaut. `HUB_PORT=80` dans le `.env` pour le 80
-- Firewall : `8080` (ou `HUB_PORT`) ouvert
+**Docker :**
+- Vérifiez que le conteneur tourne : `docker compose ps`
+- Vérifiez le port exposé : `8080` par défaut. Définissez `HUB_PORT=80` dans `.env` pour utiliser le port 80.
+- Derrière un pare-feu, assurez-vous que le port `8080` (ou votre `HUB_PORT`) est ouvert.
 
-**Binaire**
-- `sudo systemctl status watchflare-hub`
-- Écoute sur `8080` par défaut : ouvrez-le
-- `journalctl -u watchflare-hub -n 30`
+**Binaire :**
+- Vérifiez que le service tourne : `sudo systemctl status watchflare-hub`
+- Le Hub écoute sur le port `8080` par défaut. Assurez-vous qu'il est ouvert dans le pare-feu.
+- Consultez les journaux : `journalctl -u watchflare-hub -n 30`
 
-### Cookie sans flag Secure, HTTPS pourtant en place
+### Cookie de session non marqué Secure après la configuration HTTPS
 
-[HTTPS et cookies](/fr/hub/https/). Presque toujours : l'IP du reverse proxy n'est pas dans `TRUSTED_PROXIES`.
+Consultez le [guide de configuration HTTPS](/fr/hub/https/). La cause la plus fréquente est que `TRUSTED_PROXIES` n'inclut pas l'IP du reverse proxy.
 
 ---
 
 ## Agent
 
-### L'hôte reste `pending`
+### L'hôte reste `pending` après l'installation de l'agent
 
-Le jeton expire **24 heures** après sa création.
+Le jeton d'enrôlement a expiré. Les jetons sont valables **24 heures** à compter de leur création.
 
-Page de l'hôte → **⋯ → Regenerate token**, puis relancez l'installeur avec le nouveau.
+Correctif : ouvrez la page de détail de l'hôte → **⋯ menu → Regenerate token**, puis relancez la commande d'installation avec le nouveau jeton.
 
 <a id="host-stays-offline-after-agent-starts"></a>
 
-### L'hôte reste `offline`
+### L'hôte reste `offline` après le démarrage de l'agent
 
-Journaux :
+Consultez les journaux de l'agent :
 
 <CodeBlock lang="bash">
 ```bash
@@ -186,38 +186,38 @@ tail -30 $(brew --prefix)/var/log/watchflare-agent.log
 ```
 </CodeBlock>
 
-| Message | Cause | Quoi faire |
+| Message du journal | Cause | Correctif |
 |-------------|-------|-----|
-| `connect: connection refused` | Mauvaise IP ou mauvais port, ou `50051` filtré | `server_host` / `server_port` dans `agent.conf` ; firewall |
-| `configuration error` (error: "config file not found...") | Pas encore enrôlé | `sudo watchflare-agent register --token ... --host ...` |
-| `Invalid agent credentials` | Clé HMAC qui ne correspond pas | Réenrôler |
-| `context deadline exceeded` | Hub injoignable ou trop lent | Réseau jusqu'au Hub |
-| `send failed: clock out of sync with Hub` | Plus de 5 min d'écart | NTP, [bannière Clock desync](#clock-desync-banner-on-host-detail-page) |
-| `certificate signed by unknown authority` | CA changée côté Hub | Réenrôler, [TLS](#agents-refuse-to-connect-after-hub-restart) |
+| `connect: connection refused` | Mauvaise IP ou mauvais port du Hub, ou le port `50051` est bloqué par le pare-feu | Vérifiez `server_host` et `server_port` dans `agent.conf` ; vérifiez les règles de pare-feu |
+| `configuration error` (error: "config file not found...") | Agent non enrôlé | Exécutez `sudo watchflare-agent register --token ... --host ...` |
+| `Invalid agent credentials` | Clé HMAC qui ne correspond pas | Réenrôlez l'agent |
+| `context deadline exceeded` | Hub injoignable ou lent | Vérifiez la connectivité réseau vers le Hub |
+| `send failed: clock out of sync with Hub` | L'horloge de l'agent diffère de celle du Hub de plus de 5 minutes | Synchronisez avec NTP, voir [Clock desync](#clock-desync-banner-on-host-detail-page) |
+| `certificate signed by unknown authority` | CA qui ne correspond pas, le Hub a peut-être régénéré la sienne | Réenrôlez l'agent (voir [TLS](#agents-refuse-to-connect-after-hub-restart)) |
 
 <a id="clock-desync-banner-on-host-detail-page"></a>
 
-### Bannière Clock desync
+### Bannière Clock desync sur la page de détail de l'hôte
 
-Plus de 5 minutes d'écart. Le Hub refuse tout le gRPC de cet agent.
+L'horloge de l'agent diffère de celle du Hub de plus de 5 minutes. Le Hub refuse toutes les requêtes gRPC de cet agent.
 
-NTP sur la machine :
+Correctif : synchronisez l'horloge de l'agent avec NTP.
 
 <CodeBlock lang="bash">
 ```bash
-# Linux : état
+# Linux : vérifiez l'état
 timedatectl status
 
-# Linux : resynchroniser tout de suite
+# Linux : synchronisez immédiatement
 sudo systemctl restart systemd-timesyncd
 ```
 </CodeBlock>
 
-La bannière part au premier heartbeat valide.
+La bannière disparaît automatiquement dès qu'un heartbeat valide est reçu.
 
 ### `configuration error` au démarrage
 
-Le binaire est installé, pas enrôlé. Le journal dit `configuration error` / `config file not found...` :
+Le binaire de l'agent est installé mais n'est pas enrôlé. Le journal affiche `configuration error` avec `error="config file not found..."`. Enrôlez-le :
 
 <CodeBlock lang="bash">
 ```bash
@@ -232,84 +232,87 @@ sudo watchflare-agent register \
 
 ## Métriques
 
-### Rien sur une machine venant d'être enrôlée
+### Les métriques n'apparaissent pas sur un hôte nouvellement installé
 
-Premier lot : 30 secondes. Après une minute, toujours vide : [l'hôte est-il `offline` ?](#host-stays-offline-after-agent-starts)
+Le premier lot de métriques arrive dans les 30 secondes après le démarrage de l'agent. Si rien n'apparaît après 60 secondes, consultez les journaux de l'agent pour y trouver les erreurs de connexion (voir [L'hôte reste offline](#host-stays-offline-after-agent-starts)).
 
-### Trous dans les graphiques
+### Trous dans les graphiques de métriques (métriques abandonnées)
 
-L'agent n'envoyait plus. Deux cas.
+Les trous dans les graphiques indiquent que l'agent n'a pas pu envoyer les métriques pendant cette période. Deux causes distinctes :
 
-**Hub injoignable, WAL saturé**
+**Hub injoignable, WAL saturé :**
 
-Le WAL tient 10 Mo par défaut (~3 000 points). Une fois plein, les plus anciens sont jetés sans bruit, les nouveaux continuent d'être écrits.
+Si le Hub était injoignable pendant une période prolongée, le Write-Ahead Log de l'agent a pu saturer. Par défaut, le WAL contient 10 Mo de données (~3 000 échantillons de métriques). Une fois plein, les enregistrements les plus anciens sont abandonnés sans notification à mesure que les nouveaux sont écrits.
+
+L'agent consigne un avertissement lorsque cela se produit :
 
 ```
 WARN   WAL exceeds max size, truncating  max_mb=10
 WARN   WAL exceeds max size on startup, truncating  max_mb=10
 ```
 
-Montez `wal_max_size_mb` dans `agent.conf`, redémarrez. Voir [`wal_max_size_mb`](/fr/agent/configuration/#write-ahead-log).
+Pour réduire le risque de perte de données pendant les longues coupures, augmentez `wal_max_size_mb` dans `agent.conf` et redémarrez l'agent. Voir [`wal_max_size_mb`](/fr/agent/configuration/#write-ahead-log).
 
-**WAL désactivé**
+**WAL désactivé :**
 
-`wal_enabled = false` : rien n'est écrit en local. Un envoi raté est perdu.
+Si `wal_enabled = false` dans `agent.conf`, les métriques sont envoyées directement et ne sont pas mises en tampon. Tout envoi en échec est perdu définitivement :
 
 ```
 ERROR  send failed, metrics lost (WAL disabled)  error="..."
 ```
 
-Remettez `wal_enabled = true`, redémarrez.
+Réactivez le WAL (`wal_enabled = true`) et redémarrez l'agent.
 
-### Température à 0 en permanence
+### La température affiche toujours 0
 
-Uniquement les **machines physiques**. Pas de capteur sur :
-- une VM
-- un conteneur Docker
+La collecte de température ne tourne que sur les **hôtes physiques**. Elle est omise sur :
+- les machines virtuelles (pas d'accès aux capteurs physiques)
+- les conteneurs Docker
 
-Attendu. [Métriques système](/fr/monitoring/metrics/#cpu).
+C'est le comportement attendu. Voir [Métriques système](/fr/monitoring/metrics/#cpu).
 
-### Pas de disque, pas de réseau
+### Métriques disque ou réseau manquantes
 
-L'agent **dans** Docker ne les remonte pas. Posez-le sur l'OS.
+Ces métriques sont omises lorsque l'agent tourne **à l'intérieur d'un conteneur Docker** (pas sur l'hôte). Installez l'agent directement sur l'OS hôte pour collecter les métriques disque et réseau.
 
-Déjà sur l'hôte, et le disque manque ? Vérifiez qu'il n'est pas pris pour un conteneur :
+Si l'agent tourne sur l'hôte mais que les métriques disque manquent, vérifiez que l'agent n'est pas mal catégorisé comme un conteneur :
 
 <CodeBlock lang="bash">
 ```bash
 journalctl -u watchflare-agent -n 5
-# cherchez : environment detected  type="Physical Host"
+# Recherchez : environment detected  type="Physical Host"
 ```
 </CodeBlock>
 
-### Pas d'onglet Containers
+### L'onglet Containers n'est pas visible
 
-Il n'existe qu'une fois les métriques activées **et** un lot reçu.
+L'onglet **Containers** n'apparaît qu'après activation des métriques conteneur et réception d'au moins un lot.
 
-1. `container_metrics = true` dans `agent.conf`
-2. `groups watchflare` : groupe `docker`
-3. `docker ps` : Docker tourne
-4. `sudo systemctl restart watchflare-agent` après le groupe
+Vérifiez :
+1. `container_metrics = true` est défini dans `agent.conf`
+2. L'utilisateur `watchflare` est dans le groupe `docker` : `groups watchflare`
+3. Docker tourne : `docker ps`
+4. L'agent a été redémarré après le changement de groupe : `sudo systemctl restart watchflare-agent`
 
-[Métriques Docker/Podman](/fr/agent/docker-metrics/).
+Voir [Métriques de conteneurs Docker](/fr/agent/docker-metrics/) pour la configuration complète.
 
 ---
 
 ## Inventaire de paquets
 
-### **Packages** vide juste après l'installation
+### Les paquets n'apparaissent pas après l'installation de l'agent
 
-Le premier inventaire part **60 secondes** après le démarrage. Attendez 90 secondes.
+Le premier scan de paquets s'exécute **60 secondes après le démarrage de l'agent**, pas immédiatement. Attendez au moins 90 secondes après l'installation, puis consultez l'onglet **Packages**.
 
-Sans attendre : page de l'hôte → **Packages** → **Collect now**.
+Pour déclencher un scan immédiatement : page de détail de l'hôte → onglet **Packages** → **Collect now**.
 
-### Rien n'a bougé depuis hier
+### L'inventaire quotidien ne se met pas à jour
 
-Le passage quotidien : **03:00, heure de la machine**. Hors ligne à cette heure : reporté au lendemain.
+Le scan programmé s'exécute à **03:00, heure locale de l'hôte surveillé**. Si l'hôte était hors ligne à 03:00, le scan est omis jusqu'au lendemain.
 
-Même bouton : **Packages** → **Collect now**.
+Pour forcer un scan immédiat : page de détail de l'hôte → onglet **Packages** → **Collect now**.
 
-Erreurs :
+Consultez les journaux de l'agent pour y trouver les erreurs de collecte :
 
 <CodeBlock lang="bash">
 ```bash
@@ -317,11 +320,11 @@ journalctl -u watchflare-agent -n 50 | grep -i package
 ```
 </CodeBlock>
 
-### Il manque des paquets
+### Il manque des paquets dans l'inventaire
 
-Un collecteur ne tourne que si l'outil est là. `npm` absent du `PATH` de `watchflare` : silence.
+Chaque collecteur ne s'active que si son outil est installé. Si `npm` n'est pas dans le `PATH` de l'utilisateur de service `watchflare`, le collecteur npm est omis sans notification.
 
-Qui a tourné :
+Activez le journal de débogage pour voir quels collecteurs ont tourné :
 
 <CodeBlock lang="bash">
 ```bash
@@ -333,32 +336,32 @@ WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
 
 ## Alertes et notifications
 
-### Aucun e-mail
+### Aucun e-mail d'alerte reçu
 
-1. SMTP en place : **Settings → Notifications**
-2. **Send test email**
-3. Fenêtre de durée : le seuil doit tenir **toute** la durée (5 min par défaut)
-4. L'adresse dans **Settings → Notifications** est la bonne
+1. Vérifiez que le SMTP est configuré et activé : **Settings → Notifications**
+2. Utilisez **Send test email** pour vérifier que la connexion fonctionne
+3. Vérifiez la fenêtre de durée de l'alerte. Une métrique doit dépasser le seuil **en continu** pendant la durée configurée (5 minutes par défaut) avant qu'un e-mail soit envoyé
+4. Les notifications vont à l'adresse configurée dans **Settings → Notifications**. Vérifiez qu'elle est correcte
 
 ### L'e-mail de test échoue
 
-| Erreur | Cause probable | Quoi faire |
+| Erreur | Cause probable | Correctif |
 |-------|-------------|-----|
-| `connection refused` | Mauvais hôte ou port | 587 STARTTLS, 465 TLS |
-| `authentication failed` | Mauvais identifiants | Resaisir |
-| `TLS handshake error` | Mauvais mode | `starttls` à la place de `tls`, ou l'inverse |
+| `connection refused` | Mauvais hôte ou mauvais port | Vérifiez le nom d'hôte SMTP et le port (587 pour STARTTLS, 465 pour TLS) |
+| `authentication failed` | Nom d'utilisateur ou mot de passe incorrect | Resaisissez les identifiants SMTP |
+| `TLS handshake error` | Mode de chiffrement qui ne correspond pas | Essayez `starttls` à la place de `tls`, ou l'inverse |
 
 <Callout type="info" title="Remarque">
-  Gmail et d'autres veulent un **mot de passe d'application**, pas celui du compte. Le mot de passe normal est refusé même s'il est le bon.
+  Certains fournisseurs (Gmail par exemple) exigent un **mot de passe d'application** à la place du mot de passe de votre compte pour le SMTP. Les mots de passe standard sont refusés même s'ils sont corrects.
 </Callout>
 
-### Les canaux restent muets
+### Les canaux de notification ne reçoivent rien
 
-1. **Test** à côté du canal, **Settings > Notifications**. Erreur = URL ou destination injoignable
-2. Interrupteur allumé
-3. Même fenêtre de durée que pour l'e-mail
-4. URL Shoutrrr du service : [Canaux de notification](/fr/hub/notifications/)
-5. Le Hub écrit les échecs en `ERROR`. Un canal silencieux : journaux du Hub
+1. Utilisez le bouton **Test** à côté du canal dans **Settings > Notifications**. S'il renvoie une erreur, l'URL ou la destination est injoignable
+2. Vérifiez que le canal est **activé** (l'interrupteur est allumé)
+3. Vérifiez la fenêtre de durée de l'alerte. Comme pour l'e-mail, un dépassement de seuil doit être maintenu pendant toute la durée avant qu'une notification ne se déclenche
+4. Vérifiez que l'URL suit le format Shoutrrr de ce service (voir [Canaux de notification](/fr/hub/notifications/) pour les modèles d'URL pris en charge)
+5. Le Hub consigne les échecs de livraison au niveau `ERROR`. Consultez les journaux du Hub si un canal spécifique échoue en silence
 
 ---
 
@@ -366,11 +369,11 @@ WATCHFLARE_DEBUG=1 sudo -u watchflare watchflare-agent run
 
 <a id="agents-refuse-to-connect-after-hub-restart"></a>
 
-### Plus aucun agent après un redémarrage du Hub
+### Les agents refusent de se connecter après un redémarrage du Hub
 
-Si vous avez retiré `server.pem` pour forcer un renouvellement, le Hub a refait **la CA et** le certificat serveur. Les agents ont épinglé l'ancienne CA.
+Si vous avez retiré `server.pem` pour forcer le renouvellement du certificat, le Hub a régénéré **à la fois** la CA et le certificat serveur. Les agents ont épinglé l'ancienne CA et rejettent désormais la nouvelle.
 
-Réenrôlez chaque machine touchée :
+Correctif : réenrôlez chaque agent concerné.
 
 <CodeBlock lang="bash">
 ```bash
@@ -383,11 +386,11 @@ sudo systemctl start watchflare-agent
 </CodeBlock>
 
 <Callout type="warn" title="Attention">
-  Mode `auto` : impossible de renouveler le certificat serveur isolément. Retirer `ca.pem` ou `server.pem` régénère les deux. Tout le parc à réenrôler. [Certificats TLS](/fr/hub/tls/).
+  En mode TLS auto, il n'est pas possible de renouveler uniquement le certificat serveur. Retirer `ca.pem` ou `server.pem` du répertoire PKI entraîne la régénération des deux, ce qui exige de réenrôler tous les agents. Voir [Certificats TLS](/fr/hub/tls/).
 </Callout>
 
-### Le `50051` ne passe pas le reverse proxy
+### Le port gRPC est injoignable via un reverse proxy
 
-TCP **sans** terminaison TLS. Les agents épinglent la CA du Hub. Un certificat du proxy à la place : plus personne.
+Le port gRPC (`50051`) doit être proxifié au **niveau TCP**, sans terminaison TLS. Les agents épinglent la CA du Hub. Si un proxy présente un autre certificat, tous les agents refuseront de se connecter.
 
-Traefik, Nginx, Caddy : [Reverse proxy](/fr/hub/reverse-proxy/).
+Consultez le [guide Reverse proxy](/fr/hub/reverse-proxy/) pour la configuration de passthrough TCP Traefik, Nginx et Caddy.

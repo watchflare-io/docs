@@ -1,16 +1,16 @@
 ---
 title: "Installer le Hub Watchflare sous Linux"
-description: "Installez le Hub Watchflare en service systemd sous Linux. TimescaleDB via Docker, binaire amd64 et arm64, durcissement du service."
+description: "Installez le Hub Watchflare en service systemd sous Linux. Couvre TimescaleDB via Docker, le téléchargement du binaire pour amd64 et arm64, et le durcissement du service."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 import Shell from "@components/Shell.astro";
 
-Le Hub est un binaire Linux tout prêt (x86_64 et arm64). Ici vous l'installez en service systemd, TimescaleDB dans Docker.
+Le Hub est distribué sous la forme d'un binaire précompilé pour Linux (x86_64 et arm64). Ce guide décrit son installation en service systemd, avec TimescaleDB qui s'exécute dans Docker.
 
 <Callout type="tip" title="Astuce">
-  Vous préférez les conteneurs ? [Docker Compose](/fr/hub/deploy-docker/) : cinq minutes, rien à bricoler à la main.
+  Vous préférez les conteneurs ? [Déployer avec Docker Compose](/fr/hub/deploy-docker/) vous met en route en moins de 5 minutes, sans configuration manuelle.
 </Callout>
 
 ---
@@ -19,20 +19,20 @@ Le Hub est un binaire Linux tout prêt (x86_64 et arm64). Ici vous l'installez e
 
 - Linux x86_64 (`amd64`) ou arm64
 - systemd
-- Docker pour TimescaleDB, ou une instance TimescaleDB déjà là
+- Docker pour TimescaleDB, ou une instance TimescaleDB existante
 - Deux ports ouverts : **8080** (tableau de bord) et **50051** (gRPC des agents)
 
 ---
 
 ## 1. Démarrer TimescaleDB
 
-Le Hub a besoin de TimescaleDB pour le stockage. Le plus simple : le Compose fourni.
+Le Hub exige TimescaleDB pour le stockage. Le plus simple est d'utiliser le fichier Compose fourni :
 
 ```bash
 curl -O https://raw.githubusercontent.com/watchflare-io/watchflare/main/docker-compose-postgres.yml
 ```
 
-Générez un mot de passe et lancez le conteneur :
+Générez un mot de passe de base de données et démarrez le conteneur :
 
 ```bash
 echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" > .env
@@ -40,15 +40,15 @@ docker compose -f docker-compose-postgres.yml up -d
 ```
 
 <Callout type="info" title="Remarque">
-  TimescaleDB déjà en place ? sautez cette étape et pointez `POSTGRES_HOST` vers votre instance.
-  Autres options : [documentation TimescaleDB](https://docs.timescale.com).
+  TimescaleDB déjà en cours d'exécution ? Sautez cette étape et pointez `POSTGRES_HOST` vers votre instance existante.
+  Pour d'autres options de configuration, voir la [documentation TimescaleDB](https://docs.timescale.com).
 </Callout>
 
 ---
 
 ## 2. Télécharger le binaire
 
-Dernière version :
+Téléchargez et installez la dernière version :
 
 <CodeBlock lang="bash">
 ```bash
@@ -68,7 +68,7 @@ sudo chmod +x /usr/local/bin/watchflare-hub
 
 ## 3. Créer un utilisateur dédié (recommandé)
 
-Un utilisateur système limite ce que le Hub peut toucher sur la machine.
+Exécuter le Hub sous un utilisateur système limite son accès au reste du serveur.
 
 ```bash
 sudo useradd --system --no-create-home --shell /sbin/nologin watchflare
@@ -102,15 +102,15 @@ NOTIFICATION_ENCRYPTION_KEY=your-32-char-secret
 ENV=production
 TRUSTED_PROXIES=127.0.0.1,::1
 
-# TLS_MODE=auto         # défaut : génère une CA auto-signée pour le gRPC
-# COOKIE_SECURE=true    # à activer si le Hub est derrière un reverse proxy HTTPS
+# TLS_MODE=auto         # défaut, génère automatiquement une CA auto-signée pour le gRPC
+# COOKIE_SECURE=true    # activez si le Hub est derrière un reverse proxy HTTPS
 # COOKIE_DOMAIN=watchflare.example.com
 ```
 </CodeBlock>
 
 Générez les secrets avec `openssl rand -base64 32`.
 
-Restreignez le fichier :
+Verrouillez le fichier :
 
 ```bash
 sudo chown root:watchflare /etc/watchflare/hub.env
@@ -163,14 +163,14 @@ sudo systemctl enable --now watchflare-hub
 sudo systemctl status watchflare-hub
 ```
 
-Puis ouvrez `http://your-host:8080`. La première visite envoie vers la création de compte.
+Puis ouvrez `http://your-host:8080`. La première visite redirige vers la création de compte.
 
 ---
 
 ## Mise à jour
 
-Procédure complète, dump et retour arrière compris : [Mettre à jour le Hub](/fr/hub/update/#binary-linux-systemd).
+Voir [Mettre à jour le Hub](/fr/hub/update/#binary-linux-systemd) pour la procédure de mise à jour complète, avec les étapes de sauvegarde et les instructions de retour arrière.
 
 ---
 
-Le binaire Hub existe aussi pour macOS (arm64/amd64). L'installation en service macOS n'est pas documentée. En local, lancez le binaire à la main, ou passez par [Docker Compose](/fr/hub/deploy-docker/).
+Le binaire Hub est également disponible pour macOS (arm64/amd64), mais une installation en service macOS dédiée n'est pas documentée. Pour le développement local, exécutez le binaire directement ou utilisez [Docker Compose](/fr/hub/deploy-docker/).

@@ -1,36 +1,36 @@
 ---
 title: "Variables d'environnement du Hub"
-description: "Table de poche : toutes les variables du Hub, défauts et longueurs. Le détail est dans la référence de configuration."
+description: "Tableau de référence rapide de toutes les variables d'environnement du Hub Watchflare, avec types et valeurs par défaut. Pour les explications complètes et le contexte d'usage, voir le guide de configuration."
 ---
 
 import CodeBlock from "@components/CodeBlock.astro";
 
-Rien d'autre que des variables d'environnement. Compose : fichier `.env` à côté de `docker-compose.yml`.
+Toute la configuration du Hub se fait via des variables d'environnement. Lorsque vous utilisez Docker Compose, placez-les dans un fichier `.env` à côté de `docker-compose.yml`.
 
-Explications, pièges, fichier complet : [Référence de configuration](/fr/hub/configuration/).
+Pour les explications complètes et les indications d'usage, voir [Configuration](/fr/hub/configuration/).
 
 ---
 
-## Trois secrets
+## Obligatoires
 
 | Variable | Longueur min. | Description |
 |----------|-----------|-------------|
-| `POSTGRES_PASSWORD` | Aucune | Mot de passe TimescaleDB. Le binaire retombe sur `watchflare_dev` si elle manque : pas en production. Compose l'exige (`:?`). |
-| `JWT_SECRET` | 32 caractères | Signe les cookies de session et chiffre les secrets TOTP. **Absente ou trop courte : le Hub refuse de démarrer.** La changer invalide les sessions et désactive le 2FA des comptes déjà inscrits. |
-| `NOTIFICATION_ENCRYPTION_KEY` | 32 caractères | Chiffre SMTP et URL des canaux, au repos. Facultative sur le binaire : le stockage des notifications est alors désactivé. **Dans le Compose, elle est obligatoire** (`:?`), même sans canal prévu. Posée mais trop courte : le Hub s'arrête. |
+| `POSTGRES_PASSWORD` | Aucune | Mot de passe de la base. Le binaire se rabat sur `watchflare_dev` si elle n'est pas définie, donc définissez-la toujours en production. Docker Compose l'impose via `:?`. |
+| `JWT_SECRET` | 32 caractères | Signe les cookies de session utilisateur et chiffre les secrets TOTP pour le 2FA. **Le Hub s'arrête au démarrage si elle est absente ou trop courte.** Changer cette valeur invalide toutes les sessions actives et désactive le 2FA pour les utilisateurs qui l'ont activé. |
+| `NOTIFICATION_ENCRYPTION_KEY` | 32 caractères | Chiffre au repos les identifiants SMTP et les URL des canaux de notification (Discord, Slack, etc.). Facultative pour le binaire Hub : si elle n'est pas définie, le stockage des notifications est désactivé. **Exigée par le fichier Docker Compose** (définie via la syntaxe `:?`) afin d'être toujours générée dès le départ, même si vous ne prévoyez pas encore d'utiliser les notifications. Si elle est définie, elle doit faire au moins 32 caractères (sinon le Hub s'arrête). |
 
 ---
 
-## Base
+## Base de données
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `POSTGRES_HOST` | `localhost` | Hôte PostgreSQL. Compose : `postgres`. |
-| `POSTGRES_PORT` | `5432` | Port |
-| `POSTGRES_USER` | `watchflare` | Utilisateur |
-| `POSTGRES_PASSWORD` | `watchflare_dev` | Mot de passe |
-| `POSTGRES_DB` | `watchflare` | Base |
-| `POSTGRES_SSLMODE` | `disable` | SSL PostgreSQL |
+| `POSTGRES_HOST` | `localhost` | Nom d'hôte PostgreSQL. Docker Compose définit cette valeur à `postgres`. |
+| `POSTGRES_PORT` | `5432` | Port PostgreSQL |
+| `POSTGRES_USER` | `watchflare` | Utilisateur de la base |
+| `POSTGRES_PASSWORD` | `watchflare_dev` | Mot de passe de la base |
+| `POSTGRES_DB` | `watchflare` | Nom de la base |
+| `POSTGRES_SSLMODE` | `disable` | Mode SSL PostgreSQL |
 
 ---
 
@@ -38,8 +38,8 @@ Explications, pièges, fichier complet : [Référence de configuration](/fr/hub/
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `HUB_PORT` | `8080` | Docker. Port HTTP vu de l'extérieur. Dedans, toujours `8080`. |
-| `GRPC_PORT` | `50051` | gRPC des agents |
+| `HUB_PORT` | `8080` | Docker uniquement. Port externe du serveur HTTP. Le port interne du conteneur est toujours `8080`. |
+| `GRPC_PORT` | `50051` | Port gRPC pour les connexions des agents |
 
 ---
 
@@ -47,29 +47,29 @@ Explications, pièges, fichier complet : [Référence de configuration](/fr/hub/
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `TLS_MODE` | `auto` | `auto` : CA et certificat fabriqués par le Hub. `custom` : vos fichiers. |
-| `TLS_PKI_DIR` | `/var/lib/watchflare/pki` | Certificats auto-générés (`auto`) |
-| `TLS_CERT_FILE` | Aucun | Certificat serveur (`custom`) |
-| `TLS_KEY_FILE` | Aucun | Clé privée serveur (`custom`) |
-| `TLS_CA_FILE` | Aucun | CA envoyée aux agents à l'enrôlement (`custom`) |
+| `TLS_MODE` | `auto` | `auto` : le Hub génère sa propre CA et son certificat serveur. `custom` : fournissez vos propres fichiers. |
+| `TLS_PKI_DIR` | `/var/lib/watchflare/pki` | Répertoire des certificats auto-générés (mode `auto` uniquement) |
+| `TLS_CERT_FILE` | Aucun | Chemin du certificat serveur (mode `custom` uniquement) |
+| `TLS_KEY_FILE` | Aucun | Chemin de la clé privée serveur (mode `custom` uniquement) |
+| `TLS_CA_FILE` | Aucun | Chemin du certificat CA, envoyé aux agents à l'enrôlement (mode `custom` uniquement) |
 
 ---
 
-## Cookies
+## Sécurité des cookies
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `COOKIE_SECURE` | *(auto)* | Force `Secure` (`true` / `false`). Ne pas poser la variable = détection automatique, c'est le bon choix. |
-| `COOKIE_DOMAIN` | *(vide)* | Votre domaine, derrière un reverse proxy |
-| `TRUSTED_PROXIES` | `127.0.0.1,::1` | IP autorisées à poser `X-Forwarded-Proto` |
+| `COOKIE_SECURE` | *(auto)* | Force le flag `Secure` : `true` ou `false`. Omettez-la pour utiliser la détection automatique (recommandé). |
+| `COOKIE_DOMAIN` | *(vide)* | Domaine du cookie, définissez-le à votre domaine lorsque vous utilisez un reverse proxy |
+| `TRUSTED_PROXIES` | `127.0.0.1,::1` | IP autorisées à définir `X-Forwarded-Proto`, séparées par des virgules |
 
 ---
 
-## gRPC
+## Sécurité gRPC
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `GRPC_TIMESTAMP_WINDOW` | `300` | Fenêtre HMAC en secondes (±). Dehors : requête rejetée. |
+| `GRPC_TIMESTAMP_WINDOW` | `300` | Fenêtre d'horodatage HMAC en secondes (±fenêtre). Les requêtes hors de cette plage sont rejetées. |
 
 ---
 
@@ -77,12 +77,12 @@ Explications, pièges, fichier complet : [Référence de configuration](/fr/hub/
 
 | Variable | Défaut | Description |
 |----------|---------|-------------|
-| `ENV` | `development` | Mettez `production` une fois déployé. Gin passe en mode production. Compose le pose. |
-| `CORS_ORIGINS` | `http://localhost:5173` | Origines CORS. Inutile dès que l'interface est embarquée (Docker, binaire). |
+| `ENV` | `development` | Définissez-la à `production` sur les instances déployées. Passe Gin en mode release. Docker Compose la définit automatiquement. |
+| `CORS_ORIGINS` | `http://localhost:5173` | Origines CORS autorisées, séparées par des virgules. Inutile pour Docker ou les installations binaires. |
 
 ---
 
-## Les trois lignes à poser
+## `.env` de démarrage rapide
 
 <CodeBlock filename=".env" lang="bash">
 ```bash
@@ -92,4 +92,4 @@ NOTIFICATION_ENCRYPTION_KEY=$(openssl rand -base64 32)
 ```
 </CodeBlock>
 
-Tout le reste a déjà une valeur. Un Compose standard n'a besoin que de ça.
+Toutes les autres variables ont des valeurs par défaut raisonnables pour un déploiement Docker Compose standard.

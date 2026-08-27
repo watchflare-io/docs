@@ -1,16 +1,16 @@
 ---
 title: "Désinstaller le Hub Watchflare"
-description: "Retirez le Hub Watchflare (Docker ou binaire systemd). Sauvegarde de la base, suppression des volumes, nettoyage des agents, fermeture des ports firewall."
+description: "Retirez le Hub Watchflare de Docker ou d'une installation binaire systemd. Couvre la sauvegarde de la base de données, la suppression des volumes, le nettoyage des agents et la fermeture des ports du pare-feu."
 ---
 
 import Callout from "@components/Callout.astro";
 import CodeBlock from "@components/CodeBlock.astro";
 
-Avant de retirer le Hub, décidez si vous gardez les données. Tout — historique des métriques, machines enrôlées, utilisateurs, règles d'alerte, certificats TLS, inventaire de paquets — tient dans deux volumes Docker : `pgdata` (TimescaleDB) et `pki_data` (PKI).
+Avant de retirer le Hub, décidez si vous souhaitez conserver vos données. Le Hub stocke tout (historique des métriques, enregistrements d'hôtes, utilisateurs, règles d'alerte, certificats TLS et inventaire de paquets) dans deux volumes Docker nommés : `pgdata` (TimescaleDB) et `pki_data` (certificats PKI).
 
-## Sauvegarder d'abord
+## Sauvegardez d'abord vos données
 
-S'il y a une chance de réinstaller, faites un dump avant :
+S'il y a une chance que vous réinstalliez plus tard, exportez un dump de la base de données avant de continuer :
 
 <CodeBlock lang="bash">
 ```bash
@@ -18,9 +18,9 @@ docker exec watchflare-postgres pg_dump -U watchflare watchflare > watchflare-ba
 ```
 </CodeBlock>
 
-Rangez le dump hors de la machine Docker. `pki_data` compte autant : les agents sont enrôlés contre la CA qu'il contient. Sans elle, il faudra tout réenrôler.
+Stockez le dump quelque part en dehors de l'hôte Docker. Le volume `pki_data` est tout aussi important, car les agents sont enregistrés auprès de la CA qu'il contient. Sans la CA d'origine, les agents réenregistrés doivent être réenrôlés à partir de zéro.
 
-Sauvegarder le volume PKI :
+Pour sauvegarder le volume PKI :
 
 <CodeBlock lang="bash">
 ```bash
@@ -33,7 +33,7 @@ docker run --rm -v pki_data:/data -v $(pwd):/backup alpine \
 
 ## Arrêter et retirer les conteneurs
 
-Cette commande arrête et retire les conteneurs et le réseau, mais **garde les données** (base et certificats restent dans les volumes) :
+Cela arrête et retire les conteneurs et le réseau, mais **conserve toutes les données** intactes (la base de données et les certificats TLS restent dans leurs volumes Docker) :
 
 <CodeBlock lang="bash">
 ```bash
@@ -41,13 +41,13 @@ docker compose down
 ```
 </CodeBlock>
 
-Vous pouvez relancer le Hub à tout moment avec `docker compose up -d`. Hôtes, métriques et config seront toujours là.
+Vous pouvez relancer le Hub à tout moment avec `docker compose up -d`. Tous les hôtes, les métriques et la configuration seront toujours là.
 
 ---
 
 ## Tout supprimer, données comprises
 
-Conteneurs, réseau, et tous les volumes Docker :
+Cela retire les conteneurs, le réseau et tous les volumes Docker :
 
 <CodeBlock lang="bash">
 ```bash
@@ -56,14 +56,14 @@ docker compose down -v
 </CodeBlock>
 
 <Callout type="danger" title="Danger">
-  Effacement définitif : historique, machines enrôlées, utilisateurs, inventaire, règles d'alerte, certificats TLS. Les agents de ce Hub ne pourront plus se connecter. Il faudra les réenrôler sur une nouvelle installation.
+  Cela supprime de façon permanente et irrécupérable tout l'historique des métriques, les enregistrements d'hôtes, les utilisateurs, l'inventaire de paquets, les règles d'alerte et les certificats TLS. Les agents enregistrés auprès de ce Hub ne pourront plus se connecter. Ils doivent être réenregistrés auprès d'une nouvelle installation.
 </Callout>
 
-Contenu de chaque volume :
+Ce que contient chaque volume :
 
 | Volume | Contenu |
 |--------|---------|
-| `pgdata` | Données TimescaleDB : métriques, hôtes, utilisateurs, règles d'alerte, inventaire de paquets |
+| `pgdata` | Données TimescaleDB : toutes les métriques, hôtes, utilisateurs, règles d'alerte, inventaire de paquets |
 | `pki_data` | Clé privée CA du Hub, certificat CA, certificat et clé serveur |
 
 ---
@@ -79,9 +79,9 @@ docker rmi timescale/timescaledb:latest-pg16
 
 ---
 
-## Nettoyer les fichiers de config
+## Nettoyer les fichiers de configuration
 
-Retirez `.env` et `docker-compose.yml` du serveur :
+Retirez le `.env` et `docker-compose.yml` du serveur :
 
 <CodeBlock lang="bash">
 ```bash
@@ -89,7 +89,7 @@ rm docker-compose.yml .env
 ```
 </CodeBlock>
 
-Si vous aviez ouvert les ports du Hub dans le firewall (`8080`, `50051`), fermez-les :
+Si vous aviez ouvert des ports dans un pare-feu pour le Hub (`8080`, `50051`), fermez-les :
 
 <CodeBlock lang="bash">
 ```bash
@@ -103,7 +103,7 @@ sudo ufw delete allow 50051/tcp
 
 ## Vérifier la suppression
 
-Plus aucun conteneur ni volume Hub :
+Confirmez qu'il ne reste aucun conteneur ni volume du Hub :
 
 <CodeBlock lang="bash">
 ```bash
@@ -118,7 +118,7 @@ Les deux commandes ne doivent rien renvoyer.
 
 ## Installation binaire (Linux, systemd)
 
-### Sauvegarder
+### Sauvegarder vos données
 
 <CodeBlock lang="bash">
 ```bash
@@ -126,7 +126,7 @@ pg_dump -h localhost -U watchflare watchflare > watchflare-backup.sql
 ```
 </CodeBlock>
 
-Si TimescaleDB tourne dans Docker :
+Si TimescaleDB s'exécute dans Docker :
 
 <CodeBlock lang="bash">
 ```bash
@@ -145,7 +145,7 @@ sudo systemctl daemon-reload
 ```
 </CodeBlock>
 
-### Retirer le binaire et la config
+### Retirer le binaire et la configuration
 
 <CodeBlock lang="bash">
 ```bash
@@ -156,7 +156,7 @@ sudo rm -rf /var/lib/watchflare
 </CodeBlock>
 
 <Callout type="warn" title="Attention">
-  `/var/lib/watchflare` contient la CA TLS et les certificats. Une fois supprimé, les agents enrôlés contre cette CA ne se reconnectent plus.
+  `/var/lib/watchflare` contient la CA TLS auto-générée et les certificats. Les agents enregistrés auprès de cette CA ne pourront plus se connecter après la suppression.
 </Callout>
 
 ### Retirer l'utilisateur système (optionnel)
@@ -167,7 +167,7 @@ sudo userdel watchflare
 ```
 </CodeBlock>
 
-### Fermer les ports firewall
+### Fermer les ports du pare-feu
 
 <CodeBlock lang="bash">
 ```bash
@@ -181,6 +181,6 @@ sudo ufw delete allow 50051/tcp
 
 ## Désinstaller les agents
 
-Retirer le Hub ne touche pas aux agents sur les machines surveillées. Leur service continuera d'essayer de se reconnecter jusqu'à l'arrêt. Pour les retirer :
+Retirer le Hub ne désinstalle pas les agents qui s'exécutent sur les hôtes surveillés. Leur service continuera d'essayer de se reconnecter jusqu'à ce qu'il soit arrêté. Pour retirer les agents :
 
 - [Désinstaller sous Linux ou macOS](/fr/agent/uninstall/)
